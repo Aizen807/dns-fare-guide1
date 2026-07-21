@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="theme-color" content="#10160D">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DNS Fares">
+<link rel="manifest" id="manifestLink">
+<link rel="apple-touch-icon" id="appleIcon">
+<meta name="robots" content="noindex, nofollow">
+<title>Diesel N Steel — Fare Guide</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@500;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --ink:#10160D;
+  --panel:#1A2415;
+  --panel-2:#212D1A;
+  --sign:#F3B22C;
+  --sign-deep:#8A5A0F;
+  --route-red:#B23A2E;
+  --chrome:#D8D2BE;
+  --paper:#F1E9D2;
+  --paper-dim:#C9BE9E;
+  --jeep-green:#3E6B4A;
+  --jeep-green-dark:#294A32;
+  --ok:#6FA05B;
+  --line:#3A4530;
+  --shadow:0 6px 0 rgba(0,0,0,0.35);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--ink);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 3px);
+  color:var(--paper);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  padding:24px 16px 64px;
+}
+
+.wrap{max-width:640px;margin:0 auto;}
+
+.plate-row{display:flex;align-items:center;gap:14px;margin-bottom:6px;}
+.plate{
+  background:var(--sign);
+  color:var(--sign-deep);
+  font-family:'Anton',sans-serif;
+  font-size:26px;
+  letter-spacing:1px;
+  padding:6px 14px 4px;
+  border-radius:4px;
+  border:3px solid var(--sign-deep);
+  transform:rotate(-2deg);
+  box-shadow:var(--shadow);
+}
+.eyebrow{
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+}
+
+h1{
+  font-family:'Anton',sans-serif;
+  font-size:38px;
+  line-height:1.02;
+  letter-spacing:0.5px;
+  margin:6px 0 4px;
+  color:var(--paper);
+  text-shadow:2px 2px 0 rgba(0,0,0,0.4);
+}
+.tagline{
+  font-family:'Oswald',sans-serif;
+  font-style:italic;
+  font-weight:500;
+  color:var(--sign);
+  font-size:15px;
+  margin:0 0 28px;
+}
+
+.route-tabs{display:flex;gap:8px;margin-bottom:20px;}
+.route-tab{
+  flex:1;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  text-align:center;
+  padding:12px 6px;
+  border-radius:6px;
+  border:2px solid var(--line);
+  background:var(--panel);
+  color:var(--paper-dim);
+  cursor:pointer;
+  transition:all 0.15s ease;
+}
+.route-tab.active{
+  background:var(--jeep-green);
+  border-color:var(--jeep-green);
+  color:#fff;
+  box-shadow:var(--shadow);
+  transform:translateY(-2px);
+}
+
+.board{
+  background:var(--panel);
+  border:2px solid var(--line);
+  border-radius:14px;
+  padding:22px;
+  box-shadow:var(--shadow);
+  margin-bottom:22px;
+}
+
+.direction-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:var(--route-red);
+  color:#fff;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  padding:6px 12px;
+  border-radius:20px;
+  margin-bottom:16px;
+}
+
+.field-row{display:flex;gap:12px;margin-bottom:14px;}
+.field{flex:1;}
+.field label{
+  display:block;
+  font-family:'Oswald',sans-serif;
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+  margin-bottom:6px;
+}
+select{
+  width:100%;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  font-weight:600;
+  font-size:14px;
+  border:none;
+  border-radius:6px;
+  padding:11px 10px;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%2310160D' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  cursor:pointer;
+}
+
+.swap-btn{
+  align-self:flex-end;
+  margin-bottom:14px;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  color:var(--sign);
+  font-size:16px;
+  width:38px;height:38px;
+  border-radius:6px;
+  cursor:pointer;
+  flex:0 0 38px;
+}
+
+.pax-board{margin-bottom:16px;}
+.pax-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:10px 12px;
+  margin-bottom:8px;
+}
+.pax-info{display:flex;flex-direction:column;gap:2px;}
+.pax-name{
+  font-family:'Oswald',sans-serif;
+  font-weight:600;
+  font-size:14px;
+  color:var(--paper);
+}
+.pax-fare{font-size:12px;color:var(--paper-dim);}
+.pax-stepper{display:flex;align-items:center;gap:12px;}
+.step-btn{
+  width:30px;height:30px;
+  border-radius:6px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--sign);
+  font-size:18px;
+  font-weight:700;
+  line-height:1;
+  cursor:pointer;
+}
+.step-btn:hover{border-color:var(--sign);}
+.pax-count{
+  font-family:'Anton',sans-serif;
+  font-size:18px;
+  min-width:18px;
+  text-align:center;
+  color:var(--paper);
+}
+
+.fare-display{
+  background:var(--ink);
+  border:2px dashed var(--sign);
+  border-radius:10px;
+  padding:20px;
+  text-align:center;
+  margin-bottom:12px;
+}
+.fare-label{
+  font-family:'Oswald',sans-serif;
+  font-size:11px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+  margin-bottom:4px;
+}
+.fare-amount{
+  font-family:'Anton',sans-serif;
+  font-size:56px;
+  color:var(--sign);
+  line-height:1;
+}
+.fare-amount span{font-size:26px;}
+.fare-breakdown{
+  font-size:12.5px;
+  color:var(--paper-dim);
+  margin-top:6px;
+  min-height:18px;
+}
+
+.route-list{
+  font-family:'Oswald',sans-serif;
+  font-size:12.5px;
+  color:var(--paper-dim);
+  line-height:1.9;
+  border-top:1px dashed var(--line);
+  padding-top:12px;
+  margin-top:4px;
+}
+.route-list b{color:var(--paper);}
+.unit-pair{
+  background:var(--panel-2);
+  padding:1px 6px;
+  border-radius:3px;
+  border:1px solid var(--line);
+}
+
+.section-title{
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--sign);
+  margin:0 0 12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.section-title::after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:var(--line);
+}
+
+.sukli-grid{display:flex;gap:12px;margin-bottom:14px;}
+.sukli-grid .field input{
+  width:100%;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  font-weight:700;
+  font-size:16px;
+  border:none;
+  border-radius:6px;
+  padding:11px 10px;
+}
+.quick-amounts{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.quick-btn{
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  color:var(--paper);
+  font-family:'Inter',sans-serif;
+  font-size:12.5px;
+  font-weight:600;
+  padding:7px 12px;
+  border-radius:20px;
+  cursor:pointer;
+}
+.quick-btn:hover{border-color:var(--sign);color:var(--sign);}
+
+.sukli-result{
+  background:var(--jeep-green-dark);
+  border:2px solid var(--jeep-green);
+  border-radius:10px;
+  padding:18px;
+  text-align:center;
+}
+.sukli-result.short{
+  background:#3A1B18;
+  border-color:var(--route-red);
+}
+.sukli-label{
+  font-family:'Oswald',sans-serif;
+  font-size:11px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+}
+.sukli-amount{
+  font-family:'Anton',sans-serif;
+  font-size:40px;
+  color:#fff;
+}
+.sukli-note{font-size:12.5px;color:var(--paper-dim);margin-top:4px;}
+
+.builder{
+  border-top:1px dashed var(--line);
+  margin-top:16px;
+  padding-top:16px;
+}
+.builder-label{
+  font-family:'Oswald',sans-serif;
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+  margin-bottom:10px;
+}
+.denom-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:8px;
+  margin-bottom:8px;
+}
+.denom-chip{
+  position:relative;
+  background:var(--paper);
+  color:var(--ink);
+  border:2px solid var(--paper-dim);
+  border-radius:8px;
+  padding:12px 6px 8px;
+  text-align:center;
+  cursor:pointer;
+  user-select:none;
+  transition:transform 0.08s ease, border-color 0.15s ease;
+}
+.denom-chip.bill{background:#DCE7CE;border-color:#8FAE72;}
+.denom-chip.coin{background:#EDE0BE;border-color:#C7A24B;border-radius:50%;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.denom-chip:active{transform:scale(0.94);}
+.denom-chip.has-count{border-color:var(--sign);box-shadow:0 0 0 2px var(--sign) inset;}
+.denom-value{font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;}
+.denom-count{
+  position:absolute;
+  top:-6px;
+  right:-6px;
+  background:var(--route-red);
+  color:#fff;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  min-width:18px;
+  height:18px;
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 4px;
+  opacity:0;
+  transform:scale(0.6);
+  transition:all 0.12s ease;
+}
+.denom-count.show{opacity:1;transform:scale(1);}
+
+.builder-total-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:12px;
+}
+.builder-total{
+  flex:1;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:8px 12px;
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+}
+.builder-total-label{
+  font-family:'Oswald',sans-serif;
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+}
+.builder-total-amount{
+  font-family:'Anton',sans-serif;
+  font-size:22px;
+  color:var(--paper);
+}
+.builder-reset,.builder-confirm{
+  flex:0 0 44px;
+  height:44px;
+  border-radius:8px;
+  border:none;
+  font-size:18px;
+  cursor:pointer;
+}
+.builder-reset{background:var(--route-red);color:#fff;}
+.builder-confirm{background:var(--line);color:var(--paper-dim);transition:all 0.15s ease;}
+.builder-confirm.correct{background:var(--ok);color:#fff;}
+.builder-feedback{
+  margin-top:10px;
+  text-align:center;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  min-height:18px;
+  color:var(--paper-dim);
+}
+.builder-feedback.correct{color:var(--ok);}
+.builder-feedback.wrong{color:var(--route-red);}
+
+.recent-chips{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.recent-chip{
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  color:var(--paper-dim);
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  padding:7px 12px;
+  border-radius:20px;
+  cursor:pointer;
+}
+.recent-chip:hover{border-color:var(--sign);color:var(--sign);}
+.recent-empty{
+  font-family:'Oswald',sans-serif;
+  font-size:12px;
+  font-style:italic;
+  color:var(--paper-dim);
+  margin-bottom:16px;
+}
+
+.pax-board-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+.pax-board-title{
+  font-family:'Oswald',sans-serif;
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+}
+.clear-pax-btn{
+  background:none;
+  border:none;
+  color:var(--route-red);
+  font-family:'Oswald',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  cursor:pointer;
+  padding:2px 4px;
+}
+
+.session-board{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:22px;
+}
+.session-stat{
+  flex:1;
+  background:var(--panel);
+  border:2px solid var(--line);
+  border-radius:10px;
+  padding:14px;
+  text-align:center;
+}
+.session-stat-label{
+  font-family:'Oswald',sans-serif;
+  font-size:10.5px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+  margin-bottom:4px;
+}
+.session-stat-value{
+  font-family:'Anton',sans-serif;
+  font-size:26px;
+  color:var(--sign);
+}
+.complete-trip-btn{
+  width:100%;
+  margin-top:12px;
+  background:var(--jeep-green);
+  border:2px solid var(--jeep-green);
+  color:#fff;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:13px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.complete-trip-btn:active{transform:scale(0.98);}
+.session-reset-row{
+  text-align:center;
+  margin-top:10px;
+}
+.session-reset-btn{
+  background:none;
+  border:none;
+  color:var(--paper-dim);
+  font-family:'Oswald',sans-serif;
+  font-size:11.5px;
+  text-decoration:underline;
+  cursor:pointer;
+}
+
+.footnote{
+  font-family:'Oswald',sans-serif;
+  font-size:11.5px;
+  font-style:italic;
+  color:var(--paper-dim);
+  text-align:center;
+  margin-top:26px;
+  line-height:1.7;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="plate-row">
+    <div class="plate">05</div>
+    <div class="eyebrow">Diesel N Steel</div>
+  </div>
+  <h1>Fare Matrix</h1>
+  <p class="tagline">"Bagumbayan-San Jose, sakay na!" — count your barangays, hindi mahirap.</p>
+
+  <div class="route-tabs" id="routeTabs"></div>
+
+  <div class="recent-chips" id="recentChips"></div>
+
+  <div class="board">
+    <div class="direction-badge" id="directionOut"></div>
+    <div class="field-row">
+      <div class="field">
+        <label>Pickup barangay</label>
+        <select id="fromSelect"></select>
+      </div>
+      <button class="swap-btn" id="swapBtn" title="Swap">&#8646;</button>
+      <div class="field">
+        <label>Drop-off barangay</label>
+        <select id="toSelect"></select>
+      </div>
+    </div>
+
+    <div class="pax-board">
+      <div class="pax-board-header">
+        <span class="pax-board-title">Pasahero</span>
+        <button class="clear-pax-btn" id="clearPaxBtn">Clear</button>
+      </div>
+      <div class="pax-row" data-type="regular">
+        <div class="pax-info">
+          <span class="pax-name">Regular</span>
+          <span class="pax-fare" id="fareRegular">&#8369;13</span>
+        </div>
+        <div class="pax-stepper">
+          <button class="step-btn" data-type="regular" data-action="dec">&minus;</button>
+          <span class="pax-count" id="countRegular">0</span>
+          <button class="step-btn" data-type="regular" data-action="inc">+</button>
+        </div>
+      </div>
+      <div class="pax-row" data-type="student">
+        <div class="pax-info">
+          <span class="pax-name">Student</span>
+          <span class="pax-fare" id="fareStudent">&#8369;11</span>
+        </div>
+        <div class="pax-stepper">
+          <button class="step-btn" data-type="student" data-action="dec">&minus;</button>
+          <span class="pax-count" id="countStudent">0</span>
+          <button class="step-btn" data-type="student" data-action="inc">+</button>
+        </div>
+      </div>
+      <div class="pax-row" data-type="senior">
+        <div class="pax-info">
+          <span class="pax-name">Senior</span>
+          <span class="pax-fare" id="fareSenior">&#8369;11</span>
+        </div>
+        <div class="pax-stepper">
+          <button class="step-btn" data-type="senior" data-action="dec">&minus;</button>
+          <span class="pax-count" id="countSenior">0</span>
+          <button class="step-btn" data-type="senior" data-action="inc">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="fare-display">
+      <div class="fare-label">Total fare</div>
+      <div class="fare-amount"><span>&#8369;</span><span id="fareOut">13</span></div>
+      <div class="fare-breakdown" id="breakdownOut"></div>
+    </div>
+
+    <div class="route-list" id="routeListOut"></div>
+
+    <button class="complete-trip-btn" id="completeTripBtn">Complete trip</button>
+  </div>
+
+  <div class="session-board">
+    <div class="session-stat">
+      <div class="session-stat-label">Trips</div>
+      <div class="session-stat-value" id="tripCountOut">0</div>
+    </div>
+    <div class="session-stat">
+      <div class="session-stat-label">Session total</div>
+      <div class="session-stat-value" id="sessionTotalOut">&#8369;0</div>
+    </div>
+  </div>
+  <div class="session-reset-row">
+    <button class="session-reset-btn" id="sessionResetBtn">Reset session</button>
+  </div>
+
+  <div class="section-title">Sukli calculator</div>
+  <div class="board">
+    <div class="sukli-grid">
+      <div class="field">
+        <label>Total fare (php)</label>
+        <input type="number" id="fareInput" value="13" min="0" step="1" readonly>
+      </div>
+      <div class="field">
+        <label>Binayad (php)</label>
+        <input type="number" id="paidInput" placeholder="0" min="0" step="1">
+      </div>
+    </div>
+    <div class="quick-amounts" id="quickAmounts"></div>
+    <div class="sukli-result" id="sukliResult">
+      <div class="sukli-label">Naghihintay ng sukli</div>
+      <div class="sukli-amount" id="sukliOut">&#8369;0</div>
+      <div class="sukli-note" id="sukliNote">Ilagay ang binayad para makuha ang sukli.</div>
+    </div>
+
+    <div class="builder">
+      <div class="builder-label">I-tayo ang sukli (tap para idagdag)</div>
+      <div class="denom-grid" id="billGrid"></div>
+      <div class="denom-grid" id="coinGrid"></div>
+
+      <div class="builder-total-row">
+        <div class="builder-total">
+          <span class="builder-total-label">Naipon</span>
+          <span class="builder-total-amount" id="builderTotal">&#8369;0</span>
+        </div>
+        <button class="builder-reset" id="builderReset" title="I-reset">&#8635;</button>
+        <button class="builder-confirm" id="builderConfirm" title="Kumpirmahin">&#10003;</button>
+      </div>
+      <div class="builder-feedback" id="builderFeedback"></div>
+    </div>
+  </div>
+
+  <p class="footnote">Bagumbayan and San Jose count as one barangay (too short to charge separately).<br>Same rule applies to San Juan and Sto. Rosario on the Malolos route.</p>
+
+</div>
+
+<script>
+const routes = {
+  balagtas: {
+    label: "Balagtas",
+    units: [
+      ["Bagumbayan","San Jose"],
+      ["Matungao"],
+      ["Panginay Guiguinto"],
+      ["Panginay Balagtas"],
+      ["Wawa"]
+    ]
+  },
+  guiguinto: {
+    label: "Guiguinto",
+    units: [
+      ["Bagumbayan","San Jose"],
+      ["Matungao"],
+      ["Tuktukan"]
+    ]
+  },
+  malolos: {
+    label: "Malolos",
+    units: [
+      ["Bagumbayan","San Jose"],
+      ["Maysantol"],
+      ["San Nicolas"],
+      ["Pitpitan"],
+      ["Mambog"],
+      ["Matimbo"],
+      ["Panasahan"],
+      ["Bagna"],
+      ["Atlag"],
+      ["San Juan","Sto. Rosario"]
+    ]
+  }
+};
+
+let currentRoute = "balagtas";
+let paxCounts = { regular: 1, student: 0, senior: 0 };
+let tripCount = 0;
+let sessionTotal = 0;
+let recentDestinations = [];
+
+const routeTabs = document.getElementById("routeTabs");
+const fromSelect = document.getElementById("fromSelect");
+const toSelect = document.getElementById("toSelect");
+const fareOut = document.getElementById("fareOut");
+const breakdownOut = document.getElementById("breakdownOut");
+const routeListOut = document.getElementById("routeListOut");
+const fareInput = document.getElementById("fareInput");
+const paidInput = document.getElementById("paidInput");
+const sukliOut = document.getElementById("sukliOut");
+const sukliNote = document.getElementById("sukliNote");
+const sukliResult = document.getElementById("sukliResult");
+const quickAmounts = document.getElementById("quickAmounts");
+
+function buildTabs(){
+  routeTabs.innerHTML = "";
+  Object.keys(routes).forEach(key=>{
+    const btn = document.createElement("div");
+    btn.className = "route-tab" + (key===currentRoute ? " active" : "");
+    btn.textContent = routes[key].label + " \u21C4 Bulakan";
+    btn.onclick = () => { currentRoute = key; refreshRoute(); };
+    routeTabs.appendChild(btn);
+  });
+}
+
+function flatBarangays(units){
+  const list = [];
+  units.forEach((unit, idx)=>{
+    unit.forEach(name => list.push({name, idx}));
+  });
+  return list;
+}
+
+function buildSelects(){
+  const flat = flatBarangays(routes[currentRoute].units);
+  [fromSelect, toSelect].forEach(sel => sel.innerHTML = "");
+  flat.forEach(item => {
+    const opt1 = document.createElement("option");
+    opt1.value = item.idx; opt1.textContent = item.name;
+    fromSelect.appendChild(opt1);
+    const opt2 = document.createElement("option");
+    opt2.value = item.idx; opt2.textContent = item.name;
+    toSelect.appendChild(opt2);
+  });
+  fromSelect.selectedIndex = 0;
+  toSelect.selectedIndex = flat.length - 1;
+}
+
+function buildRouteList(){
+  const units = routes[currentRoute].units;
+  const parts = units.map(u => u.length > 1 ? `<span class="unit-pair">${u.join(" / ")}</span>` : u[0]);
+  routeListOut.innerHTML = `<b>${routes[currentRoute].label} - Bulakan</b> (${units.length} counted units)<br>` + parts.join(" &rarr; ");
+}
+
+function computeFare(){
+  const fromIdx = parseInt(fromSelect.value, 10);
+  const toIdx = parseInt(toSelect.value, 10);
+  const unitsCount = Math.abs(fromIdx - toIdx) + 1;
+  const extra = Math.max(0, unitsCount - 4);
+  const regularFare = 13 + extra * 2;
+  const reducedFare = 11 + extra * 2;
+
+  const routeLabel = routes[currentRoute].label;
+  const directionOut = document.getElementById("directionOut");
+  if(toIdx > fromIdx){
+    directionOut.textContent = "Bulakan \u2192 " + routeLabel;
+  } else if(toIdx < fromIdx){
+    directionOut.textContent = routeLabel + " \u2192 Bulakan";
+  } else {
+    directionOut.textContent = "Same barangay";
+  }
+
+  document.getElementById("fareRegular").textContent = "\u20B1" + regularFare;
+  document.getElementById("fareStudent").textContent = "\u20B1" + reducedFare;
+  document.getElementById("fareSenior").textContent = "\u20B1" + reducedFare;
+
+  const totalPax = paxCounts.regular + paxCounts.student + paxCounts.senior;
+  const total = (paxCounts.regular * regularFare) + ((paxCounts.student + paxCounts.senior) * reducedFare);
+
+  fareOut.textContent = total;
+  fareInput.value = total;
+
+  const unitNote = unitsCount <= 4
+    ? `${unitsCount} unit(s), within minimum`
+    : `${unitsCount} units, +${extra} beyond minimum`;
+
+  if(totalPax === 0){
+    breakdownOut.textContent = `${unitNote} -> walang pasahero na naka-check pa`;
+  } else {
+    const pieces = [];
+    if(paxCounts.regular) pieces.push(`${paxCounts.regular} regular x \u20B1${regularFare}`);
+    if(paxCounts.student) pieces.push(`${paxCounts.student} student x \u20B1${reducedFare}`);
+    if(paxCounts.senior) pieces.push(`${paxCounts.senior} senior x \u20B1${reducedFare}`);
+    breakdownOut.textContent = `${unitNote} -> ${pieces.join(" + ")}`;
+  }
+  computeSukli();
+}
+
+function computeSukli(){
+  const fare = parseFloat(fareInput.value) || 0;
+  const paid = parseFloat(paidInput.value);
+  if(isNaN(paid)){
+    sukliOut.textContent = "\u20B10";
+    sukliNote.textContent = "Ilagay ang binayad para makuha ang sukli.";
+    sukliResult.classList.remove("short");
+    if(typeof updateBuilder === "function") updateBuilder();
+    return;
+  }
+  const change = paid - fare;
+  if(change < 0){
+    sukliResult.classList.add("short");
+    sukliOut.textContent = "\u20B1" + Math.abs(change);
+    sukliNote.textContent = "Kulang ng amount na ito, hingin muna ang balanse.";
+  } else {
+    sukliResult.classList.remove("short");
+    sukliOut.textContent = "\u20B1" + change;
+    sukliNote.textContent = change === 0 ? "Eksakto, walang sukli." : "Ibigay ang sukling ito sa pasahero.";
+  }
+  if(typeof updateBuilder === "function") updateBuilder();
+}
+
+const bills = [1000, 500, 200, 100, 50, 20];
+const coins = [20, 10, 5, 1];
+const billGrid = document.getElementById("billGrid");
+const coinGrid = document.getElementById("coinGrid");
+const builderTotal = document.getElementById("builderTotal");
+const builderReset = document.getElementById("builderReset");
+const builderConfirm = document.getElementById("builderConfirm");
+const builderFeedback = document.getElementById("builderFeedback");
+const counts = {};
+
+function buildDenomGrid(list, grid, kind){
+  list.forEach(val => {
+    counts[val] = 0;
+    const chip = document.createElement("div");
+    chip.className = "denom-chip " + kind;
+    chip.innerHTML = `<span class="denom-value">\u20B1${val}</span><span class="denom-count" id="count-${val}">0</span>`;
+    chip.onclick = () => {
+      counts[val] += 1;
+      updateBuilder();
+    };
+    chip.oncontextmenu = (e) => {
+      e.preventDefault();
+      if(counts[val] > 0) counts[val] -= 1;
+      updateBuilder();
+    };
+    grid.appendChild(chip);
+  });
+}
+
+function updateBuilder(){
+  let total = 0;
+  Object.keys(counts).forEach(val => {
+    total += val * counts[val];
+    const badge = document.getElementById("count-" + val);
+    badge.textContent = counts[val];
+    badge.classList.toggle("show", counts[val] > 0);
+    badge.parentElement.classList.toggle("has-count", counts[val] > 0);
+  });
+  builderTotal.textContent = "\u20B1" + total;
+
+  const target = getTargetSukli();
+  if(target === null){
+    builderFeedback.textContent = "Kumpletuhin muna ang binayad sa taas.";
+    builderFeedback.className = "builder-feedback";
+    builderConfirm.classList.remove("correct");
+    return;
+  }
+  if(total === target && target >= 0){
+    builderFeedback.textContent = "Tama! Handa na ang sukli.";
+    builderFeedback.className = "builder-feedback correct";
+    builderConfirm.classList.add("correct");
+  } else if(total < target){
+    builderFeedback.textContent = `Kulang pa ng \u20B1${target - total}`;
+    builderFeedback.className = "builder-feedback";
+    builderConfirm.classList.remove("correct");
+  } else {
+    builderFeedback.textContent = `Sobra ng \u20B1${total - target}`;
+    builderFeedback.className = "builder-feedback wrong";
+    builderConfirm.classList.remove("correct");
+  }
+}
+
+function getTargetSukli(){
+  const fare = parseFloat(fareInput.value) || 0;
+  const paid = parseFloat(paidInput.value);
+  if(isNaN(paid)) return null;
+  const change = paid - fare;
+  return change < 0 ? null : change;
+}
+
+function resetBuilder(){
+  Object.keys(counts).forEach(val => counts[val] = 0);
+  updateBuilder();
+}
+
+builderReset.onclick = resetBuilder;
+builderConfirm.onclick = () => {
+  if(builderConfirm.classList.contains("correct")){
+    builderFeedback.textContent = "Naibigay ang sukli!";
+    setTimeout(resetBuilder, 900);
+  }
+};
+
+buildDenomGrid(bills, billGrid, "bill");
+buildDenomGrid(coins, coinGrid, "coin");
+
+function buildQuickAmounts(){
+  quickAmounts.innerHTML = "";
+  [20, 50, 100, 200, 500].forEach(amt => {
+    const b = document.createElement("div");
+    b.className = "quick-btn";
+    b.textContent = "\u20B1" + amt;
+    b.onclick = () => { paidInput.value = amt; computeSukli(); };
+    quickAmounts.appendChild(b);
+  });
+}
+
+function refreshRoute(){
+  buildTabs();
+  buildSelects();
+  buildRouteList();
+  computeFare();
+}
+
+document.querySelectorAll(".step-btn").forEach(btn => {
+  btn.onclick = () => {
+    const type = btn.dataset.type;
+    const action = btn.dataset.action;
+    if(action === "inc"){
+      paxCounts[type] += 1;
+    } else {
+      paxCounts[type] = Math.max(0, paxCounts[type] - 1);
+    }
+    document.getElementById("count" + type.charAt(0).toUpperCase() + type.slice(1)).textContent = paxCounts[type];
+    computeFare();
+  };
+});
+
+document.getElementById("swapBtn").onclick = () => {
+  const tmp = fromSelect.value;
+  fromSelect.value = toSelect.value;
+  toSelect.value = tmp;
+  computeFare();
+};
+
+fromSelect.addEventListener("change", computeFare);
+toSelect.addEventListener("change", computeFare);
+fareInput.addEventListener("input", computeSukli);
+paidInput.addEventListener("input", computeSukli);
+
+document.getElementById("clearPaxBtn").onclick = () => {
+  paxCounts = { regular: 0, student: 0, senior: 0 };
+  syncPaxDisplay();
+  computeFare();
+};
+
+function syncPaxDisplay(){
+  document.getElementById("countRegular").textContent = paxCounts.regular;
+  document.getElementById("countStudent").textContent = paxCounts.student;
+  document.getElementById("countSenior").textContent = paxCounts.senior;
+}
+
+function renderRecentChips(){
+  const wrap = document.getElementById("recentChips");
+  wrap.innerHTML = "";
+  if(recentDestinations.length === 0){
+    wrap.innerHTML = '<span class="recent-empty">Recent trips will show up here as chips.</span>';
+    return;
+  }
+  recentDestinations.forEach(dest => {
+    const chip = document.createElement("div");
+    chip.className = "recent-chip";
+    chip.textContent = dest.label;
+    chip.onclick = () => {
+      currentRoute = dest.routeKey;
+      buildTabs();
+      buildSelects();
+      buildRouteList();
+      fromSelect.value = dest.fromIdx;
+      toSelect.value = dest.toIdx;
+      computeFare();
+    };
+    wrap.appendChild(chip);
+  });
+}
+
+function pushRecentDestination(){
+  const flat = flatBarangays(routes[currentRoute].units);
+  const fromIdx = parseInt(fromSelect.value, 10);
+  const toIdx = parseInt(toSelect.value, 10);
+  const fromName = flat.find(f => f.idx === fromIdx).name;
+  const toName = flat.find(f => f.idx === toIdx).name;
+  const label = `${fromName} \u2192 ${toName}`;
+  recentDestinations = recentDestinations.filter(d => d.label !== label);
+  recentDestinations.unshift({ routeKey: currentRoute, fromIdx, toIdx, label });
+  recentDestinations = recentDestinations.slice(0, 5);
+  renderRecentChips();
+}
+
+function updateSessionDisplay(){
+  document.getElementById("tripCountOut").textContent = tripCount;
+  document.getElementById("sessionTotalOut").textContent = "\u20B1" + sessionTotal;
+}
+
+document.getElementById("completeTripBtn").onclick = () => {
+  const fare = parseFloat(fareInput.value) || 0;
+  if(fare <= 0) return;
+  sessionTotal += fare;
+  tripCount += 1;
+  updateSessionDisplay();
+  pushRecentDestination();
+  paxCounts = { regular: 0, student: 0, senior: 0 };
+  syncPaxDisplay();
+  paidInput.value = "";
+  computeFare();
+  resetBuilder();
+};
+
+document.getElementById("sessionResetBtn").onclick = () => {
+  tripCount = 0;
+  sessionTotal = 0;
+  updateSessionDisplay();
+};
+
+const manifest = {
+  name: "Diesel N Steel Fare Guide",
+  short_name: "DNS Fares",
+  start_url: ".",
+  display: "standalone",
+  background_color: "#10160D",
+  theme_color: "#10160D",
+  icons: [{
+    src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%2310160D'/%3E%3Ctext x='50' y='62' font-family='Arial' font-weight='bold' font-size='40' fill='%23F3B22C' text-anchor='middle'%3E05%3C/text%3E%3C/svg%3E",
+    sizes: "192x192",
+    type: "image/svg+xml"
+  }]
+};
+const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
+document.getElementById("manifestLink").href = URL.createObjectURL(manifestBlob);
+document.getElementById("appleIcon").href = manifest.icons[0].src;
+
+document.getElementById("countRegular").textContent = paxCounts.regular;
+document.getElementById("countStudent").textContent = paxCounts.student;
+document.getElementById("countSenior").textContent = paxCounts.senior;
+
+buildQuickAmounts();
+refreshRoute();
+renderRecentChips();
+updateSessionDisplay();
+</script>
+</body>
+</html>

@@ -334,115 +334,6 @@ select{
 }
 .sukli-note{font-size:12.5px;color:var(--paper-dim);margin-top:4px;}
 
-.builder{
-  border-top:1px dashed var(--line);
-  margin-top:16px;
-  padding-top:16px;
-}
-.builder-label{
-  font-family:'Oswald',sans-serif;
-  font-size:11px;
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-  color:var(--paper-dim);
-  margin-bottom:10px;
-}
-.denom-grid{
-  display:grid;
-  grid-template-columns:repeat(3, 1fr);
-  gap:8px;
-  margin-bottom:8px;
-}
-.denom-chip{
-  position:relative;
-  background:var(--paper);
-  color:var(--ink);
-  border:2px solid var(--paper-dim);
-  border-radius:8px;
-  padding:12px 6px 8px;
-  text-align:center;
-  cursor:pointer;
-  user-select:none;
-  transition:transform 0.08s ease, border-color 0.15s ease;
-}
-.denom-chip.bill{background:#DCE7CE;border-color:#8FAE72;}
-.denom-chip.coin{background:#EDE0BE;border-color:#C7A24B;border-radius:50%;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.denom-chip:active{transform:scale(0.94);}
-.denom-chip.has-count{border-color:var(--sign);box-shadow:0 0 0 2px var(--sign) inset;}
-.denom-value{font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;}
-.denom-count{
-  position:absolute;
-  top:-6px;
-  right:-6px;
-  background:var(--route-red);
-  color:#fff;
-  font-family:'Inter',sans-serif;
-  font-size:11px;
-  font-weight:700;
-  min-width:18px;
-  height:18px;
-  border-radius:9px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:0 4px;
-  opacity:0;
-  transform:scale(0.6);
-  transition:all 0.12s ease;
-}
-.denom-count.show{opacity:1;transform:scale(1);}
-
-.builder-total-row{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-top:12px;
-}
-.builder-total{
-  flex:1;
-  background:var(--panel-2);
-  border:1px solid var(--line);
-  border-radius:8px;
-  padding:8px 12px;
-  display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-}
-.builder-total-label{
-  font-family:'Oswald',sans-serif;
-  font-size:11px;
-  letter-spacing:1px;
-  text-transform:uppercase;
-  color:var(--paper-dim);
-}
-.builder-total-amount{
-  font-family:'Anton',sans-serif;
-  font-size:22px;
-  color:var(--paper);
-}
-.builder-reset,.builder-confirm{
-  flex:0 0 44px;
-  height:44px;
-  border-radius:8px;
-  border:none;
-  font-size:18px;
-  cursor:pointer;
-}
-.builder-reset{background:var(--route-red);color:#fff;}
-.builder-confirm{background:var(--line);color:var(--paper-dim);transition:all 0.15s ease;}
-.builder-confirm.correct{background:var(--ok);color:#fff;}
-.builder-feedback{
-  margin-top:10px;
-  text-align:center;
-  font-family:'Oswald',sans-serif;
-  font-weight:700;
-  font-size:13px;
-  min-height:18px;
-  color:var(--paper-dim);
-}
-.builder-feedback.correct{color:var(--ok);}
-.builder-feedback.wrong{color:var(--route-red);}
-
 .recent-chips{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
 .recent-chip{
   background:var(--panel-2);
@@ -669,22 +560,6 @@ select{
       <div class="sukli-amount" id="sukliOut">&#8369;0</div>
       <div class="sukli-note" id="sukliNote">Ilagay ang binayad para makuha ang sukli.</div>
     </div>
-
-    <div class="builder">
-      <div class="builder-label">I-tayo ang sukli (tap para idagdag)</div>
-      <div class="denom-grid" id="billGrid"></div>
-      <div class="denom-grid" id="coinGrid"></div>
-
-      <div class="builder-total-row">
-        <div class="builder-total">
-          <span class="builder-total-label">Naipon</span>
-          <span class="builder-total-amount" id="builderTotal">&#8369;0</span>
-        </div>
-        <button class="builder-reset" id="builderReset" title="I-reset">&#8635;</button>
-        <button class="builder-confirm" id="builderConfirm" title="Kumpirmahin">&#10003;</button>
-      </div>
-      <div class="builder-feedback" id="builderFeedback"></div>
-    </div>
   </div>
 
   <p class="footnote">Bagumbayan and San Jose count as one barangay (too short to charge separately).<br>Same rule applies to San Juan and Sto. Rosario on the Malolos route.</p>
@@ -851,94 +726,7 @@ function computeSukli(){
     sukliOut.textContent = "\u20B1" + change;
     sukliNote.textContent = change === 0 ? "Eksakto, walang sukli." : "Ibigay ang sukling ito sa pasahero.";
   }
-  if(typeof updateBuilder === "function") updateBuilder();
 }
-
-const bills = [1000, 500, 200, 100, 50, 20];
-const coins = [20, 10, 5, 1];
-const billGrid = document.getElementById("billGrid");
-const coinGrid = document.getElementById("coinGrid");
-const builderTotal = document.getElementById("builderTotal");
-const builderReset = document.getElementById("builderReset");
-const builderConfirm = document.getElementById("builderConfirm");
-const builderFeedback = document.getElementById("builderFeedback");
-const counts = {};
-
-function buildDenomGrid(list, grid, kind){
-  list.forEach(val => {
-    counts[val] = 0;
-    const chip = document.createElement("div");
-    chip.className = "denom-chip " + kind;
-    chip.innerHTML = `<span class="denom-value">\u20B1${val}</span><span class="denom-count" id="count-${val}">0</span>`;
-    chip.onclick = () => {
-      counts[val] += 1;
-      updateBuilder();
-    };
-    chip.oncontextmenu = (e) => {
-      e.preventDefault();
-      if(counts[val] > 0) counts[val] -= 1;
-      updateBuilder();
-    };
-    grid.appendChild(chip);
-  });
-}
-
-function updateBuilder(){
-  let total = 0;
-  Object.keys(counts).forEach(val => {
-    total += val * counts[val];
-    const badge = document.getElementById("count-" + val);
-    badge.textContent = counts[val];
-    badge.classList.toggle("show", counts[val] > 0);
-    badge.parentElement.classList.toggle("has-count", counts[val] > 0);
-  });
-  builderTotal.textContent = "\u20B1" + total;
-
-  const target = getTargetSukli();
-  if(target === null){
-    builderFeedback.textContent = "Kumpletuhin muna ang binayad sa taas.";
-    builderFeedback.className = "builder-feedback";
-    builderConfirm.classList.remove("correct");
-    return;
-  }
-  if(total === target && target >= 0){
-    builderFeedback.textContent = "Tama! Handa na ang sukli.";
-    builderFeedback.className = "builder-feedback correct";
-    builderConfirm.classList.add("correct");
-  } else if(total < target){
-    builderFeedback.textContent = `Kulang pa ng \u20B1${target - total}`;
-    builderFeedback.className = "builder-feedback";
-    builderConfirm.classList.remove("correct");
-  } else {
-    builderFeedback.textContent = `Sobra ng \u20B1${total - target}`;
-    builderFeedback.className = "builder-feedback wrong";
-    builderConfirm.classList.remove("correct");
-  }
-}
-
-function getTargetSukli(){
-  const fare = parseFloat(fareInput.value) || 0;
-  const paid = parseFloat(paidInput.value);
-  if(isNaN(paid)) return null;
-  const change = paid - fare;
-  return change < 0 ? null : change;
-}
-
-function resetBuilder(){
-  Object.keys(counts).forEach(val => counts[val] = 0);
-  updateBuilder();
-}
-
-builderReset.onclick = resetBuilder;
-builderConfirm.onclick = () => {
-  if(builderConfirm.classList.contains("correct")){
-    builderFeedback.textContent = "Naibigay ang sukli!";
-    setTimeout(resetBuilder, 900);
-  }
-};
-
-buildDenomGrid(bills, billGrid, "bill");
-buildDenomGrid(coins, coinGrid, "coin");
 
 function buildQuickAmounts(){
   quickAmounts.innerHTML = "";
@@ -1049,7 +837,6 @@ document.getElementById("completeTripBtn").onclick = () => {
   syncPaxDisplay();
   paidInput.value = "";
   computeFare();
-  resetBuilder();
 };
 
 document.getElementById("sessionResetBtn").onclick = () => {

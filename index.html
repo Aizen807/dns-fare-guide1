@@ -88,6 +88,63 @@ h1{
 }
 
 .route-tabs{display:flex;gap:8px;margin-bottom:20px;}
+
+.guide-box{
+  background:var(--panel);
+  border:2px solid var(--line);
+  border-radius:12px;
+  margin-bottom:20px;
+  overflow:hidden;
+}
+.guide-summary{
+  list-style:none;
+  cursor:pointer;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  letter-spacing:0.5px;
+  color:var(--sign);
+}
+.guide-summary::-webkit-details-marker{display:none;}
+.guide-summary::after{
+  content:"\25BC";
+  font-size:11px;
+  color:var(--paper-dim);
+  transition:transform 0.15s ease;
+}
+.guide-box[open] .guide-summary::after{transform:rotate(180deg);}
+.guide-body{
+  padding:0 18px 18px;
+  border-top:1px dashed var(--line);
+  padding-top:14px;
+}
+.guide-steps{
+  margin:0;
+  padding-left:20px;
+  font-family:'Inter',sans-serif;
+  font-size:13.5px;
+  line-height:1.7;
+  color:var(--paper);
+}
+.guide-steps li{margin-bottom:8px;}
+.guide-steps li:last-child{margin-bottom:0;}
+.guide-steps b{color:var(--sign);}
+.guide-video-note{
+  margin-top:12px;
+  font-family:'Oswald',sans-serif;
+  font-style:italic;
+  font-size:12.5px;
+  color:var(--paper-dim);
+}
+.guide-video-note a{
+  color:var(--sign);
+  font-weight:600;
+  text-decoration:underline;
+}
 .route-tab{
   flex:1;
   font-family:'Oswald',sans-serif;
@@ -471,6 +528,22 @@ select{
   <h1>Fare Matrix</h1>
   <p class="tagline">"Bagumbayan-San Jose, sakay na!" count your barangays, hindi mahirap.</p>
 
+  <details class="guide-box">
+    <summary class="guide-summary">Paano gamitin? (I-tap para makita)</summary>
+    <div class="guide-body">
+      <ol class="guide-steps">
+        <li>Piliin ang <b>route</b> Balagtas, Guiguinto, o Malolos.</li>
+        <li>I-set ang <b>pickup</b> at <b>drop-off barangay</b> ng pasahero.</li>
+        <li>I-tap ang <b>+</b> para sa bilang ng Regular, Student, o Senior na pasahero.</li>
+        <li>Makikita agad ang <b>Total fare</b> base sa route at bilang ng pasahero.</li>
+        <li>Ilagay kung magkano ang <b>binayad</b> awtomatikong lalabas ang tamang <b>sukli</b>.</li>
+        <li>I-tap ang <b>Complete Trip</b> para ma-save ang fare sa total earnings mo.</li>
+      </ol>
+      <p class="guide-video-note">Panoorin ang buong <a href="https://www.tiktok.com/@aizen622/video/7664919817056488724" target="_blank" rel="noopener">video tutorial</a> para sa detalyadong walkthrough.</p>
+      <p class="guide-video-note">Walang Multi Window ang phone mo? Panoorin ito: <a href="https://www.tiktok.com/@aizen622/video/7665225819869973781" target="_blank" rel="noopener">paggawa ng floating window</a>.</p>
+    </div>
+  </details>
+
   <div class="route-tabs" id="routeTabs"></div>
 
   <div class="recent-chips" id="recentChips"></div>
@@ -575,7 +648,7 @@ select{
   </div>
 
   <p class="footnote">Bagumbayan and San Jose count as one barangay (too short to charge separately).<br>Same rule applies to San Juan and Sto. Rosario on the Malolos route.</p>
-  <p class="version-tag">Fare Matrix v1.4 &middot; updated July 22, 2026</p>
+  <p class="version-tag">Fare Matrix v1.6 &middot; updated July 22, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>

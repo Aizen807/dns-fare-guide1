@@ -1,4 +1,4 @@
-const CACHE_NAME = "fare-matrix-v1";
+const CACHE_NAME = "fare-matrix-v2";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (event) => {

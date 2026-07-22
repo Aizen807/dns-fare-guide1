@@ -516,6 +516,41 @@ select{
   opacity:0.6;
   margin-top:14px;
 }
+
+.update-banner{
+  display:none;
+  position:fixed;
+  left:16px;
+  right:16px;
+  bottom:16px;
+  max-width:608px;
+  margin:0 auto;
+  background:var(--sign);
+  color:var(--sign-deep);
+  border-radius:10px;
+  padding:12px 14px;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.4);
+  z-index:999;
+  font-family:'Oswald',sans-serif;
+}
+.update-banner-text{font-weight:700;font-size:13px;}
+.update-banner-btn{
+  background:var(--sign-deep);
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  padding:9px 14px;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:12.5px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  cursor:pointer;
+  white-space:nowrap;
+}
 </style>
 </head>
 <body>
@@ -648,9 +683,14 @@ select{
   </div>
 
   <p class="footnote">Bagumbayan and San Jose count as one barangay (too short to charge separately).<br>Same rule applies to San Juan and Sto. Rosario on the Malolos route.</p>
-  <p class="version-tag">Fare Matrix v1.6 &middot; updated July 22, 2026</p>
+  <p class="version-tag">Fare Matrix v1.7 &middot; updated July 22, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
+</div>
+
+<div class="update-banner" id="updateBanner">
+  <span class="update-banner-text">May bagong update ang Fare Matrix.</span>
+  <button class="update-banner-btn" id="updateRefreshBtn">I-refresh</button>
 </div>
 
 <script>
@@ -933,9 +973,23 @@ document.getElementById("sessionResetBtn").onclick = () => {
 };
 
 if("serviceWorker" in navigator){
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+  let refreshing = false;
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if(refreshing) return;
+    document.getElementById("updateBanner").style.display = "flex";
   });
+
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").then((reg) => {
+      setInterval(() => reg.update(), 5 * 60 * 1000);
+    }).catch(() => {});
+  });
+
+  document.getElementById("updateRefreshBtn").onclick = () => {
+    refreshing = true;
+    window.location.reload();
+  };
 }
 
 document.getElementById("countRegular").textContent = paxCounts.regular;

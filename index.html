@@ -469,7 +469,7 @@ select{
     <div class="eyebrow">Diesel N Steel</div>
   </div>
   <h1>Fare Matrix</h1>
-  <p class="tagline">"Bagumbayan-San Jose, sakay na!" count your barangays, hindi mahirap.</p>
+  <p class="tagline">"Bagumbayan-San Jose, sakay na!" — count your barangays, hindi mahirap.</p>
 
   <div class="route-tabs" id="routeTabs"></div>
 
@@ -575,7 +575,7 @@ select{
   </div>
 
   <p class="footnote">Bagumbayan and San Jose count as one barangay (too short to charge separately).<br>Same rule applies to San Juan and Sto. Rosario on the Malolos route.</p>
-  <p class="version-tag">Fare Matrix v1.2 &middot; updated July 22, 2026</p>
+  <p class="version-tag">Fare Matrix v1.3 &middot; updated July 22, 2026</p>
 
 </div>
 
@@ -874,5 +874,21 @@ renderRecentChips();
 updateSessionDisplay();
 </script>
 <script data-goatcounter="https://aizen1.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script>
+window.addEventListener("appinstalled", () => {
+  function sendInstallEvent(){
+    if(window.goatcounter && window.goatcounter.count){
+      window.goatcounter.count({
+        path: "pwa-installed",
+        title: "Fare Matrix Installed",
+        event: true
+      });
+    } else {
+      setTimeout(sendInstallEvent, 300);
+    }
+  }
+  sendInstallEvent();
+});
+</script>
 </body>
 </html>

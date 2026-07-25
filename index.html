@@ -551,6 +551,65 @@ select{
   cursor:pointer;
   white-space:nowrap;
 }
+
+.feedback-field{margin-bottom:14px;}
+.feedback-field label{
+  display:block;
+  font-family:'Oswald',sans-serif;
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+  margin-bottom:6px;
+}
+.feedback-field input[type="text"],
+.feedback-field select,
+.feedback-field textarea{
+  width:100%;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  font-weight:500;
+  font-size:14px;
+  border:none;
+  border-radius:6px;
+  padding:11px 10px;
+  resize:vertical;
+}
+.feedback-field select{
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%2310160D' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  cursor:pointer;
+}
+.feedback-field textarea{min-height:90px;font-family:'Inter',sans-serif;}
+.feedback-submit-btn{
+  width:100%;
+  background:var(--jeep-green);
+  border:2px solid var(--jeep-green);
+  color:#fff;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:13px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.feedback-submit-btn:active{transform:scale(0.98);}
+.feedback-submit-btn:disabled{opacity:0.6;cursor:default;}
+.feedback-status{
+  margin-top:10px;
+  text-align:center;
+  font-family:'Oswald',sans-serif;
+  font-weight:600;
+  font-size:13px;
+  min-height:18px;
+}
+.feedback-status.success{color:var(--ok);}
+.feedback-status.error{color:var(--route-red);}
 </style>
 </head>
 <body>
@@ -683,8 +742,34 @@ select{
     </div>
   </div>
 
+  <div class="section-title">Feedback</div>
+  <div class="board">
+    <form id="feedbackForm">
+      <div class="feedback-field">
+        <label>Pangalan (optional)</label>
+        <input type="text" id="feedbackName" name="name" placeholder="Anonymous">
+      </div>
+      <div class="feedback-field">
+        <label>Uri ng feedback</label>
+        <select id="feedbackType" name="type">
+          <option value="Suggestion">Suggestion</option>
+          <option value="Bug">Bug</option>
+          <option value="Question">Question</option>
+          <option value="Other">Iba pa</option>
+        </select>
+      </div>
+      <div class="feedback-field">
+        <label>Mensahe</label>
+        <textarea id="feedbackMessage" name="message" placeholder="Isulat dito ang feedback mo..." required></textarea>
+      </div>
+      <input type="hidden" id="feedbackDate" name="date">
+      <button type="submit" class="feedback-submit-btn" id="feedbackSubmitBtn">Ipadala</button>
+      <div class="feedback-status" id="feedbackStatus"></div>
+    </form>
+  </div>
+
   <p class="footnote">Bagumbayan and San Jose count as one barangay (too short to charge separately).<br>Same rule applies to San Juan and Sto. Rosario on the Malolos route.</p>
-  <p class="version-tag">Fare Matrix v1.8 &middot; updated July 22, 2026</p>
+  <p class="version-tag">Fare Matrix v1.9 &middot; updated July 24, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -992,6 +1077,51 @@ if("serviceWorker" in navigator){
     window.location.reload();
   };
 }
+
+const feedbackForm = document.getElementById("feedbackForm");
+const feedbackStatus = document.getElementById("feedbackStatus");
+const feedbackSubmitBtn = document.getElementById("feedbackSubmitBtn");
+
+feedbackForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  document.getElementById("feedbackDate").value = new Date().toLocaleString("en-PH", {
+    year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit"
+  });
+
+  const nameVal = document.getElementById("feedbackName").value.trim();
+  if(!nameVal){
+    document.getElementById("feedbackName").value = "Anonymous";
+  }
+
+  feedbackSubmitBtn.disabled = true;
+  feedbackSubmitBtn.textContent = "Ipinapadala...";
+  feedbackStatus.textContent = "";
+  feedbackStatus.className = "feedback-status";
+
+  try {
+    const res = await fetch("https://formspree.io/f/xvzevzpy", {
+      method: "POST",
+      headers: { "Accept": "application/json" },
+      body: new FormData(feedbackForm)
+    });
+
+    if(res.ok){
+      feedbackStatus.textContent = "Salamat! Natanggap na ang feedback mo.";
+      feedbackStatus.className = "feedback-status success";
+      feedbackForm.reset();
+    } else {
+      feedbackStatus.textContent = "May problema sa pagpadala. Subukan ulit.";
+      feedbackStatus.className = "feedback-status error";
+    }
+  } catch(err) {
+    feedbackStatus.textContent = "Walang internet connection. Subukan ulit.";
+    feedbackStatus.className = "feedback-status error";
+  } finally {
+    feedbackSubmitBtn.disabled = false;
+    feedbackSubmitBtn.textContent = "Ipadala";
+  }
+});
 
 document.getElementById("countRegular").textContent = paxCounts.regular;
 document.getElementById("countStudent").textContent = paxCounts.student;

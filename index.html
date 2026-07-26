@@ -152,6 +152,45 @@ h1{
   padding-top:12px;
   border-top:1px dashed var(--line);
 }
+
+.changelog-list{
+  list-style:none;
+  margin:0;
+  padding:0;
+}
+.changelog-item{
+  display:flex;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px dashed var(--line);
+}
+.changelog-item:last-child{border-bottom:none;}
+.changelog-version{
+  flex:0 0 auto;
+  background:var(--sign);
+  color:var(--sign-deep);
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:0.5px;
+  padding:3px 8px;
+  border-radius:4px;
+  height:fit-content;
+  white-space:nowrap;
+}
+.changelog-text{
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  color:var(--paper);
+  line-height:1.5;
+}
+.changelog-date{
+  display:block;
+  font-family:'Oswald',sans-serif;
+  font-size:10.5px;
+  color:var(--paper-dim);
+  margin-top:2px;
+}
 .guide-video-note{
   margin-top:12px;
   font-family:'Oswald',sans-serif;
@@ -611,6 +650,25 @@ select{
   cursor:pointer;
 }
 .feedback-field textarea{min-height:90px;font-family:'Inter',sans-serif;}
+.feedback-hint{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-style:italic;
+  color:var(--paper-dim);
+  margin:0 0 6px;
+  line-height:1.5;
+}
+.feedback-note{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  color:var(--paper-dim);
+  margin:6px 0 0;
+}
+.feedback-note a{
+  color:var(--sign);
+  font-weight:600;
+  text-decoration:underline;
+}
 .feedback-submit-btn{
   width:100%;
   background:var(--jeep-green);
@@ -653,7 +711,7 @@ select{
     <summary class="guide-summary">Paano gamitin? (I-tap para makita)</summary>
     <div class="guide-body">
       <ol class="guide-steps">
-        <li>Piliin ang <b>route</b> Balagtas, Guiguinto, o Malolos.</li>
+        <li>Piliin ang <b>route</b> — Balagtas, Guiguinto, o Malolos.</li>
         <li>I-set ang <b>pickup</b> at <b>drop-off barangay</b> ng pasahero.</li>
         <li>I-tap ang <b>+</b> para sa bilang ng Regular, Student, o Senior na pasahero.</li>
         <li>Makikita agad ang <b>Total fare</b> base sa route at bilang ng pasahero.</li>
@@ -797,7 +855,9 @@ select{
       </div>
       <div class="feedback-field">
         <label>Mensahe</label>
+        <p class="feedback-hint" id="feedbackHint">Isulat dito ang suggestion mo...</p>
         <textarea id="feedbackMessage" name="message" placeholder="Isulat dito ang feedback mo..." required></textarea>
+        <p class="feedback-note">May screenshot o video ka? I-DM na lang sa TikTok: <a href="https://www.tiktok.com/@aizen622" target="_blank" rel="noopener">@aizen622</a></p>
       </div>
       <input type="hidden" id="feedbackDate" name="date">
       <button type="submit" class="feedback-submit-btn" id="feedbackSubmitBtn">Ipadala</button>
@@ -806,7 +866,55 @@ select{
   </div>
 
   <p class="footnote">Bagumbayan and San Jose count as one barangay (too short to charge separately).<br>Same rule applies to San Juan and Sto. Rosario on the Malolos route.</p>
-  <p class="version-tag">Fare Matrix v2.2 &middot; updated July 26, 2026</p>
+
+  <details class="guide-box">
+    <summary class="guide-summary">Mga Update (I-tap para makita)</summary>
+    <div class="guide-body">
+      <ul class="changelog-list">
+        <li class="changelog-item">
+          <span class="changelog-version">v2.4</span>
+          <span class="changelog-text">Mas malinaw na hint sa Feedback form nagbabago base sa uri ng feedback (bug, suggestion, etc), may link din para sa TikTok DM kung may screenshot/video.<span class="changelog-date">July 26, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v2.3</span>
+          <span class="changelog-text">Idinagdag ang "Mga Update" tab para makita ang history ng bawat update.<span class="changelog-date">July 26, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v2.2</span>
+          <span class="changelog-text">Idinagdag ang install guide para sa iPhone (iOS).<span class="changelog-date">July 26, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v2.1</span>
+          <span class="changelog-text">Dinagdagan ng maikling paliwanag ang Feedback section.<span class="changelog-date">July 26, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v2.0</span>
+          <span class="changelog-text">Nagiging searchable na sa Google ang Fare Matrix.<span class="changelog-date">July 25, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v1.9</span>
+          <span class="changelog-text">Idinagdag ang Feedback form para makapagpadala ng suggestion o bug report.<span class="changelog-date">July 24, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v1.8</span>
+          <span class="changelog-text">Idinagdag ang video tutorial link para sa pag-install sa PC at mobile.<span class="changelog-date">July 22, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v1.7</span>
+          <span class="changelog-text">May "Update available" banner na ngayon kapag may bagong bersyon.<span class="changelog-date">July 22, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v1.5</span>
+          <span class="changelog-text">Idinagdag ang "Paano gamitin?" na guide sa loob ng app.<span class="changelog-date">July 22, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v1.0</span>
+          <span class="changelog-text">Unang bersyon ng Fare Matrix fare at sukli calculator.<span class="changelog-date">July 21, 2026</span></span>
+        </li>
+      </ul>
+    </div>
+  </details>
+  <p class="version-tag">Fare Matrix v2.4 &middot; updated July 26, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -1118,6 +1226,32 @@ if("serviceWorker" in navigator){
 const feedbackForm = document.getElementById("feedbackForm");
 const feedbackStatus = document.getElementById("feedbackStatus");
 const feedbackSubmitBtn = document.getElementById("feedbackSubmitBtn");
+const feedbackTypeSelect = document.getElementById("feedbackType");
+const feedbackHint = document.getElementById("feedbackHint");
+const feedbackMessageInput = document.getElementById("feedbackMessage");
+
+const feedbackHints = {
+  Suggestion: "Isulat dito ang suggestion mo — anong feature o pagbabago ang gusto mong idagdag?",
+  Bug: "Para mas mabilis maayos: isama ang route, pickup/drop-off barangay, bilang ng pasahero, at binayad. Halimbawa: \"Balagtas route, Bagumbayan-Wawa, 2 regular, binayad ₱50, mali ang sukli.\"",
+  Question: "Itanong dito ang tanong mo tungkol sa Fare Matrix.",
+  Other: "Isulat dito ang feedback mo..."
+};
+
+const feedbackPlaceholders = {
+  Suggestion: "Halimbawa: pwede bang magdagdag ng dark mode...",
+  Bug: "Halimbawa: Balagtas route, Bagumbayan-Wawa, 2 regular, binayad ₱50, mali ang sukli...",
+  Question: "Halimbawa: paano gamitin ang sukli calculator...",
+  Other: "Isulat dito ang feedback mo..."
+};
+
+function updateFeedbackHint(){
+  const type = feedbackTypeSelect.value;
+  feedbackHint.textContent = feedbackHints[type] || feedbackHints.Other;
+  feedbackMessageInput.placeholder = feedbackPlaceholders[type] || feedbackPlaceholders.Other;
+}
+
+feedbackTypeSelect.addEventListener("change", updateFeedbackHint);
+updateFeedbackHint();
 
 feedbackForm.addEventListener("submit", async (e) => {
   e.preventDefault();

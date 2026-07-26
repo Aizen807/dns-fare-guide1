@@ -872,6 +872,10 @@ select{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v2.5</span>
+          <span class="changelog-text">Bug fixes: naayos ang pagkakataong nagpapalit ng barangay name sa dropdown kapag nag-swap o gumamit ng recent trip chip (Bagumbayan/San Jose, San Juan/Sto. Rosario). Naayos din ang feedback hint na hindi nag-re-reset pagkatapos magpadala.<span class="changelog-date">July 27, 2026</span></span>
+        </li>
+        <li class="changelog-item">
           <span class="changelog-version">v2.4</span>
           <span class="changelog-text">Mas malinaw na hint sa Feedback form nagbabago base sa uri ng feedback (bug, suggestion, etc), may link din para sa TikTok DM kung may screenshot/video.<span class="changelog-date">July 26, 2026</span></span>
         </li>
@@ -909,12 +913,12 @@ select{
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v1.0</span>
-          <span class="changelog-text">Unang bersyon ng Fare Matrix fare at sukli calculator.<span class="changelog-date">July 21, 2026</span></span>
+          <span class="changelog-text">Unang bersyon ng Fare Matrix — fare at sukli calculator.<span class="changelog-date">July 21, 2026</span></span>
         </li>
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v2.4 &middot; updated July 26, 2026</p>
+  <p class="version-tag">Fare Matrix v2.5 &middot; updated July 27, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -1004,10 +1008,10 @@ function buildSelects(){
   [fromSelect, toSelect].forEach(sel => sel.innerHTML = "");
   flat.forEach(item => {
     const opt1 = document.createElement("option");
-    opt1.value = item.idx; opt1.textContent = item.name;
+    opt1.value = `${item.idx}-${item.name}`; opt1.textContent = item.name;
     fromSelect.appendChild(opt1);
     const opt2 = document.createElement("option");
-    opt2.value = item.idx; opt2.textContent = item.name;
+    opt2.value = `${item.idx}-${item.name}`; opt2.textContent = item.name;
     toSelect.appendChild(opt2);
   });
   fromSelect.selectedIndex = 0;
@@ -1020,9 +1024,23 @@ function buildRouteList(){
   routeListOut.innerHTML = `<b>${routes[currentRoute].label} - Bulakan</b> (${units.length} counted units)<br>` + parts.join(" &rarr; ");
 }
 
+function getSelectedIndex(select){
+  const value = select.value || "";
+  const idx = parseInt(value.split("-")[0], 10);
+  return Number.isFinite(idx) ? idx : -1;
+}
+
 function computeFare(){
-  const fromIdx = parseInt(fromSelect.value, 10);
-  const toIdx = parseInt(toSelect.value, 10);
+  const fromIdx = getSelectedIndex(fromSelect);
+  const toIdx = getSelectedIndex(toSelect);
+  if(fromIdx < 0 || toIdx < 0){
+    fareOut.textContent = "0";
+    fareInput.value = 0;
+    breakdownOut.textContent = "Pumili ng valid na pickup at drop-off.";
+    document.getElementById("directionOut").textContent = "Select barangays";
+    computeSukli();
+    return;
+  }
   const unitsCount = Math.abs(fromIdx - toIdx) + 1;
   const extra = Math.max(0, unitsCount - 4);
   const regularFare = 13 + extra * 2;
@@ -1071,7 +1089,6 @@ function computeSukli(){
     sukliOut.textContent = "\u20B10";
     sukliNote.textContent = "Ilagay ang binayad para makuha ang sukli.";
     sukliResult.classList.remove("short");
-    if(typeof updateBuilder === "function") updateBuilder();
     return;
   }
   const change = paid - fare;
@@ -1127,7 +1144,6 @@ document.getElementById("swapBtn").onclick = () => {
 
 fromSelect.addEventListener("change", computeFare);
 toSelect.addEventListener("change", computeFare);
-fareInput.addEventListener("input", computeSukli);
 paidInput.addEventListener("input", computeSukli);
 
 document.getElementById("clearPaxBtn").onclick = () => {
@@ -1158,8 +1174,10 @@ function renderRecentChips(){
       buildTabs();
       buildSelects();
       buildRouteList();
-      fromSelect.value = dest.fromIdx;
-      toSelect.value = dest.toIdx;
+      if(dest.fromValue && dest.toValue){
+        fromSelect.value = dest.fromValue;
+        toSelect.value = dest.toValue;
+      }
       computeFare();
     };
     wrap.appendChild(chip);
@@ -1167,14 +1185,16 @@ function renderRecentChips(){
 }
 
 function pushRecentDestination(){
-  const flat = flatBarangays(routes[currentRoute].units);
-  const fromIdx = parseInt(fromSelect.value, 10);
-  const toIdx = parseInt(toSelect.value, 10);
-  const fromName = flat.find(f => f.idx === fromIdx).name;
-  const toName = flat.find(f => f.idx === toIdx).name;
+  const fromName = fromSelect.options[fromSelect.selectedIndex]?.textContent || "";
+  const toName = toSelect.options[toSelect.selectedIndex]?.textContent || "";
   const label = `${fromName} \u2192 ${toName}`;
   recentDestinations = recentDestinations.filter(d => d.label !== label);
-  recentDestinations.unshift({ routeKey: currentRoute, fromIdx, toIdx, label });
+  recentDestinations.unshift({
+    routeKey: currentRoute,
+    fromValue: fromSelect.value,
+    toValue: toSelect.value,
+    label
+  });
   recentDestinations = recentDestinations.slice(0, 5);
   renderRecentChips();
 }
@@ -1231,7 +1251,7 @@ const feedbackHint = document.getElementById("feedbackHint");
 const feedbackMessageInput = document.getElementById("feedbackMessage");
 
 const feedbackHints = {
-  Suggestion: "Isulat dito ang suggestion mo — anong feature o pagbabago ang gusto mong idagdag?",
+  Suggestion: "Isulat dito ang suggestion mo anong feature o pagbabago ang gusto mong idagdag?",
   Bug: "Para mas mabilis maayos: isama ang route, pickup/drop-off barangay, bilang ng pasahero, at binayad. Halimbawa: \"Balagtas route, Bagumbayan-Wawa, 2 regular, binayad ₱50, mali ang sukli.\"",
   Question: "Itanong dito ang tanong mo tungkol sa Fare Matrix.",
   Other: "Isulat dito ang feedback mo..."
@@ -1281,6 +1301,7 @@ feedbackForm.addEventListener("submit", async (e) => {
       feedbackStatus.textContent = "Salamat! Natanggap na ang feedback mo.";
       feedbackStatus.className = "feedback-status success";
       feedbackForm.reset();
+      updateFeedbackHint();
     } else {
       feedbackStatus.textContent = "May problema sa pagpadala. Subukan ulit.";
       feedbackStatus.className = "feedback-status error";

@@ -711,7 +711,7 @@ select{
     <summary class="guide-summary">Paano gamitin? (I-tap para makita)</summary>
     <div class="guide-body">
       <ol class="guide-steps">
-        <li>Piliin ang <b>route</b> — Balagtas, Guiguinto, o Malolos.</li>
+        <li>Piliin ang <b>route</b> Balagtas, Guiguinto, o Malolos.</li>
         <li>I-set ang <b>pickup</b> at <b>drop-off barangay</b> ng pasahero.</li>
         <li>I-tap ang <b>+</b> para sa bilang ng Regular, Student, o Senior na pasahero.</li>
         <li>Makikita agad ang <b>Total fare</b> base sa route at bilang ng pasahero.</li>
@@ -872,6 +872,14 @@ select{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v2.7</span>
+          <span class="changelog-text">Hiwalay na ngayon ang recent trip chips per route ang makikita lang ay yung mga trip sa route na kasalukuyang pinili.<span class="changelog-date">July 27, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v2.6</span>
+          <span class="changelog-text">May 60-second cooldown na ngayon bago makapagpadala ulit ng feedback, para maiwasan ang spam.<span class="changelog-date">July 27, 2026</span></span>
+        </li>
+        <li class="changelog-item">
           <span class="changelog-version">v2.5</span>
           <span class="changelog-text">Bug fixes: naayos ang pagkakataong nagpapalit ng barangay name sa dropdown kapag nag-swap o gumamit ng recent trip chip (Bagumbayan/San Jose, San Juan/Sto. Rosario). Naayos din ang feedback hint na hindi nag-re-reset pagkatapos magpadala.<span class="changelog-date">July 27, 2026</span></span>
         </li>
@@ -913,12 +921,12 @@ select{
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v1.0</span>
-          <span class="changelog-text">Unang bersyon ng Fare Matrix — fare at sukli calculator.<span class="changelog-date">July 21, 2026</span></span>
+          <span class="changelog-text">Unang bersyon ng Fare Matrix fare at sukli calculator.<span class="changelog-date">July 21, 2026</span></span>
         </li>
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v2.5 &middot; updated July 27, 2026</p>
+  <p class="version-tag">Fare Matrix v2.7 &middot; updated July 27, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -1118,6 +1126,7 @@ function refreshRoute(){
   buildTabs();
   buildSelects();
   buildRouteList();
+  renderRecentChips();
   computeFare();
 }
 
@@ -1161,19 +1170,16 @@ function syncPaxDisplay(){
 function renderRecentChips(){
   const wrap = document.getElementById("recentChips");
   wrap.innerHTML = "";
-  if(recentDestinations.length === 0){
+  const filtered = recentDestinations.filter(d => d.routeKey === currentRoute);
+  if(filtered.length === 0){
     wrap.innerHTML = '<span class="recent-empty">Recent trips will show up here as chips.</span>';
     return;
   }
-  recentDestinations.forEach(dest => {
+  filtered.forEach(dest => {
     const chip = document.createElement("div");
     chip.className = "recent-chip";
     chip.textContent = dest.label;
     chip.onclick = () => {
-      currentRoute = dest.routeKey;
-      buildTabs();
-      buildSelects();
-      buildRouteList();
       if(dest.fromValue && dest.toValue){
         fromSelect.value = dest.fromValue;
         toSelect.value = dest.toValue;
@@ -1273,8 +1279,47 @@ function updateFeedbackHint(){
 feedbackTypeSelect.addEventListener("change", updateFeedbackHint);
 updateFeedbackHint();
 
+const FEEDBACK_COOLDOWN_MS = 60 * 1000;
+const FEEDBACK_COOLDOWN_KEY = "fareMatrixLastFeedback";
+let feedbackCooldownInterval = null;
+
+function getFeedbackCooldownRemaining(){
+  try {
+    const last = parseInt(localStorage.getItem(FEEDBACK_COOLDOWN_KEY) || "0", 10);
+    return Math.max(0, FEEDBACK_COOLDOWN_MS - (Date.now() - last));
+  } catch(err) {
+    return 0;
+  }
+}
+
+function updateFeedbackCooldownUI(){
+  const remaining = getFeedbackCooldownRemaining();
+  if(remaining <= 0){
+    feedbackSubmitBtn.disabled = false;
+    feedbackSubmitBtn.textContent = "Ipadala";
+    if(feedbackCooldownInterval){
+      clearInterval(feedbackCooldownInterval);
+      feedbackCooldownInterval = null;
+    }
+    return;
+  }
+  feedbackSubmitBtn.disabled = true;
+  feedbackSubmitBtn.textContent = `Maghintay (${Math.ceil(remaining / 1000)}s)`;
+  if(!feedbackCooldownInterval){
+    feedbackCooldownInterval = setInterval(updateFeedbackCooldownUI, 1000);
+  }
+}
+
+updateFeedbackCooldownUI();
+
 feedbackForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  if(getFeedbackCooldownRemaining() > 0){
+    feedbackStatus.textContent = "Sandali lang, maghintay muna bago ulit magpadala.";
+    feedbackStatus.className = "feedback-status error";
+    return;
+  }
 
   document.getElementById("feedbackDate").value = new Date().toLocaleString("en-PH", {
     year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit"
@@ -1302,14 +1347,17 @@ feedbackForm.addEventListener("submit", async (e) => {
       feedbackStatus.className = "feedback-status success";
       feedbackForm.reset();
       updateFeedbackHint();
+      try { localStorage.setItem(FEEDBACK_COOLDOWN_KEY, String(Date.now())); } catch(err) {}
+      updateFeedbackCooldownUI();
     } else {
       feedbackStatus.textContent = "May problema sa pagpadala. Subukan ulit.";
       feedbackStatus.className = "feedback-status error";
+      feedbackSubmitBtn.disabled = false;
+      feedbackSubmitBtn.textContent = "Ipadala";
     }
   } catch(err) {
     feedbackStatus.textContent = "Walang internet connection. Subukan ulit.";
     feedbackStatus.className = "feedback-status error";
-  } finally {
     feedbackSubmitBtn.disabled = false;
     feedbackSubmitBtn.textContent = "Ipadala";
   }
@@ -1321,7 +1369,6 @@ document.getElementById("countSenior").textContent = paxCounts.senior;
 
 buildQuickAmounts();
 refreshRoute();
-renderRecentChips();
 updateSessionDisplay();
 </script>
 <script data-goatcounter="https://aizen1.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>

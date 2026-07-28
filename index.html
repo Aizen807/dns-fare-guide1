@@ -551,6 +551,21 @@ select{
 .session-reset-row{
   text-align:center;
   margin-top:10px;
+  display:flex;
+  gap:16px;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.session-save-btn{
+  background:none;
+  border:none;
+  color:var(--sign);
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:11.5px;
+  text-decoration:underline;
+  cursor:pointer;
 }
 .session-reset-btn{
   background:none;
@@ -559,6 +574,67 @@ select{
   font-family:'Oswald',sans-serif;
   font-size:11.5px;
   text-decoration:underline;
+  cursor:pointer;
+}
+
+.session-history-list{
+  list-style:none;
+  margin:0 0 12px;
+  padding:0;
+}
+.session-history-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:10px 0;
+  border-bottom:1px dashed var(--line);
+}
+.session-history-item:last-child{border-bottom:none;}
+.session-history-info{display:flex;flex-direction:column;gap:2px;}
+.session-history-name{
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  color:var(--paper);
+}
+.session-history-date{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--paper-dim);
+}
+.session-history-stats{
+  text-align:right;
+  font-family:'Anton',sans-serif;
+  font-size:15px;
+  color:var(--sign);
+  white-space:nowrap;
+}
+.session-history-trips{
+  display:block;
+  font-family:'Inter',sans-serif;
+  font-size:10.5px;
+  color:var(--paper-dim);
+  font-weight:400;
+}
+.session-history-empty{
+  font-family:'Oswald',sans-serif;
+  font-size:12.5px;
+  font-style:italic;
+  color:var(--paper-dim);
+}
+.session-clear-history-btn{
+  width:100%;
+  background:none;
+  border:1px solid var(--route-red);
+  color:var(--route-red);
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  padding:9px;
+  border-radius:6px;
   cursor:pointer;
 }
 
@@ -813,8 +889,17 @@ select{
     </div>
   </div>
   <div class="session-reset-row">
+    <button class="session-save-btn" id="sessionSaveBtn">I-save ang session</button>
     <button class="session-reset-btn" id="sessionResetBtn">Reset session</button>
   </div>
+
+  <details class="guide-box">
+    <summary class="guide-summary">Session History (I-tap para makita)</summary>
+    <div class="guide-body">
+      <ul class="session-history-list" id="sessionHistoryList"></ul>
+      <button class="session-clear-history-btn" id="sessionClearHistoryBtn">I-clear ang history</button>
+    </div>
+  </details>
 
   <div class="section-title">Sukli calculator</div>
   <div class="board">
@@ -872,6 +957,10 @@ select{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v2.8</span>
+          <span class="changelog-text">Idinagdag ang "I-save ang session" makakapag-pangalan ka na ng session (hal. "Biyahe 1") at makikita ang buong Session History list, kasama ang bilang ng trips at kinita bawat isa.<span class="changelog-date">July 28, 2026</span></span>
+        </li>
+        <li class="changelog-item">
           <span class="changelog-version">v2.7</span>
           <span class="changelog-text">Hiwalay na ngayon ang recent trip chips per route ang makikita lang ay yung mga trip sa route na kasalukuyang pinili.<span class="changelog-date">July 27, 2026</span></span>
         </li>
@@ -926,7 +1015,7 @@ select{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v2.7 &middot; updated July 27, 2026</p>
+  <p class="version-tag">Fare Matrix v2.8 &middot; updated July 28, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -1210,6 +1299,46 @@ function updateSessionDisplay(){
   document.getElementById("sessionTotalOut").textContent = "\u20B1" + sessionTotal;
 }
 
+const SESSION_HISTORY_KEY = "fareMatrixSessionHistory";
+
+function loadSessionHistory(){
+  try {
+    const raw = localStorage.getItem(SESSION_HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch(err) {
+    return [];
+  }
+}
+
+function saveSessionHistoryToStorage(history){
+  try {
+    localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(history));
+  } catch(err) {}
+}
+
+let sessionHistory = loadSessionHistory();
+
+function renderSessionHistory(){
+  const list = document.getElementById("sessionHistoryList");
+  list.innerHTML = "";
+  if(sessionHistory.length === 0){
+    list.innerHTML = '<li class="session-history-empty">Wala pang na-save na session.</li>';
+    return;
+  }
+  sessionHistory.forEach(entry => {
+    const li = document.createElement("li");
+    li.className = "session-history-item";
+    li.innerHTML = `
+      <div class="session-history-info">
+        <span class="session-history-name">${entry.name}</span>
+        <span class="session-history-date">${entry.date}</span>
+      </div>
+      <div class="session-history-stats">\u20B1${entry.total}<span class="session-history-trips">${entry.trips} trip(s)</span></div>
+    `;
+    list.appendChild(li);
+  });
+}
+
 document.getElementById("completeTripBtn").onclick = () => {
   const fare = parseFloat(fareInput.value) || 0;
   if(fare <= 0) return;
@@ -1223,11 +1352,40 @@ document.getElementById("completeTripBtn").onclick = () => {
   computeFare();
 };
 
+document.getElementById("sessionSaveBtn").onclick = () => {
+  if(tripCount === 0 && sessionTotal === 0){
+    return;
+  }
+  const defaultName = `Biyahe ${sessionHistory.length + 1}`;
+  const name = (prompt("Pangalan ng session:", defaultName) || "").trim() || defaultName;
+  const dateStr = new Date().toLocaleString("en-PH", {
+    year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+  });
+  sessionHistory.unshift({ name, date: dateStr, trips: tripCount, total: sessionTotal });
+  saveSessionHistoryToStorage(sessionHistory);
+  renderSessionHistory();
+  tripCount = 0;
+  sessionTotal = 0;
+  updateSessionDisplay();
+};
+
 document.getElementById("sessionResetBtn").onclick = () => {
   tripCount = 0;
   sessionTotal = 0;
   updateSessionDisplay();
 };
+
+document.getElementById("sessionClearHistoryBtn").onclick = () => {
+  if(sessionHistory.length === 0) return;
+  const confirmed = confirm("Sigurado ka bang gusto mong i-clear ang buong session history? Hindi na ito mababawi.");
+  if(confirmed){
+    sessionHistory = [];
+    saveSessionHistoryToStorage(sessionHistory);
+    renderSessionHistory();
+  }
+};
+
+renderSessionHistory();
 
 if("serviceWorker" in navigator){
   let refreshing = false;

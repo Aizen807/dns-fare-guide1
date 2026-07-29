@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#10160D">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -50,6 +50,28 @@ body{
   font-family:'Inter',sans-serif;
   min-height:100vh;
   padding:24px 16px 64px;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  opacity:0;
+  animation:fadeIn 0.6s ease forwards;
+}
+@keyframes fadeIn{
+  to{opacity:1;}
+}
+
+/* Remove tap highlight on mobile */
+button,
+select,
+.recent-chip,
+.route-tab,
+.quick-btn,
+.complete-trip-btn,
+.feedback-submit-btn,
+.session-save-btn,
+.session-reset-btn,
+.session-clear-history-btn,
+.clear-pax-btn {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .wrap{max-width:640px;margin:0 auto;}
@@ -217,14 +239,22 @@ h1{
   background:var(--panel);
   color:var(--paper-dim);
   cursor:pointer;
-  transition:all 0.15s ease;
+  transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .route-tab.active{
   background:var(--jeep-green);
   border-color:var(--jeep-green);
   color:#fff;
   box-shadow:var(--shadow);
-  transform:translateY(-2px);
+  transform:translateY(-2px) scale(1.02);
+}
+.route-tab:not(.active):hover{
+  transform:translateY(-1px);
+  border-color:var(--sign);
+}
+.route-tab:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
 }
 
 .board{
@@ -234,6 +264,11 @@ h1{
   padding:22px;
   box-shadow:var(--shadow);
   margin-bottom:22px;
+  transition:opacity 0.3s ease, transform 0.3s ease;
+}
+.board.fade-transition{
+  opacity:0;
+  transform:translateY(10px);
 }
 
 .direction-badge{
@@ -250,6 +285,7 @@ h1{
   padding:6px 12px;
   border-radius:20px;
   margin-bottom:16px;
+  transition:background 0.3s ease;
 }
 
 .field-row{display:flex;gap:12px;margin-bottom:14px;}
@@ -278,6 +314,12 @@ select{
   background-repeat:no-repeat;
   background-position:right 12px center;
   cursor:pointer;
+  transition:transform 0.15s ease;
+}
+select:active{transform:scale(0.98);}
+select:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
 }
 
 .swap-btn{
@@ -291,6 +333,16 @@ select{
   border-radius:6px;
   cursor:pointer;
   flex:0 0 38px;
+  transition:all 0.2s ease;
+}
+.swap-btn:hover{
+  border-color:var(--sign);
+  transform:rotate(180deg) scale(1.1);
+}
+.swap-btn:active{transform:rotate(180deg) scale(0.9);}
+.swap-btn:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
 }
 
 .pax-board{margin-bottom:16px;}
@@ -303,7 +355,9 @@ select{
   border-radius:8px;
   padding:10px 12px;
   margin-bottom:8px;
+  transition:all 0.2s ease;
 }
+.pax-row:active{transform:scale(0.99);}
 .pax-info{display:flex;flex-direction:column;gap:2px;}
 .pax-name{
   font-family:'Oswald',sans-serif;
@@ -323,14 +377,24 @@ select{
   font-weight:700;
   line-height:1;
   cursor:pointer;
+  transition:all 0.15s ease;
 }
-.step-btn:hover{border-color:var(--sign);}
+.step-btn:hover{border-color:var(--sign);transform:scale(1.1);}
+.step-btn:active{transform:scale(0.85);}
+.step-btn:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
+}
 .pax-count{
   font-family:'Anton',sans-serif;
   font-size:18px;
   min-width:18px;
   text-align:center;
   color:var(--paper);
+  transition:transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.pax-count.pop{
+  transform:scale(1.4);
 }
 
 .fare-display{
@@ -340,6 +404,11 @@ select{
   padding:20px;
   text-align:center;
   margin-bottom:12px;
+  transition:all 0.3s ease;
+}
+.fare-display.flash{
+  border-color:var(--ok);
+  box-shadow:0 0 20px rgba(111,160,91,0.3);
 }
 .fare-label{
   font-family:'Oswald',sans-serif;
@@ -354,13 +423,21 @@ select{
   font-size:56px;
   color:var(--sign);
   line-height:1;
+  transition:all 0.15s ease;
 }
 .fare-amount span{font-size:26px;}
+.fare-amount.pop{
+  transform:scale(1.1);
+  color:#fff;
+}
 .fare-breakdown{
   font-size:12.5px;
   color:var(--paper-dim);
   margin-top:6px;
   min-height:18px;
+}
+.fare-breakdown[aria-live="polite"]{
+  transition:opacity 0.2s ease;
 }
 
 .route-list{
@@ -418,6 +495,12 @@ select{
   border:none;
   border-radius:6px;
   padding:11px 10px;
+  transition:transform 0.15s ease;
+}
+.sukli-grid .field input:focus{
+  transform:scale(1.02);
+  outline:3px solid var(--sign);
+  outline-offset:2px;
 }
 .quick-amounts{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
 .quick-btn{
@@ -430,8 +513,14 @@ select{
   padding:7px 12px;
   border-radius:20px;
   cursor:pointer;
+  transition:all 0.15s ease;
 }
-.quick-btn:hover{border-color:var(--sign);color:var(--sign);}
+.quick-btn:hover{border-color:var(--sign);color:var(--sign);transform:translateY(-2px);}
+.quick-btn:active{transform:scale(0.95);}
+.quick-btn:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
+}
 
 .sukli-result{
   background:var(--jeep-green-dark);
@@ -439,10 +528,18 @@ select{
   border-radius:10px;
   padding:18px;
   text-align:center;
+  transition:all 0.3s ease;
 }
 .sukli-result.short{
   background:#3A1B18;
   border-color:var(--route-red);
+}
+.sukli-result.bounce .sukli-amount{
+  animation:bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes bounceIn{
+  0%{transform:scale(0.5);opacity:0;}
+  100%{transform:scale(1);opacity:1;}
 }
 .sukli-label{
   font-family:'Oswald',sans-serif;
@@ -469,8 +566,14 @@ select{
   padding:7px 12px;
   border-radius:20px;
   cursor:pointer;
+  transition:all 0.2s ease;
 }
-.recent-chip:hover{border-color:var(--sign);color:var(--sign);}
+.recent-chip:hover{border-color:var(--sign);color:var(--sign);transform:translateY(-2px);}
+.recent-chip:active{transform:scale(0.95);}
+.recent-chip:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
+}
 .recent-empty{
   font-family:'Oswald',sans-serif;
   font-size:12px;
@@ -503,6 +606,13 @@ select{
   text-transform:uppercase;
   cursor:pointer;
   padding:2px 4px;
+  transition:all 0.15s ease;
+}
+.clear-pax-btn:hover{color:#fff;transform:scale(1.05);}
+.clear-pax-btn:active{transform:scale(0.95);}
+.clear-pax-btn:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
 }
 
 .session-board{
@@ -531,6 +641,11 @@ select{
   font-family:'Anton',sans-serif;
   font-size:26px;
   color:var(--sign);
+  transition:all 0.2s ease;
+}
+.session-stat-value.pop{
+  transform:scale(1.2);
+  color:#fff;
 }
 .complete-trip-btn{
   width:100%;
@@ -546,8 +661,21 @@ select{
   padding:13px;
   border-radius:8px;
   cursor:pointer;
+  transition:all 0.2s ease;
 }
-.complete-trip-btn:active{transform:scale(0.98);}
+.complete-trip-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(62,107,74,0.4);}
+.complete-trip-btn:active{transform:scale(0.98) translateY(0);}
+.complete-trip-btn.success{
+  background:var(--ok);
+  border-color:var(--ok);
+}
+.complete-trip-btn.success::after{
+  content:" ✓";
+}
+.complete-trip-btn:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
+}
 .session-reset-row{
   text-align:center;
   margin-top:10px;
@@ -566,6 +694,12 @@ select{
   font-size:11.5px;
   text-decoration:underline;
   cursor:pointer;
+  transition:all 0.15s ease;
+}
+.session-save-btn:hover{color:#fff;transform:scale(1.05);}
+.session-save-btn:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
 }
 .session-reset-btn{
   background:none;
@@ -575,6 +709,12 @@ select{
   font-size:11.5px;
   text-decoration:underline;
   cursor:pointer;
+  transition:all 0.15s ease;
+}
+.session-reset-btn:hover{color:var(--route-red);}
+.session-reset-btn:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
 }
 
 .session-history-list{
@@ -589,6 +729,11 @@ select{
   gap:10px;
   padding:10px 0;
   border-bottom:1px dashed var(--line);
+  animation:slideIn 0.3s ease forwards;
+}
+@keyframes slideIn{
+  from{opacity:0;transform:translateX(-10px);}
+  to{opacity:1;transform:translateX(0);}
 }
 .session-history-item:last-child{border-bottom:none;}
 .session-history-info{display:flex;flex-direction:column;gap:2px;}
@@ -636,6 +781,12 @@ select{
   padding:9px;
   border-radius:6px;
   cursor:pointer;
+  transition:all 0.15s ease;
+}
+.session-clear-history-btn:hover{background:var(--route-red);color:#fff;}
+.session-clear-history-btn:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
 }
 
 .footnote{
@@ -677,6 +828,11 @@ select{
   box-shadow:0 8px 20px rgba(0,0,0,0.4);
   z-index:999;
   font-family:'Oswald',sans-serif;
+  animation:slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
 }
 .update-banner-text{font-weight:700;font-size:13px;}
 .update-banner-btn{
@@ -692,6 +848,12 @@ select{
   text-transform:uppercase;
   cursor:pointer;
   white-space:nowrap;
+  transition:all 0.15s ease;
+}
+.update-banner-btn:hover{transform:scale(1.05);}
+.update-banner-btn:focus-visible{
+  outline:3px solid #fff;
+  outline-offset:2px;
 }
 
 .feedback-field{margin-bottom:14px;}
@@ -717,6 +879,14 @@ select{
   border-radius:6px;
   padding:11px 10px;
   resize:vertical;
+  transition:transform 0.15s ease;
+}
+.feedback-field input[type="text"]:focus,
+.feedback-field select:focus,
+.feedback-field textarea:focus{
+  transform:scale(1.01);
+  outline:3px solid var(--sign);
+  outline-offset:2px;
 }
 .feedback-field select{
   appearance:none;
@@ -758,9 +928,15 @@ select{
   padding:13px;
   border-radius:8px;
   cursor:pointer;
+  transition:all 0.2s ease;
 }
-.feedback-submit-btn:active{transform:scale(0.98);}
-.feedback-submit-btn:disabled{opacity:0.6;cursor:default;}
+.feedback-submit-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(62,107,74,0.4);}
+.feedback-submit-btn:active{transform:scale(0.98) translateY(0);}
+.feedback-submit-btn:disabled{opacity:0.6;cursor:default;transform:none;}
+.feedback-submit-btn:focus-visible{
+  outline:3px solid var(--sign);
+  outline-offset:2px;
+}
 .feedback-status{
   margin-top:10px;
   text-align:center;
@@ -771,9 +947,84 @@ select{
 }
 .feedback-status.success{color:var(--ok);}
 .feedback-status.error{color:var(--route-red);}
+
+/* Toast notification */
+.toast{
+  position:fixed;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:var(--jeep-green);
+  color:#fff;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  padding:12px 24px;
+  border-radius:10px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.5);
+  z-index:1000;
+  animation:toastIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  pointer-events:none;
+  max-width:90%;
+  text-align:center;
+}
+@keyframes toastIn{
+  from{opacity:0;transform:translateX(-50%) translateY(-30px) scale(0.8);}
+  to{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
+}
+.toast.out{
+  animation:toastOut 0.4s ease forwards;
+}
+@keyframes toastOut{
+  to{opacity:0;transform:translateX(-50%) translateY(-30px) scale(0.8);}
+}
+
+/* Audio enable button */
+.audio-enable-overlay{
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.7);
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(4px);
+  animation:fadeIn 0.3s ease;
+}
+.audio-enable-overlay.hidden{display:none;}
+.audio-enable-btn{
+  background:var(--sign);
+  color:var(--sign-deep);
+  border:none;
+  border-radius:16px;
+  padding:24px 40px;
+  font-family:'Anton',sans-serif;
+  font-size:24px;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+  transition:all 0.2s ease;
+}
+.audio-enable-btn:hover{transform:scale(1.05);}
+.audio-enable-btn:active{transform:scale(0.95);}
+.audio-enable-btn .sub{
+  display:block;
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  font-weight:400;
+  margin-top:6px;
+  opacity:0.7;
+}
 </style>
 </head>
 <body>
+
+<!-- Audio Enable Overlay -->
+<div class="audio-enable-overlay" id="audioOverlay">
+  <button class="audio-enable-btn" id="audioEnableBtn">
+    🔈 I-enable ang Sound
+    <span class="sub">I-tap para i-activate ang audio feedback</span>
+  </button>
+</div>
+
 <div class="wrap">
 
   <div class="plate-row">
@@ -813,7 +1064,7 @@ select{
 
   <div class="recent-chips" id="recentChips"></div>
 
-  <div class="board">
+  <div class="board" id="mainBoard">
     <div class="direction-badge" id="directionOut"></div>
     <div class="field-row">
       <div class="field">
@@ -838,9 +1089,9 @@ select{
           <span class="pax-fare" id="fareRegular">&#8369;13</span>
         </div>
         <div class="pax-stepper">
-          <button class="step-btn" data-type="regular" data-action="dec">&minus;</button>
+          <button class="step-btn" data-type="regular" data-action="dec" aria-label="Remove regular passenger">&minus;</button>
           <span class="pax-count" id="countRegular">0</span>
-          <button class="step-btn" data-type="regular" data-action="inc">+</button>
+          <button class="step-btn" data-type="regular" data-action="inc" aria-label="Add regular passenger">+</button>
         </div>
       </div>
       <div class="pax-row" data-type="student">
@@ -849,9 +1100,9 @@ select{
           <span class="pax-fare" id="fareStudent">&#8369;11</span>
         </div>
         <div class="pax-stepper">
-          <button class="step-btn" data-type="student" data-action="dec">&minus;</button>
+          <button class="step-btn" data-type="student" data-action="dec" aria-label="Remove student passenger">&minus;</button>
           <span class="pax-count" id="countStudent">0</span>
-          <button class="step-btn" data-type="student" data-action="inc">+</button>
+          <button class="step-btn" data-type="student" data-action="inc" aria-label="Add student passenger">+</button>
         </div>
       </div>
       <div class="pax-row" data-type="senior">
@@ -860,17 +1111,17 @@ select{
           <span class="pax-fare" id="fareSenior">&#8369;11</span>
         </div>
         <div class="pax-stepper">
-          <button class="step-btn" data-type="senior" data-action="dec">&minus;</button>
+          <button class="step-btn" data-type="senior" data-action="dec" aria-label="Remove senior passenger">&minus;</button>
           <span class="pax-count" id="countSenior">0</span>
-          <button class="step-btn" data-type="senior" data-action="inc">+</button>
+          <button class="step-btn" data-type="senior" data-action="inc" aria-label="Add senior passenger">+</button>
         </div>
       </div>
     </div>
 
-    <div class="fare-display">
+    <div class="fare-display" id="fareDisplay">
       <div class="fare-label">Total fare</div>
-      <div class="fare-amount"><span>&#8369;</span><span id="fareOut">13</span></div>
-      <div class="fare-breakdown" id="breakdownOut"></div>
+      <div class="fare-amount"><span>&#8369;</span><span id="fareOut" aria-live="polite">13</span></div>
+      <div class="fare-breakdown" id="breakdownOut" aria-live="polite"></div>
     </div>
 
     <div class="route-list" id="routeListOut"></div>
@@ -881,11 +1132,11 @@ select{
   <div class="session-board">
     <div class="session-stat">
       <div class="session-stat-label">Trips</div>
-      <div class="session-stat-value" id="tripCountOut">0</div>
+      <div class="session-stat-value" id="tripCountOut" aria-live="polite">0</div>
     </div>
     <div class="session-stat">
       <div class="session-stat-label">Session total</div>
-      <div class="session-stat-value" id="sessionTotalOut">&#8369;0</div>
+      <div class="session-stat-value" id="sessionTotalOut" aria-live="polite">&#8369;0</div>
     </div>
   </div>
   <div class="session-reset-row">
@@ -906,17 +1157,17 @@ select{
     <div class="sukli-grid">
       <div class="field">
         <label>Total fare (php)</label>
-        <input type="number" id="fareInput" value="13" min="0" step="1" readonly>
+        <input type="number" id="fareInput" value="13" min="0" step="1" readonly aria-label="Total fare amount">
       </div>
       <div class="field">
         <label>Binayad (php)</label>
-        <input type="number" id="paidInput" placeholder="0" min="0" step="1">
+        <input type="number" id="paidInput" placeholder="0" min="0" step="1" aria-label="Amount paid">
       </div>
     </div>
     <div class="quick-amounts" id="quickAmounts"></div>
     <div class="sukli-result" id="sukliResult">
       <div class="sukli-label">Naghihintay ng sukli</div>
-      <div class="sukli-amount" id="sukliOut">&#8369;0</div>
+      <div class="sukli-amount" id="sukliOut" aria-live="polite">&#8369;0</div>
       <div class="sukli-note" id="sukliNote">Ilagay ang binayad para makuha ang sukli.</div>
     </div>
   </div>
@@ -941,12 +1192,12 @@ select{
       <div class="feedback-field">
         <label>Mensahe</label>
         <p class="feedback-hint" id="feedbackHint">Isulat dito ang suggestion mo...</p>
-        <textarea id="feedbackMessage" name="message" placeholder="Isulat dito ang feedback mo..." required></textarea>
+        <textarea id="feedbackMessage" name="message" placeholder="Isulat dito ang feedback mo..." required aria-required="true"></textarea>
         <p class="feedback-note">May screenshot o video ka? I-DM na lang sa TikTok: <a href="https://www.tiktok.com/@aizen622" target="_blank" rel="noopener">@aizen622</a></p>
       </div>
       <input type="hidden" id="feedbackDate" name="date">
       <button type="submit" class="feedback-submit-btn" id="feedbackSubmitBtn">Ipadala</button>
-      <div class="feedback-status" id="feedbackStatus"></div>
+      <div class="feedback-status" id="feedbackStatus" aria-live="polite"></div>
     </form>
   </div>
 
@@ -956,6 +1207,14 @@ select{
     <summary class="guide-summary">Mga Update (I-tap para makita)</summary>
     <div class="guide-body">
       <ul class="changelog-list">
+        <li class="changelog-item">
+          <span class="changelog-version">v3.1</span>
+          <span class="changelog-text">🐛 Bug fixes: Fixed AudioContext autoplay issues, memory leaks, toast notification overlap, swap button missing feedback, fare display over-flashing, session name validation, service worker error handling, and added accessibility improvements.<span class="changelog-date">July 29, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v3.0</span>
+          <span class="changelog-text">✨ Major UI/UX update: Added animations, micro-interactions, sound effects support, haptic feedback, and toast notifications. The app now feels more responsive and polished!<span class="changelog-date">July 29, 2026</span></span>
+        </li>
         <li class="changelog-item">
           <span class="changelog-version">v2.8</span>
           <span class="changelog-text">Idinagdag ang "I-save ang session" makakapag-pangalan ka na ng session (hal. "Biyahe 1") at makikita ang buong Session History list, kasama ang bilang ng trips at kinita bawat isa.<span class="changelog-date">July 28, 2026</span></span>
@@ -1015,7 +1274,7 @@ select{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v2.8 &middot; updated July 28, 2026</p>
+  <p class="version-tag">Fare Matrix v3.1 &middot; updated July 29, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -1026,7 +1285,216 @@ select{
 </div>
 
 <script>
-const routes = {
+// ============================================================
+// SOUND MANAGER - With Autoplay Fix
+// ============================================================
+const SoundFX = {
+  // --- Replace these URLs with your own sound files ---
+  click: null,
+  kaChing: null,
+  error: null,
+  chime: null,
+  coin: null,
+  
+  _ctx: null,
+  _audioEnabled: false,
+  
+  // Call this after user interaction
+  enableAudio() {
+    this._audioEnabled = true;
+    // Initialize and resume audio context
+    const ctx = this._initAudio();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+  },
+  
+  _initAudio() {
+    if (!this._ctx || this._ctx.state === 'closed') {
+      try {
+        this._ctx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch(e) {
+        return null;
+      }
+    }
+    return this._ctx;
+  },
+  
+  _playFallback(type) {
+    if (!this._audioEnabled) return;
+    
+    const ctx = this._initAudio();
+    if (!ctx) return;
+    
+    // Resume context if suspended (should be enabled by user interaction)
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+    
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.value = 0.15;
+      
+      switch(type) {
+        case 'click':
+          osc.frequency.value = 800;
+          osc.type = 'sine';
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.05);
+          break;
+        case 'kaChing':
+          osc.frequency.value = 1200;
+          osc.type = 'sine';
+          gain.gain.value = 0.2;
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.15);
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+          gain2.gain.value = 0.1;
+          osc2.frequency.value = 2000;
+          osc2.type = 'sine';
+          gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+          osc2.start(ctx.currentTime + 0.08);
+          osc2.stop(ctx.currentTime + 0.2);
+          break;
+        case 'error':
+          osc.frequency.value = 300;
+          osc.type = 'sawtooth';
+          gain.gain.value = 0.1;
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.3);
+          break;
+        case 'chime':
+          osc.frequency.value = 1000;
+          osc.type = 'sine';
+          gain.gain.value = 0.12;
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.4);
+          break;
+        case 'coin':
+          osc.frequency.value = 600;
+          osc.type = 'sine';
+          gain.gain.value = 0.1;
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.06);
+          const osc3 = ctx.createOscillator();
+          const gain3 = ctx.createGain();
+          osc3.connect(gain3);
+          gain3.connect(ctx.destination);
+          gain3.gain.value = 0.08;
+          osc3.frequency.value = 900;
+          osc3.type = 'sine';
+          gain3.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+          osc3.start(ctx.currentTime + 0.06);
+          osc3.stop(ctx.currentTime + 0.1);
+          break;
+      }
+    } catch(e) {
+      // Silently fail if audio can't play
+    }
+  },
+  
+  play(type) {
+    // Try to use custom audio file first
+    const audio = this[type];
+    if (audio instanceof Audio) {
+      try {
+        audio.currentTime = 0;
+        audio.play().catch(() => this._playFallback(type));
+        return;
+      } catch(e) {
+        this._playFallback(type);
+        return;
+      }
+    }
+    this._playFallback(type);
+  }
+};
+
+// ============================================================
+// HAPTIC FEEDBACK
+// ============================================================
+function hapticLight() {
+  if (navigator.vibrate) {
+    navigator.vibrate(10);
+  }
+}
+
+function hapticMedium() {
+  if (navigator.vibrate) {
+    navigator.vibrate(30);
+  }
+}
+
+function hapticSuccess() {
+  if (navigator.vibrate) {
+    navigator.vibrate([10, 30, 10]);
+  }
+}
+
+function hapticError() {
+  if (navigator.vibrate) {
+    navigator.vibrate([50, 30, 50]);
+  }
+}
+
+// ============================================================
+// TOAST NOTIFICATION - Fixed with proper queue management
+// ============================================================
+let toastTimeout = null;
+
+function showToast(message, duration = 2500) {
+  const existing = document.querySelector('.toast');
+  if (existing) {
+    existing.remove();
+    if (toastTimeout) clearTimeout(toastTimeout);
+  }
+  
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  toast.setAttribute('role', 'alert');
+  document.body.appendChild(toast);
+  
+  toastTimeout = setTimeout(() => {
+    toast.classList.add('out');
+    setTimeout(() => {
+      toast.remove();
+      toastTimeout = null;
+    }, 400);
+  }, duration);
+}
+
+// ============================================================
+// AUDIO ENABLE OVERLAY
+// ============================================================
+const audioOverlay = document.getElementById('audioOverlay');
+
+document.getElementById('audioEnableBtn').addEventListener('click', () => {
+  SoundFX.enableAudio();
+  audioOverlay.classList.add('hidden');
+  // Pre-warm the audio system
+  SoundFX.play('click');
+  // Show a quick toast
+  setTimeout(() => {
+    showToast('🔈 Sound enabled!');
+  }, 300);
+});
+
+// ============================================================
+// MAIN APP
+// ============================================================
+const ROUTES = {
   balagtas: {
     label: "Balagtas",
     units: [
@@ -1062,12 +1530,22 @@ const routes = {
   }
 };
 
+// Constants
+const MINIMUM_UNITS = 4;
+const BASE_REGULAR_FARE = 13;
+const BASE_REDUCED_FARE = 11;
+const EXTRA_FARE_PER_UNIT = 2;
+
 let currentRoute = "balagtas";
 let paxCounts = { regular: 1, student: 0, senior: 0 };
 let tripCount = 0;
 let sessionTotal = 0;
 let recentDestinations = [];
+let isTransitioning = false;
+let lastFareValue = 0;
+let computeTimeout = null;
 
+// DOM Caches
 const routeTabs = document.getElementById("routeTabs");
 const fromSelect = document.getElementById("fromSelect");
 const toSelect = document.getElementById("toSelect");
@@ -1080,16 +1558,45 @@ const sukliOut = document.getElementById("sukliOut");
 const sukliNote = document.getElementById("sukliNote");
 const sukliResult = document.getElementById("sukliResult");
 const quickAmounts = document.getElementById("quickAmounts");
+const mainBoard = document.getElementById("mainBoard");
+const fareDisplay = document.getElementById("fareDisplay");
+const directionOut = document.getElementById("directionOut");
+const fareRegular = document.getElementById("fareRegular");
+const fareStudent = document.getElementById("fareStudent");
+const fareSenior = document.getElementById("fareSenior");
 
 function buildTabs(){
   routeTabs.innerHTML = "";
-  Object.keys(routes).forEach(key=>{
+  Object.keys(ROUTES).forEach(key=>{
     const btn = document.createElement("div");
     btn.className = "route-tab" + (key===currentRoute ? " active" : "");
-    btn.textContent = routes[key].label + " \u21C4 Bulakan";
-    btn.onclick = () => { currentRoute = key; refreshRoute(); };
+    btn.textContent = ROUTES[key].label + " \u21C4 Bulakan";
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', key===currentRoute ? 'true' : 'false');
+    btn.onclick = () => {
+      if (key !== currentRoute && !isTransitioning) {
+        SoundFX.play('chime');
+        refreshRouteWithKey(key);
+      }
+    };
     routeTabs.appendChild(btn);
   });
+}
+
+function refreshRouteWithKey(key) {
+  isTransitioning = true;
+  mainBoard.classList.add('fade-transition');
+  
+  setTimeout(() => {
+    currentRoute = key;
+    buildTabs();
+    buildSelects();
+    buildRouteList();
+    renderRecentChips();
+    computeFareDebounced();
+    mainBoard.classList.remove('fade-transition');
+    isTransitioning = false;
+  }, 300);
 }
 
 function flatBarangays(units){
@@ -1101,7 +1608,7 @@ function flatBarangays(units){
 }
 
 function buildSelects(){
-  const flat = flatBarangays(routes[currentRoute].units);
+  const flat = flatBarangays(ROUTES[currentRoute].units);
   [fromSelect, toSelect].forEach(sel => sel.innerHTML = "");
   flat.forEach(item => {
     const opt1 = document.createElement("option");
@@ -1116,9 +1623,9 @@ function buildSelects(){
 }
 
 function buildRouteList(){
-  const units = routes[currentRoute].units;
+  const units = ROUTES[currentRoute].units;
   const parts = units.map(u => u.length > 1 ? `<span class="unit-pair">${u.join(" / ")}</span>` : u[0]);
-  routeListOut.innerHTML = `<b>${routes[currentRoute].label} - Bulakan</b> (${units.length} counted units)<br>` + parts.join(" &rarr; ");
+  routeListOut.innerHTML = `<b>${ROUTES[currentRoute].label} - Bulakan</b> (${units.length} counted units)<br>` + parts.join(" &rarr; ");
 }
 
 function getSelectedIndex(select){
@@ -1127,24 +1634,52 @@ function getSelectedIndex(select){
   return Number.isFinite(idx) ? idx : -1;
 }
 
+function calculateFare(fromIdx, toIdx, pax) {
+  if (fromIdx < 0 || toIdx < 0) return null;
+  
+  const unitsCount = Math.abs(fromIdx - toIdx) + 1;
+  const extra = Math.max(0, unitsCount - MINIMUM_UNITS);
+  const regularFare = BASE_REGULAR_FARE + extra * EXTRA_FARE_PER_UNIT;
+  const reducedFare = BASE_REDUCED_FARE + extra * EXTRA_FARE_PER_UNIT;
+  const total = (pax.regular * regularFare) + ((pax.student + pax.senior) * reducedFare);
+  
+  return {
+    unitsCount,
+    extra,
+    regularFare,
+    reducedFare,
+    total,
+    totalPax: pax.regular + pax.student + pax.senior
+  };
+}
+
+function computeFareDebounced() {
+  if (computeTimeout) clearTimeout(computeTimeout);
+  computeTimeout = setTimeout(() => {
+    computeFare();
+    computeTimeout = null;
+  }, 50);
+}
+
 function computeFare(){
   const fromIdx = getSelectedIndex(fromSelect);
   const toIdx = getSelectedIndex(toSelect);
+  
   if(fromIdx < 0 || toIdx < 0){
     fareOut.textContent = "0";
     fareInput.value = 0;
     breakdownOut.textContent = "Pumili ng valid na pickup at drop-off.";
-    document.getElementById("directionOut").textContent = "Select barangays";
+    directionOut.textContent = "Select barangays";
     computeSukli();
     return;
   }
-  const unitsCount = Math.abs(fromIdx - toIdx) + 1;
-  const extra = Math.max(0, unitsCount - 4);
-  const regularFare = 13 + extra * 2;
-  const reducedFare = 11 + extra * 2;
+  
+  const result = calculateFare(fromIdx, toIdx, paxCounts);
+  if (!result) return;
+  
+  const { unitsCount, extra, regularFare, reducedFare, total, totalPax } = result;
 
-  const routeLabel = routes[currentRoute].label;
-  const directionOut = document.getElementById("directionOut");
+  const routeLabel = ROUTES[currentRoute].label;
   if(toIdx > fromIdx){
     directionOut.textContent = "Bulakan \u2192 " + routeLabel;
   } else if(toIdx < fromIdx){
@@ -1153,17 +1688,27 @@ function computeFare(){
     directionOut.textContent = "Same barangay";
   }
 
-  document.getElementById("fareRegular").textContent = "\u20B1" + regularFare;
-  document.getElementById("fareStudent").textContent = "\u20B1" + reducedFare;
-  document.getElementById("fareSenior").textContent = "\u20B1" + reducedFare;
+  fareRegular.textContent = "\u20B1" + regularFare;
+  fareStudent.textContent = "\u20B1" + reducedFare;
+  fareSenior.textContent = "\u20B1" + reducedFare;
 
-  const totalPax = paxCounts.regular + paxCounts.student + paxCounts.senior;
-  const total = (paxCounts.regular * regularFare) + ((paxCounts.student + paxCounts.senior) * reducedFare);
+  // Only animate if fare changed
+  if (total !== lastFareValue) {
+    fareOut.classList.remove('pop');
+    void fareOut.offsetWidth;
+    fareOut.classList.add('pop');
+    setTimeout(() => fareOut.classList.remove('pop'), 200);
+    
+    fareDisplay.classList.add('flash');
+    setTimeout(() => fareDisplay.classList.remove('flash'), 400);
+    
+    lastFareValue = total;
+  }
 
   fareOut.textContent = total;
   fareInput.value = total;
 
-  const unitNote = unitsCount <= 4
+  const unitNote = unitsCount <= MINIMUM_UNITS
     ? `${unitsCount} unit(s), within minimum`
     : `${unitsCount} units, +${extra} beyond minimum`;
 
@@ -1176,27 +1721,48 @@ function computeFare(){
     if(paxCounts.senior) pieces.push(`${paxCounts.senior} senior x \u20B1${reducedFare}`);
     breakdownOut.textContent = `${unitNote} -> ${pieces.join(" + ")}`;
   }
+  
   computeSukli();
 }
+
+let lastSukliValue = null;
 
 function computeSukli(){
   const fare = parseFloat(fareInput.value) || 0;
   const paid = parseFloat(paidInput.value);
+  
   if(isNaN(paid)){
     sukliOut.textContent = "\u20B10";
     sukliNote.textContent = "Ilagay ang binayad para makuha ang sukli.";
     sukliResult.classList.remove("short");
+    sukliResult.classList.remove("bounce");
     return;
   }
+  
   const change = paid - fare;
   if(change < 0){
+    sukliResult.classList.remove("bounce");
     sukliResult.classList.add("short");
     sukliOut.textContent = "\u20B1" + Math.abs(change);
     sukliNote.textContent = "Kulang ng amount na ito, hingin muna ang balanse.";
+    if (lastSukliValue !== null && lastSukliValue >= 0) {
+      SoundFX.play('error');
+      hapticError();
+    }
+    lastSukliValue = change;
   } else {
     sukliResult.classList.remove("short");
     sukliOut.textContent = "\u20B1" + change;
     sukliNote.textContent = change === 0 ? "Eksakto, walang sukli." : "Ibigay ang sukling ito sa pasahero.";
+    
+    if (lastSukliValue !== null && lastSukliValue !== change && change > 0) {
+      sukliResult.classList.remove('bounce');
+      void sukliResult.offsetWidth;
+      sukliResult.classList.add('bounce');
+      SoundFX.play('coin');
+      hapticLight();
+    }
+    lastSukliValue = change;
   }
 }
 
@@ -1206,7 +1772,12 @@ function buildQuickAmounts(){
     const b = document.createElement("div");
     b.className = "quick-btn";
     b.textContent = "\u20B1" + amt;
-    b.onclick = () => { paidInput.value = amt; computeSukli(); };
+    b.onclick = () => { 
+      paidInput.value = amt; 
+      computeSukli();
+      hapticLight();
+      SoundFX.play('click');
+    };
     quickAmounts.appendChild(b);
   });
 }
@@ -1216,20 +1787,35 @@ function refreshRoute(){
   buildSelects();
   buildRouteList();
   renderRecentChips();
-  computeFare();
+  computeFareDebounced();
 }
 
+// Event Listeners
 document.querySelectorAll(".step-btn").forEach(btn => {
   btn.onclick = () => {
     const type = btn.dataset.type;
     const action = btn.dataset.action;
+    const countEl = document.getElementById("count" + type.charAt(0).toUpperCase() + type.slice(1));
+    
     if(action === "inc"){
       paxCounts[type] += 1;
+      SoundFX.play('click');
+      hapticLight();
     } else {
-      paxCounts[type] = Math.max(0, paxCounts[type] - 1);
+      if (paxCounts[type] > 0) {
+        paxCounts[type] -= 1;
+        SoundFX.play('click');
+        hapticLight();
+      }
     }
-    document.getElementById("count" + type.charAt(0).toUpperCase() + type.slice(1)).textContent = paxCounts[type];
-    computeFare();
+    countEl.textContent = paxCounts[type];
+    
+    countEl.classList.remove('pop');
+    void countEl.offsetWidth;
+    countEl.classList.add('pop');
+    setTimeout(() => countEl.classList.remove('pop'), 250);
+    
+    computeFareDebounced();
   };
 });
 
@@ -1237,17 +1823,27 @@ document.getElementById("swapBtn").onclick = () => {
   const tmp = fromSelect.value;
   fromSelect.value = toSelect.value;
   toSelect.value = tmp;
-  computeFare();
+  SoundFX.play('click');
+  hapticLight();
+  computeFareDebounced();
 };
 
-fromSelect.addEventListener("change", computeFare);
-toSelect.addEventListener("change", computeFare);
+fromSelect.addEventListener("change", () => {
+  SoundFX.play('click');
+  computeFareDebounced();
+});
+toSelect.addEventListener("change", () => {
+  SoundFX.play('click');
+  computeFareDebounced();
+});
 paidInput.addEventListener("input", computeSukli);
 
 document.getElementById("clearPaxBtn").onclick = () => {
   paxCounts = { regular: 0, student: 0, senior: 0 };
   syncPaxDisplay();
-  computeFare();
+  SoundFX.play('click');
+  hapticLight();
+  computeFareDebounced();
 };
 
 function syncPaxDisplay(){
@@ -1273,7 +1869,9 @@ function renderRecentChips(){
         fromSelect.value = dest.fromValue;
         toSelect.value = dest.toValue;
       }
-      computeFare();
+      SoundFX.play('click');
+      hapticLight();
+      computeFareDebounced();
     };
     wrap.appendChild(chip);
   });
@@ -1295,10 +1893,22 @@ function pushRecentDestination(){
 }
 
 function updateSessionDisplay(){
-  document.getElementById("tripCountOut").textContent = tripCount;
-  document.getElementById("sessionTotalOut").textContent = "\u20B1" + sessionTotal;
+  const tripEl = document.getElementById("tripCountOut");
+  tripEl.textContent = tripCount;
+  tripEl.classList.remove('pop');
+  void tripEl.offsetWidth;
+  tripEl.classList.add('pop');
+  setTimeout(() => tripEl.classList.remove('pop'), 300);
+  
+  const totalEl = document.getElementById("sessionTotalOut");
+  totalEl.textContent = "\u20B1" + sessionTotal;
+  totalEl.classList.remove('pop');
+  void totalEl.offsetWidth;
+  totalEl.classList.add('pop');
+  setTimeout(() => totalEl.classList.remove('pop'), 300);
 }
 
+// Session History
 const SESSION_HISTORY_KEY = "fareMatrixSessionHistory";
 
 function loadSessionHistory(){
@@ -1330,8 +1940,8 @@ function renderSessionHistory(){
     li.className = "session-history-item";
     li.innerHTML = `
       <div class="session-history-info">
-        <span class="session-history-name">${entry.name}</span>
-        <span class="session-history-date">${entry.date}</span>
+        <span class="session-history-name">${escapeHtml(entry.name)}</span>
+        <span class="session-history-date">${escapeHtml(entry.date)}</span>
       </div>
       <div class="session-history-stats">\u20B1${entry.total}<span class="session-history-trips">${entry.trips} trip(s)</span></div>
     `;
@@ -1339,31 +1949,82 @@ function renderSessionHistory(){
   });
 }
 
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 document.getElementById("completeTripBtn").onclick = () => {
   const fare = parseFloat(fareInput.value) || 0;
-  if(fare <= 0) return;
+  if(fare <= 0) {
+    showToast("Walang pasahero o fare na zero.");
+    return;
+  }
+  
   sessionTotal += fare;
   tripCount += 1;
   updateSessionDisplay();
   pushRecentDestination();
+  
+  SoundFX.play('kaChing');
+  hapticSuccess();
+  
+  const btn = document.getElementById("completeTripBtn");
+  btn.classList.add('success');
+  setTimeout(() => btn.classList.remove('success'), 800);
+  
+  showToast(`✓ Trip completed! +₱${fare}`);
+  
   paxCounts = { regular: 0, student: 0, senior: 0 };
   syncPaxDisplay();
   paidInput.value = "";
-  computeFare();
+  computeFareDebounced();
 };
 
 document.getElementById("sessionSaveBtn").onclick = () => {
   if(tripCount === 0 && sessionTotal === 0){
+    showToast("Walang trip na na-save sa session.");
     return;
   }
-  const defaultName = `Biyahe ${sessionHistory.length + 1}`;
-  const name = (prompt("Pangalan ng session:", defaultName) || "").trim() || defaultName;
+  
+  let defaultName = `Biyahe ${sessionHistory.length + 1}`;
+  let name = defaultName;
+  let attempts = 0;
+  
+  while (attempts < 3) {
+    const input = prompt("Pangalan ng session:", name);
+    if (input === null) return;
+    
+    const trimmed = input.trim();
+    if (!trimmed) {
+      name = defaultName;
+      break;
+    }
+    
+    const exists = sessionHistory.some(entry => entry.name === trimmed);
+    if (exists) {
+      alert(`Mayroon nang session na "${trimmed}". Gumamit ng ibang pangalan.`);
+      name = `${trimmed} (2)`;
+      attempts++;
+      continue;
+    }
+    
+    name = trimmed;
+    break;
+  }
+  
   const dateStr = new Date().toLocaleString("en-PH", {
     year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
   });
+  
   sessionHistory.unshift({ name, date: dateStr, trips: tripCount, total: sessionTotal });
   saveSessionHistoryToStorage(sessionHistory);
   renderSessionHistory();
+  SoundFX.play('chime');
+  hapticMedium();
+  showToast(`✓ Nai-save ang "${name}"`);
+  
   tripCount = 0;
   sessionTotal = 0;
   updateSessionDisplay();
@@ -1373,6 +2034,9 @@ document.getElementById("sessionResetBtn").onclick = () => {
   tripCount = 0;
   sessionTotal = 0;
   updateSessionDisplay();
+  SoundFX.play('click');
+  hapticLight();
+  showToast("Na-reset ang session.");
 };
 
 document.getElementById("sessionClearHistoryBtn").onclick = () => {
@@ -1382,12 +2046,17 @@ document.getElementById("sessionClearHistoryBtn").onclick = () => {
     sessionHistory = [];
     saveSessionHistoryToStorage(sessionHistory);
     renderSessionHistory();
+    SoundFX.play('click');
+    hapticMedium();
+    showToast("Na-clear ang history.");
   }
 };
 
 renderSessionHistory();
 
+// Service Worker - Fixed
 if("serviceWorker" in navigator){
+  let updateInterval = null;
   let refreshing = false;
 
   navigator.serviceWorker.addEventListener("controllerchange", () => {
@@ -1396,17 +2065,36 @@ if("serviceWorker" in navigator){
   });
 
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").then((reg) => {
-      setInterval(() => reg.update(), 5 * 60 * 1000);
-    }).catch(() => {});
+    navigator.serviceWorker.register("sw.js")
+      .then((reg) => {
+        console.log('Service Worker registered successfully');
+        // Check for updates every 5 minutes
+        updateInterval = setInterval(() => {
+          reg.update().catch(() => {});
+        }, 5 * 60 * 1000);
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+          if (updateInterval) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+          }
+        });
+      })
+      .catch((err) => {
+        console.warn('Service Worker registration failed:', err);
+        // App works without SW, just log
+      });
   });
 
   document.getElementById("updateRefreshBtn").onclick = () => {
     refreshing = true;
+    SoundFX.play('click');
     window.location.reload();
   };
 }
 
+// Feedback Form
 const feedbackForm = document.getElementById("feedbackForm");
 const feedbackStatus = document.getElementById("feedbackStatus");
 const feedbackSubmitBtn = document.getElementById("feedbackSubmitBtn");
@@ -1505,6 +2193,9 @@ feedbackForm.addEventListener("submit", async (e) => {
       feedbackStatus.className = "feedback-status success";
       feedbackForm.reset();
       updateFeedbackHint();
+      SoundFX.play('chime');
+      hapticSuccess();
+      showToast("✓ Naipadala ang feedback!");
       try { localStorage.setItem(FEEDBACK_COOLDOWN_KEY, String(Date.now())); } catch(err) {}
       updateFeedbackCooldownUI();
     } else {
@@ -1521,6 +2212,7 @@ feedbackForm.addEventListener("submit", async (e) => {
   }
 });
 
+// Initialize
 document.getElementById("countRegular").textContent = paxCounts.regular;
 document.getElementById("countStudent").textContent = paxCounts.student;
 document.getElementById("countSenior").textContent = paxCounts.senior;
@@ -1528,6 +2220,9 @@ document.getElementById("countSenior").textContent = paxCounts.senior;
 buildQuickAmounts();
 refreshRoute();
 updateSessionDisplay();
+
+// Check if audio overlay should be shown (for browsers that block autoplay)
+// We'll show it by default and hide after user clicks
 </script>
 <script data-goatcounter="https://aizen1.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <script>

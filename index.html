@@ -1332,6 +1332,33 @@ select:focus-visible{
   font-family:'Oswald',sans-serif;
   color:var(--sign);
 }
+
+/* Fuel Info Panel */
+#fuelInfoPanel {
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:12px 14px;
+  margin-bottom:16px;
+  transition:all 0.3s ease;
+}
+#fuelInfoPanel:hover {
+  border-color:var(--sign);
+}
+
+/* Best Station Panel */
+#bestStationPanel {
+  background:var(--ink);
+  border:2px solid var(--sign);
+  border-radius:8px;
+  padding:12px 14px;
+  margin-bottom:16px;
+  text-align:center;
+  transition:all 0.3s ease;
+}
+#bestStationPanel:hover {
+  border-color:var(--ok);
+}
 </style>
 </head>
 <body>
@@ -1522,7 +1549,7 @@ select:focus-visible{
 
       <div class="code-hint">
         💡 Paano mag-redeem: Pumunta sa <b>Menu</b> &rarr; <b>Codes</b> sa Diesel N' Steel at i-paste ang code.
-        <br>Para sa updated na list ng codes, bisitahin ang  
+        <br>Para sa updated na list ng codes, bisitahin ang 
         <a href="https://www.tiktok.com/@aizen622" target="_blank" rel="noopener">@aizen622</a> sa TikTok.
       </div>
 
@@ -1570,6 +1597,20 @@ select:focus-visible{
         </select>
       </div>
 
+      <!-- Best Station Recommendation -->
+      <div id="bestStationPanel">
+        <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--paper-dim);margin-bottom:2px;">
+          🏆 Best Station for <span id="bestFuelTypeName" style="color:var(--sign);">Diesel</span>
+        </div>
+        <div style="font-family:'Anton',sans-serif;font-size:22px;color:var(--ok);" id="bestStationName">
+          Gas Station 2
+        </div>
+        <div style="font-family:'Inter',sans-serif;font-size:13px;color:var(--paper);">
+          ₱<span id="bestStationPrice">85.64</span> per liter
+          <span id="bestStationSavings" style="font-size:12px;color:var(--sign);margin-left:8px;">(Save ₱4.58 vs Station 3)</span>
+        </div>
+      </div>
+
       <!-- Fuel Type Tabs -->
       <div class="fuel-tabs" id="fuelTabs">
         <div class="fuel-tab diesel active" data-fuel="diesel">
@@ -1580,6 +1621,23 @@ select:focus-visible{
         </div>
         <div class="fuel-tab premium" data-fuel="premium">
           <span class="fuel-icon">🔥</span> Premium
+        </div>
+      </div>
+
+      <!-- Fuel Type Information Panel -->
+      <div id="fuelInfoPanel">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+          <span id="fuelInfoIcon" style="font-size:20px;">🛢️</span>
+          <span id="fuelInfoName" style="font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;color:var(--sign);">Diesel</span>
+          <span id="fuelInfoBadge" style="font-family:'Oswald',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 10px;border-radius:12px;background:var(--fuel-diesel);color:#fff;margin-left:auto;">Best Value</span>
+        </div>
+        <p id="fuelInfoDesc" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--paper);margin:0 0 4px 0;line-height:1.5;">
+          Mas matipid sa gasolina at mas mura kaysa sa Unleaded at Premium. Ideal para sa long-distance trips at daily driving.
+        </p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
+          <span id="fuelInfoPros" style="font-size:12px;color:var(--ok);">✅ Matipid</span>
+          <span id="fuelInfoCons" style="font-size:12px;color:var(--paper-dim);">⚠️ Mas mabagal na acceleration</span>
+          <span id="fuelInfoBestFor" style="font-size:12px;color:var(--sign);">🎯 Long trips</span>
         </div>
       </div>
 
@@ -1663,6 +1721,14 @@ select:focus-visible{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.3</span>
+          <span class="changelog-text">🏆 Added "Best Station" recommendation panel - automatically shows the cheapest gas station for each fuel type with savings comparison.<span class="changelog-date">July 30, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v4.2</span>
+          <span class="changelog-text">📊 Added Fuel Type Information Panel: Players can now see the difference between Diesel, Unleaded, and Premium with pros, cons, and best use recommendations.<span class="changelog-date">July 30, 2026</span></span>
+        </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.1</span>
           <span class="changelog-text">🖼️ Fixed gas station images: Renamed files to remove spaces (GasStation1.png, GasStation2.png, etc.) for better compatibility.<span class="changelog-date">July 30, 2026</span></span>
         </li>
@@ -1737,7 +1803,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.1 &middot; updated July 30, 2026</p>
+  <p class="version-tag">Fare Matrix v4.3 &middot; updated July 30, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -2058,7 +2124,7 @@ function copyFallback(code, btn) {
 renderCodes();
 
 // ============================================================
-// FUEL CALCULATOR - WITH GAS STATION IMAGES (FIXED)
+// FUEL CALCULATOR - WITH GAS STATION IMAGES & INFO PANEL
 // ============================================================
 
 // Gas Station Data - 4 Stations (Station 5 coming soon)
@@ -2087,6 +2153,42 @@ const GAS_STATIONS = {
     name: "Gas Station 5",
     image: "GasStation5.png",
     prices: { diesel: 0, unleaded: 0, premium: 0 }  // ← WILL UPDATE WHEN FOUND
+  }
+};
+
+// ============================================================
+// FUEL TYPE INFORMATION
+// ============================================================
+const FUEL_INFO = {
+  diesel: {
+    name: "Diesel",
+    icon: "🛢️",
+    color: "var(--fuel-diesel)",
+    badge: "Best Value",
+    description: "Mas matipid sa gasolina at mas mura kaysa sa Unleaded at Premium. Ideal para sa long-distance trips at daily driving.",
+    pros: "✅ Matipid",
+    cons: "⚠️ Mas mabagal na acceleration",
+    bestFor: "🎯 Long trips"
+  },
+  unleaded: {
+    name: "Unleaded",
+    icon: "⛽",
+    color: "var(--fuel-unleaded)",
+    badge: "Balanced",
+    description: "Standard na gasolina na ginagamit ng karamihan. Magandang balance ng performance at presyo.",
+    pros: "✅ Balanced performance",
+    cons: "⚠️ Mas mahal konti sa Diesel",
+    bestFor: "🎯 Daily driving"
+  },
+  premium: {
+    name: "Premium",
+    icon: "🔥",
+    color: "var(--fuel-premium)",
+    badge: "Best Performance",
+    description: "Pinakamalakas na acceleration at top speed. Para sa mga nagmamadali o nagha-harabas.",
+    pros: "✅ Pinakamabilis",
+    cons: "⚠️ Pinakamahal",
+    bestFor: "🎯 Speed/Performance"
   }
 };
 
@@ -2134,6 +2236,98 @@ function updateStationDisplay() {
   }
 }
 
+function updateFuelInfo() {
+  const info = FUEL_INFO[currentFuel];
+  if (!info) return;
+  
+  document.getElementById('fuelInfoIcon').textContent = info.icon;
+  document.getElementById('fuelInfoName').textContent = info.name;
+  document.getElementById('fuelInfoBadge').textContent = info.badge;
+  document.getElementById('fuelInfoBadge').style.background = info.color;
+  document.getElementById('fuelInfoDesc').textContent = info.description;
+  document.getElementById('fuelInfoPros').textContent = info.pros;
+  document.getElementById('fuelInfoCons').textContent = info.cons;
+  document.getElementById('fuelInfoBestFor').textContent = info.bestFor;
+}
+
+// ============================================================
+// BEST STATION RECOMMENDATION
+// ============================================================
+function getBestStationForFuel(fuelType) {
+  let bestStation = null;
+  let bestPrice = Infinity;
+  let stationName = '';
+  let allPrices = [];
+  
+  Object.keys(GAS_STATIONS).forEach(key => {
+    const station = GAS_STATIONS[key];
+    const price = station.prices[fuelType];
+    if (price && price > 0) {
+      allPrices.push({ name: station.name, price: price, key: key });
+      if (price < bestPrice) {
+        bestPrice = price;
+        bestStation = station;
+        stationName = station.name;
+      }
+    }
+  });
+  
+  // Find the most expensive station for comparison
+  let mostExpensive = 0;
+  let mostExpensiveName = '';
+  allPrices.forEach(p => {
+    if (p.price > mostExpensive) {
+      mostExpensive = p.price;
+      mostExpensiveName = p.name;
+    }
+  });
+  
+  const savings = mostExpensive - bestPrice;
+  
+  return {
+    name: stationName,
+    price: bestPrice,
+    savings: savings,
+    mostExpensiveName: mostExpensiveName,
+    allPrices: allPrices
+  };
+}
+
+function updateBestStation() {
+  const fuelType = currentFuel;
+  const fuelNames = { diesel: 'Diesel', unleaded: 'Unleaded', premium: 'Premium' };
+  const result = getBestStationForFuel(fuelType);
+  
+  if (!result || !result.name) {
+    document.getElementById('bestStationPanel').style.display = 'none';
+    return;
+  }
+  
+  document.getElementById('bestFuelTypeName').textContent = fuelNames[fuelType];
+  document.getElementById('bestStationName').textContent = result.name;
+  document.getElementById('bestStationPrice').textContent = result.price.toFixed(2);
+  
+  if (result.savings > 0 && result.mostExpensiveName) {
+    document.getElementById('bestStationSavings').textContent = `(Save ₱${result.savings.toFixed(2)} vs ${result.mostExpensiveName})`;
+    document.getElementById('bestStationSavings').style.display = 'inline';
+  } else {
+    document.getElementById('bestStationSavings').style.display = 'none';
+  }
+  
+  // Highlight if current station is the best
+  const currentStationName = GAS_STATIONS[currentStation]?.name;
+  const panel = document.getElementById('bestStationPanel');
+  if (currentStationName === result.name) {
+    panel.style.borderColor = 'var(--ok)';
+    panel.style.background = 'var(--jeep-green-dark)';
+  } else {
+    panel.style.borderColor = 'var(--sign)';
+    panel.style.background = 'var(--ink)';
+  }
+  
+  document.getElementById('bestStationPanel').style.display = 'block';
+}
+
 function updateFuelUI() {
   const prices = getFuelPrices();
   const price = prices[currentFuel] || 86.12;
@@ -2144,6 +2338,8 @@ function updateFuelUI() {
   });
   
   updateStationDisplay();
+  updateFuelInfo();
+  updateBestStation();
   calculateFuel();
 }
 

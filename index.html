@@ -114,28 +114,6 @@
   margin-top:2px;
 }
 
-/* Star Rating Styles */
-.star-rating {
-  text-align:center;
-  margin:12px 0;
-}
-.stars span {
-  font-size:30px;
-  cursor:pointer;
-  transition:all 0.2s ease;
-  opacity:0.3;
-  display:inline-block;
-  user-select:none;
-}
-.stars span:hover,
-.stars span.active {
-  opacity:1;
-  transform:scale(1.2);
-}
-.stars span.active {
-  opacity:1;
-}
-
 /* Share Button Styles */
 .share-btn {
   width:100%;
@@ -217,7 +195,7 @@ body{
 
 button, select, .recent-chip, .route-tab, .quick-btn, .complete-trip-btn,
 .feedback-submit-btn, .session-save-btn, .session-reset-btn, .session-clear-history-btn,
-.clear-pax-btn, .code-copy-btn, .fuel-tab, .fuel-quick-btn, .share-btn, .stars span,
+.clear-pax-btn, .code-copy-btn, .fuel-tab, .fuel-quick-btn, .share-btn,
 .discord-btn {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
@@ -1865,7 +1843,7 @@ select:focus-visible{
   </div>
 
   <!-- ============================================================
-       SHARE & RATE SECTION
+       SHARE & RATE SECTION (UPDATED - No Star Rating)
        ============================================================ -->
   <div class="section-title">📤 Share & Rate</div>
   <div class="board">
@@ -1875,16 +1853,13 @@ select:focus-visible{
       📤 Share Fare Matrix
     </button>
     
-    <div class="star-rating">
-      <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--paper-dim);margin:12px 0 6px;">Rate Fare Matrix:</p>
-      <div class="stars" id="starRating">
-        <span data-value="1">⭐</span>
-        <span data-value="2">⭐</span>
-        <span data-value="3">⭐</span>
-        <span data-value="4">⭐</span>
-        <span data-value="5">⭐</span>
-      </div>
-      <div id="ratingMessage" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--paper-dim);margin-top:4px;"></div>
+    <div style="text-align:center;margin-top:12px;">
+      <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--paper-dim);">
+        ⭐ Rate Fare Matrix on Discord!
+      </p>
+      <a href="https://discord.com/channels/1532292577036861470/1532367792332865727" target="_blank" rel="noopener" style="color:var(--sign);font-weight:600;text-decoration:underline;font-family:'Inter',sans-serif;font-size:13px;">
+        Join #⭐-ratings channel →
+      </a>
     </div>
   </div>
 
@@ -1894,7 +1869,7 @@ select:focus-visible{
   <div class="section-title">💬 Join Our Discord</div>
   <div class="board">
     <p class="section-subtitle">Join the Fare Matrix community! Get updates, share feedback, and connect with other Diesel N Steel players.</p>
-    <a href="https://discord.gg/5xHXEFbtm" target="_blank" rel="noopener" class="discord-btn">
+    <a href="https://discord.gg/cpnnevJeE" target="_blank" rel="noopener" class="discord-btn">
       💬 Join Discord Server
     </a>
   </div>
@@ -1938,12 +1913,16 @@ select:focus-visible{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.8.1</span>
+          <span class="changelog-text">⭐ Removed star rating from app - users can now rate Fare Matrix on Discord in #⭐-ratings channel!<span class="changelog-date">July 30, 2026</span></span>
+        </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.8</span>
           <span class="changelog-text">💬 Added Discord section! Join the Fare Matrix community to get updates, share feedback, and connect with other Diesel N Steel players.<span class="changelog-date">July 30, 2026</span></span>
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.7</span>
-          <span class="changelog-text">📤 Added Share & Rate section! Share Fare Matrix with friends and rate the app with a 5-star rating system (saved locally).<span class="changelog-date">July 30, 2026</span></span>
+          <span class="changelog-text">📤 Added Share & Rate section! Share Fare Matrix with friends.<span class="changelog-date">July 30, 2026</span></span>
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.6.1</span>
@@ -2044,7 +2023,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.8 &middot; updated July 30, 2026</p>
+  <p class="version-tag">Fare Matrix v4.8.1 &middot; updated July 30, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -2424,55 +2403,6 @@ featureTabs.forEach(tab => {
     });
     SoundFX.play('click');
     hapticLight();
-  });
-});
-
-// ============================================================
-// STAR RATING SYSTEM
-// ============================================================
-const ratingKey = 'fareMatrixUserRating';
-const savedRating = localStorage.getItem(ratingKey);
-
-const stars = document.querySelectorAll('.stars span');
-const ratingMsg = document.getElementById('ratingMessage');
-
-if (savedRating) {
-  const rating = parseInt(savedRating);
-  stars.forEach((star, index) => {
-    if (index < rating) star.classList.add('active');
-  });
-  const messages = {
-    1: '😔 Sorry you didn\'t like it. Please send feedback to improve!',
-    2: '😕 We can do better! Let us know what you think.',
-    3: '🙂 Thanks! We\'ll keep improving.',
-    4: '😊 Glad you like it! Share with your friends!',
-    5: '🎉 Awesome! Thank you so much!'
-  };
-  ratingMsg.textContent = messages[rating] || `⭐ ${rating} stars! Thank you!`;
-}
-
-stars.forEach(star => {
-  star.addEventListener('click', function() {
-    const value = parseInt(this.dataset.value);
-    localStorage.setItem(ratingKey, value);
-    
-    stars.forEach(s => s.classList.remove('active'));
-    stars.forEach((s, index) => {
-      if (index < value) s.classList.add('active');
-    });
-    
-    const messages = {
-      1: '😔 Sorry you didn\'t like it. Please send feedback to improve!',
-      2: '😕 We can do better! Let us know what you think.',
-      3: '🙂 Thanks! We\'ll keep improving.',
-      4: '😊 Glad you like it! Share with your friends!',
-      5: '🎉 Awesome! Thank you so much!'
-    };
-    ratingMsg.textContent = messages[value] || `⭐ ${value} stars! Thank you!`;
-    
-    SoundFX.play('click');
-    hapticLight();
-    showToast('⭐ Rating saved! Thank you!');
   });
 });
 

@@ -1472,8 +1472,8 @@ select:focus-visible{
       ⏰ Checking Rush Hour...
     </div>
     <div class="rush-time" id="rushTimeDisplay">Morning: 4:00 AM - 8:00 AM | Evening: 5:00 PM - 10:00 PM</div>
-    <div id="rushBonusDisplay" style="display:none;">
-      <span class="rush-bonus">+20% Fare Bonus Active!</span>
+    <div id="rushPassengerDisplay" style="display:none;">
+      <span class="rush-bonus">🚶 More Passengers Available!</span>
     </div>
     <div id="rushCountdown">
       <div class="rush-timer-label">Next Rush Hour in</div>
@@ -1810,7 +1810,7 @@ select:focus-visible{
       <ul class="changelog-list">
         <li class="changelog-item">
           <span class="changelog-version">v4.6</span>
-          <span class="changelog-text">🚦 Added Rush Hour system! Morning (4AM-8AM) and Evening (5PM-10PM) with +20% fare bonus. Real-time countdown timer shows when next rush hour starts/ends.<span class="changelog-date">July 30, 2026</span></span>
+          <span class="changelog-text">🚦 Added Rush Hour system! Morning (4AM-8AM) and Evening (5PM-10PM) - more passengers available during these times. Real-time countdown timer shows when next rush hour starts/ends.<span class="changelog-date">July 30, 2026</span></span>
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.5</span>
@@ -2089,14 +2089,13 @@ const featureContents = {
 };
 
 // ============================================================
-// RUSH HOUR SYSTEM
+// RUSH HOUR SYSTEM (NO BONUS - JUST MORE PASSENGERS)
 // ============================================================
 const RUSH_HOURS = {
   morning: { start: 4, end: 8, label: 'Morning Rush', emoji: '🌅' },
   evening: { start: 17, end: 22, label: 'Evening Rush', emoji: '🌆' }
 };
 
-const RUSH_BONUS_PERCENT = 20; // 20% bonus during rush hour
 let isRushActive = false;
 let rushPeriod = null;
 let rushCountdownInterval = null;
@@ -2107,21 +2106,17 @@ function checkRushHour() {
   const minutes = now.getMinutes();
   const time = hours + minutes / 60;
   
-  // Check morning rush: 4:00 AM - 8:00 AM
   if (time >= RUSH_HOURS.morning.start && time < RUSH_HOURS.morning.end) {
     return { active: true, period: 'morning', endTime: RUSH_HOURS.morning.end };
   }
   
-  // Check evening rush: 5:00 PM - 10:00 PM (17:00 - 22:00)
   if (time >= RUSH_HOURS.evening.start && time < RUSH_HOURS.evening.end) {
     return { active: true, period: 'evening', endTime: RUSH_HOURS.evening.end };
   }
   
-  // Not rush hour - find next rush
   let nextStart = null;
   let nextPeriod = null;
   
-  // Check if morning rush is tomorrow or later today
   if (time < RUSH_HOURS.morning.start) {
     nextStart = RUSH_HOURS.morning.start;
     nextPeriod = 'morning';
@@ -2129,7 +2124,6 @@ function checkRushHour() {
     nextStart = RUSH_HOURS.evening.start;
     nextPeriod = 'evening';
   } else {
-    // After evening rush, next is tomorrow morning
     nextStart = RUSH_HOURS.morning.start + 24;
     nextPeriod = 'morning';
   }
@@ -2156,22 +2150,19 @@ function updateRushHourUI() {
   const status = checkRushHour();
   const panel = document.getElementById('rushHourPanel');
   const statusEl = document.getElementById('rushStatus');
-  const bonusEl = document.getElementById('rushBonusDisplay');
-  const countdownEl = document.getElementById('rushCountdownTimer');
+  const passengerEl = document.getElementById('rushPassengerDisplay');
   const countdownContainer = document.getElementById('rushCountdown');
   
   if (status.active) {
-    // Rush Hour is ACTIVE
     isRushActive = true;
     rushPeriod = status.period;
     panel.classList.add('active');
     
     const periodInfo = RUSH_HOURS[status.period];
     statusEl.className = `rush-status active-${status.period}`;
-    statusEl.textContent = `${periodInfo.emoji} ${periodInfo.label} - RUSH HOUR ACTIVE! 🚦`;
-    bonusEl.style.display = 'block';
+    statusEl.textContent = `${periodInfo.emoji} ${periodInfo.label} - MORE PASSENGERS! 🚶`;
+    passengerEl.style.display = 'block';
     
-    // Show countdown to end
     const endTime = getRushHourEndTime();
     if (endTime) {
       countdownContainer.style.display = 'block';
@@ -2184,15 +2175,13 @@ function updateRushHourUI() {
       }
     }
   } else {
-    // Not Rush Hour
     isRushActive = false;
     rushPeriod = null;
     panel.classList.remove('active');
     statusEl.className = 'rush-status inactive';
-    statusEl.textContent = '⏰ Not Rush Hour';
-    bonusEl.style.display = 'none';
+    statusEl.textContent = '⏰ Normal Hours';
+    passengerEl.style.display = 'none';
     
-    // Show countdown to next rush
     if (status.nextStart !== null) {
       const nextTime = new Date();
       let nextHour = status.nextStart;
@@ -2202,7 +2191,6 @@ function updateRushHourUI() {
       }
       nextTime.setHours(nextHour, 0, 0, 0);
       
-      const periodLabel = status.nextPeriod === 'morning' ? 'Morning Rush (🌅)' : 'Evening Rush (🌆)';
       countdownContainer.style.display = 'block';
       updateCountdown(nextTime, true);
       if (!rushCountdownInterval) {
@@ -2234,7 +2222,6 @@ function updateCountdown(targetTime, isNext = false) {
   
   if (diff <= 0) {
     if (isNext) {
-      // It's time for rush hour!
       clearInterval(rushCountdownInterval);
       rushCountdownInterval = null;
       updateRushHourUI();
@@ -2249,7 +2236,6 @@ function updateCountdown(targetTime, isNext = false) {
   const timerEl = document.getElementById('rushCountdownTimer');
   timerEl.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   
-  // Update timer label
   const labelEl = document.querySelector('.rush-timer-label');
   if (isNext) {
     labelEl.textContent = 'Next Rush Hour in';
@@ -2258,22 +2244,11 @@ function updateCountdown(targetTime, isNext = false) {
   }
 }
 
-// Calculate fare with rush bonus
-function calculateFareWithRushBonus(fare) {
-  if (isRushActive) {
-    return Math.round(fare * (1 + RUSH_BONUS_PERCENT / 100));
-  }
-  return fare;
-}
-
-// Initialize rush hour system
 function initRushHour() {
   updateRushHourUI();
-  // Check every 30 seconds
   setInterval(updateRushHourUI, 30000);
 }
 
-// Call init when page loads
 initRushHour();
 
 featureTabs.forEach(tab => {
@@ -2930,17 +2905,10 @@ function computeFare() {
     setTimeout(() => fareDisplay.classList.remove('flash'), 400);
     lastFareValue = total;
   }
-  // Apply rush hour bonus if active
-  const finalFare = calculateFareWithRushBonus(total);
-  fareOut.textContent = finalFare;
-  fareInput.value = finalFare;
-
-  // Add rush bonus indicator to breakdown
-  if (isRushActive && total > 0) {
-    const bonusAmount = Math.round(total * RUSH_BONUS_PERCENT / 100);
-    breakdownOut.textContent += ` (+${RUSH_BONUS_PERCENT}% Rush Bonus: +₱${bonusAmount})`;
-  }  
+  // NO RUSH BONUS - just normal fare
+  fareOut.textContent = total;
   fareInput.value = total;
+  
   const unitNote = unitsCount <= MINIMUM_UNITS ? `${unitsCount} unit(s), within minimum` : `${unitsCount} units, +${extra} beyond minimum`;
   if (totalPax === 0) {
     breakdownOut.textContent = `${unitNote} -> walang pasahero na naka-check pa`;

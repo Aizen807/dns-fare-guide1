@@ -38,6 +38,9 @@
   --ok:#6FA05B;
   --line:#3A4530;
   --shadow:0 6px 0 rgba(0,0,0,0.35);
+  --fuel-diesel:#4A7A8C;
+  --fuel-unleaded:#8CB84A;
+  --fuel-premium:#B84A6A;
 }
 
 *{box-sizing:border-box;}
@@ -58,18 +61,9 @@ body{
   to{opacity:1;}
 }
 
-/* Remove tap highlight on mobile */
-button,
-select,
-.recent-chip,
-.route-tab,
-.quick-btn,
-.complete-trip-btn,
-.feedback-submit-btn,
-.session-save-btn,
-.session-reset-btn,
-.session-clear-history-btn,
-.clear-pax-btn {
+button, select, .recent-chip, .route-tab, .quick-btn, .complete-trip-btn,
+.feedback-submit-btn, .session-save-btn, .session-reset-btn, .session-clear-history-btn,
+.clear-pax-btn, .code-copy-btn, .fuel-tab, .fuel-quick-btn {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
@@ -115,6 +109,51 @@ h1{
   font-size:15px;
   margin:0 0 28px;
 }
+
+/* Feature Tabs */
+.feature-tabs{
+  display:flex;
+  gap:6px;
+  margin-bottom:20px;
+  overflow-x:auto;
+  padding-bottom:4px;
+  scrollbar-width:none;
+}
+.feature-tabs::-webkit-scrollbar{display:none;}
+.feature-tab{
+  flex:0 0 auto;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  padding:10px 16px;
+  border-radius:6px;
+  border:2px solid var(--line);
+  background:var(--panel);
+  color:var(--paper-dim);
+  cursor:pointer;
+  transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  white-space:nowrap;
+}
+.feature-tab.active{
+  background:var(--jeep-green);
+  border-color:var(--jeep-green);
+  color:#fff;
+  box-shadow:var(--shadow);
+  transform:translateY(-2px) scale(1.02);
+}
+.feature-tab:not(.active):hover{
+  transform:translateY(-1px);
+  border-color:var(--sign);
+}
+.feature-tab .icon{margin-right:6px;}
+
+.feature-content{
+  display:none;
+  animation:fadeIn 0.3s ease;
+}
+.feature-content.active{display:block;}
 
 .route-tabs{display:flex;gap:8px;margin-bottom:20px;}
 
@@ -978,7 +1017,7 @@ select:focus-visible{
   to{opacity:0;transform:translateX(-50%) translateY(-30px) scale(0.8);}
 }
 
-/* Audio enable button */
+/* Audio enable overlay */
 .audio-enable-overlay{
   position:fixed;
   top:0;left:0;right:0;bottom:0;
@@ -1013,6 +1052,286 @@ select:focus-visible{
   margin-top:6px;
   opacity:0.7;
 }
+
+/* ============================================================
+   CODE REDEMPTION HUB STYLES
+   ============================================================ */
+.code-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:16px;
+}
+.code-card{
+  background:var(--panel-2);
+  border:2px solid var(--line);
+  border-radius:10px;
+  padding:14px;
+  text-align:center;
+  transition:all 0.2s ease;
+  position:relative;
+}
+.code-card:hover{
+  border-color:var(--sign);
+  transform:translateY(-2px);
+}
+.code-card.used{
+  opacity:0.5;
+  border-color:var(--route-red);
+}
+.code-card.used::after{
+  content:"USED";
+  position:absolute;
+  top:6px;
+  right:6px;
+  background:var(--route-red);
+  color:#fff;
+  font-family:'Oswald',sans-serif;
+  font-size:8px;
+  font-weight:700;
+  padding:2px 6px;
+  border-radius:3px;
+  letter-spacing:0.5px;
+}
+.code-card .code-value{
+  font-family:'Anton',sans-serif;
+  font-size:20px;
+  color:var(--sign);
+  letter-spacing:1px;
+  margin-bottom:4px;
+}
+.code-card .code-reward{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  color:var(--paper-dim);
+  margin-bottom:6px;
+}
+.code-card .code-expiry{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  color:var(--paper-dim);
+  opacity:0.6;
+}
+.code-copy-btn{
+  background:var(--jeep-green);
+  border:none;
+  color:#fff;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:11px;
+  padding:4px 12px;
+  border-radius:4px;
+  cursor:pointer;
+  transition:all 0.15s ease;
+}
+.code-copy-btn:hover{transform:scale(1.05);background:var(--ok);}
+.code-copy-btn:active{transform:scale(0.95);}
+.code-copy-btn.copied{
+  background:var(--ok);
+}
+.code-status{
+  text-align:center;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  color:var(--paper-dim);
+  margin-top:4px;
+}
+.code-status .valid{color:var(--ok);}
+.code-status .expired{color:var(--route-red);}
+.code-status .unknown{color:var(--sign);}
+
+.code-hint{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  color:var(--paper-dim);
+  text-align:center;
+  margin-top:12px;
+  font-style:italic;
+  line-height:1.6;
+}
+.code-hint a{
+  color:var(--sign);
+  font-weight:600;
+  text-decoration:underline;
+}
+
+/* ============================================================
+   FUEL / GAS CALCULATOR STYLES
+   ============================================================ */
+.fuel-tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+}
+.fuel-tab{
+  flex:1;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  text-align:center;
+  padding:10px;
+  border-radius:6px;
+  border:2px solid var(--line);
+  background:var(--panel);
+  color:var(--paper-dim);
+  cursor:pointer;
+  transition:all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.fuel-tab.active{color:#fff;box-shadow:var(--shadow);transform:translateY(-2px) scale(1.02);}
+.fuel-tab.diesel.active{background:var(--fuel-diesel);border-color:var(--fuel-diesel);}
+.fuel-tab.unleaded.active{background:var(--fuel-unleaded);border-color:var(--fuel-unleaded);}
+.fuel-tab.premium.active{background:var(--fuel-premium);border-color:var(--fuel-premium);}
+.fuel-tab:not(.active):hover{
+  transform:translateY(-1px);
+  border-color:var(--sign);
+}
+.fuel-tab .fuel-icon{font-size:16px;margin-right:4px;}
+
+.fuel-price-display{
+  background:var(--ink);
+  border:2px dashed var(--sign);
+  border-radius:10px;
+  padding:16px;
+  text-align:center;
+  margin-bottom:16px;
+}
+.fuel-price-label{
+  font-family:'Oswald',sans-serif;
+  font-size:11px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+}
+.fuel-price-amount{
+  font-family:'Anton',sans-serif;
+  font-size:32px;
+  color:var(--sign);
+  line-height:1.2;
+}
+.fuel-price-amount .per-liter{
+  font-size:16px;
+  color:var(--paper-dim);
+}
+
+.fuel-grid{display:flex;gap:12px;margin-bottom:14px;}
+.fuel-grid .field{flex:1;}
+.fuel-grid .field input{
+  width:100%;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  font-weight:700;
+  font-size:16px;
+  border:none;
+  border-radius:6px;
+  padding:11px 10px;
+  transition:transform 0.15s ease;
+}
+.fuel-grid .field input:focus{
+  transform:scale(1.02);
+  outline:3px solid var(--sign);
+  outline-offset:2px;
+}
+.fuel-grid .field input:read-only{
+  opacity:0.7;
+  cursor:default;
+}
+
+.fuel-quick-amounts{
+  display:flex;
+  gap:6px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+.fuel-quick-btn{
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  color:var(--paper);
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  padding:6px 12px;
+  border-radius:20px;
+  cursor:pointer;
+  transition:all 0.15s ease;
+}
+.fuel-quick-btn:hover{border-color:var(--sign);color:var(--sign);transform:translateY(-2px);}
+.fuel-quick-btn:active{transform:scale(0.95);}
+
+.fuel-result{
+  background:var(--jeep-green-dark);
+  border:2px solid var(--jeep-green);
+  border-radius:10px;
+  padding:18px;
+  text-align:center;
+  transition:all 0.3s ease;
+}
+.fuel-result .fuel-result-label{
+  font-family:'Oswald',sans-serif;
+  font-size:11px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+}
+.fuel-result .fuel-result-amount{
+  font-family:'Anton',sans-serif;
+  font-size:36px;
+  color:#fff;
+}
+.fuel-result .fuel-result-note{
+  font-size:12px;
+  color:var(--paper-dim);
+  margin-top:4px;
+}
+.fuel-result .fuel-result-detail{
+  font-size:11px;
+  color:var(--paper-dim);
+  margin-top:2px;
+  opacity:0.7;
+}
+
+/* Gas Station Image */
+#stationImageContainer {
+  background:var(--panel-2);
+  border-radius:10px;
+  padding:8px;
+  border:1px solid var(--line);
+  transition:all 0.3s ease;
+  margin-bottom:12px;
+}
+#stationImageContainer:hover {
+  border-color:var(--sign);
+}
+#stationImage {
+  max-width:100%;
+  max-height:120px;
+  border-radius:8px;
+  background:var(--ink);
+  object-fit:contain;
+  display:block;
+  margin:0 auto;
+}
+#stationNameDisplay {
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  color:var(--sign);
+  margin-top:4px;
+}
+#stationFallback {
+  display:none;
+  font-size:48px;
+  padding:20px;
+  color:var(--paper-dim);
+  text-align:center;
+}
+#stationFallback span {
+  font-size:14px;
+  font-family:'Oswald',sans-serif;
+  color:var(--sign);
+}
 </style>
 </head>
 <body>
@@ -1034,144 +1353,280 @@ select:focus-visible{
   <h1>Fare Matrix</h1>
   <p class="tagline">"Bagumbayan-San Jose, sakay na!" count your barangays, hindi mahirap.</p>
 
-  <details class="guide-box">
-    <summary class="guide-summary">Paano gamitin? (I-tap para makita)</summary>
-    <div class="guide-body">
-      <ol class="guide-steps">
-        <li>Piliin ang <b>route</b> Balagtas, Guiguinto, o Malolos.</li>
-        <li>I-set ang <b>pickup</b> at <b>drop-off barangay</b> ng pasahero.</li>
-        <li>I-tap ang <b>+</b> para sa bilang ng Regular, Student, o Senior na pasahero.</li>
-        <li>Makikita agad ang <b>Total fare</b> base sa route at bilang ng pasahero.</li>
-        <li>Ilagay kung magkano ang <b>binayad</b> awtomatikong lalabas ang tamang <b>sukli</b>.</li>
-        <li>I-tap ang <b>Complete Trip</b> para ma-save ang fare sa total earnings mo.</li>
-      </ol>
-
-      <div class="guide-subheading">I-install sa iPhone (iOS)</div>
-      <ol class="guide-steps">
-        <li>Buksan ang link na ito gamit ang <b>Safari</b> (hindi gagana sa Chrome o ibang browser sa iPhone).</li>
-        <li>I-tap ang <b>Share icon</b> (kahon na may arrow pataas) sa ibaba ng screen.</li>
-        <li>I-scroll pababa sa share sheet, tapos i-tap ang <b>"Add to Home Screen."</b></li>
-        <li>Makikita ang pangalan na "Fare Matrix" i-tap ang <b>"Add"</b> sa taas.</li>
-        <li>Lalabas na ang icon sa home screen mo, parang normal na app, walang address bar.</li>
-      </ol>
-      <p class="guide-video-note">Panoorin ang buong <a href="https://www.tiktok.com/@aizen622/video/7664919817056488724" target="_blank" rel="noopener">video tutorial</a> para sa detalyadong walkthrough.</p>
-      <p class="guide-video-note">Gusto mo bang i-install ang Fare Matrix bilang app? Panoorin ito: <a href="https://vt.tiktok.com/ZSXnmeJW2/" target="_blank" rel="noopener">paano mag-install sa PC at mobile</a>.</p>
-      <p class="guide-video-note">Walang Multi Window ang phone mo? Panoorin ito: <a href="https://www.tiktok.com/@aizen622/video/7665225819869973781" target="_blank" rel="noopener">paggawa ng floating window</a>.</p>
+  <!-- Feature Tabs -->
+  <div class="feature-tabs" id="featureTabs">
+    <div class="feature-tab active" data-feature="fare">
+      <span class="icon">🚐</span> Fare Calculator
     </div>
-  </details>
-
-  <div class="route-tabs" id="routeTabs"></div>
-
-  <div class="recent-chips" id="recentChips"></div>
-
-  <div class="board" id="mainBoard">
-    <div class="direction-badge" id="directionOut"></div>
-    <div class="field-row">
-      <div class="field">
-        <label>Pickup barangay</label>
-        <select id="fromSelect"></select>
-      </div>
-      <button class="swap-btn" id="swapBtn" title="Swap">&#8646;</button>
-      <div class="field">
-        <label>Drop-off barangay</label>
-        <select id="toSelect"></select>
-      </div>
+    <div class="feature-tab" data-feature="codes">
+      <span class="icon">🎁</span> Code Hub
     </div>
-
-    <div class="pax-board">
-      <div class="pax-board-header">
-        <span class="pax-board-title">Pasahero</span>
-        <button class="clear-pax-btn" id="clearPaxBtn">Clear</button>
-      </div>
-      <div class="pax-row" data-type="regular">
-        <div class="pax-info">
-          <span class="pax-name">Regular</span>
-          <span class="pax-fare" id="fareRegular">&#8369;13</span>
-        </div>
-        <div class="pax-stepper">
-          <button class="step-btn" data-type="regular" data-action="dec" aria-label="Remove regular passenger">&minus;</button>
-          <span class="pax-count" id="countRegular">0</span>
-          <button class="step-btn" data-type="regular" data-action="inc" aria-label="Add regular passenger">+</button>
-        </div>
-      </div>
-      <div class="pax-row" data-type="student">
-        <div class="pax-info">
-          <span class="pax-name">Student</span>
-          <span class="pax-fare" id="fareStudent">&#8369;11</span>
-        </div>
-        <div class="pax-stepper">
-          <button class="step-btn" data-type="student" data-action="dec" aria-label="Remove student passenger">&minus;</button>
-          <span class="pax-count" id="countStudent">0</span>
-          <button class="step-btn" data-type="student" data-action="inc" aria-label="Add student passenger">+</button>
-        </div>
-      </div>
-      <div class="pax-row" data-type="senior">
-        <div class="pax-info">
-          <span class="pax-name">Senior</span>
-          <span class="pax-fare" id="fareSenior">&#8369;11</span>
-        </div>
-        <div class="pax-stepper">
-          <button class="step-btn" data-type="senior" data-action="dec" aria-label="Remove senior passenger">&minus;</button>
-          <span class="pax-count" id="countSenior">0</span>
-          <button class="step-btn" data-type="senior" data-action="inc" aria-label="Add senior passenger">+</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="fare-display" id="fareDisplay">
-      <div class="fare-label">Total fare</div>
-      <div class="fare-amount"><span>&#8369;</span><span id="fareOut" aria-live="polite">13</span></div>
-      <div class="fare-breakdown" id="breakdownOut" aria-live="polite"></div>
-    </div>
-
-    <div class="route-list" id="routeListOut"></div>
-
-    <button class="complete-trip-btn" id="completeTripBtn">Complete trip</button>
-  </div>
-
-  <div class="session-board">
-    <div class="session-stat">
-      <div class="session-stat-label">Trips</div>
-      <div class="session-stat-value" id="tripCountOut" aria-live="polite">0</div>
-    </div>
-    <div class="session-stat">
-      <div class="session-stat-label">Session total</div>
-      <div class="session-stat-value" id="sessionTotalOut" aria-live="polite">&#8369;0</div>
-    </div>
-  </div>
-  <div class="session-reset-row">
-    <button class="session-save-btn" id="sessionSaveBtn">I-save ang session</button>
-    <button class="session-reset-btn" id="sessionResetBtn">Reset session</button>
-  </div>
-
-  <details class="guide-box">
-    <summary class="guide-summary">Session History (I-tap para makita)</summary>
-    <div class="guide-body">
-      <ul class="session-history-list" id="sessionHistoryList"></ul>
-      <button class="session-clear-history-btn" id="sessionClearHistoryBtn">I-clear ang history</button>
-    </div>
-  </details>
-
-  <div class="section-title">Sukli calculator</div>
-  <div class="board">
-    <div class="sukli-grid">
-      <div class="field">
-        <label>Total fare (php)</label>
-        <input type="number" id="fareInput" value="13" min="0" step="1" readonly aria-label="Total fare amount">
-      </div>
-      <div class="field">
-        <label>Binayad (php)</label>
-        <input type="number" id="paidInput" placeholder="0" min="0" step="1" aria-label="Amount paid">
-      </div>
-    </div>
-    <div class="quick-amounts" id="quickAmounts"></div>
-    <div class="sukli-result" id="sukliResult">
-      <div class="sukli-label">Naghihintay ng sukli</div>
-      <div class="sukli-amount" id="sukliOut" aria-live="polite">&#8369;0</div>
-      <div class="sukli-note" id="sukliNote">Ilagay ang binayad para makuha ang sukli.</div>
+    <div class="feature-tab" data-feature="fuel">
+      <span class="icon">⛽</span> Fuel Calculator
     </div>
   </div>
 
+  <!-- ============================================================
+       FEATURE: FARE CALCULATOR
+       ============================================================ -->
+  <div class="feature-content active" id="featureFare">
+    <details class="guide-box">
+      <summary class="guide-summary">Paano gamitin? (I-tap para makita)</summary>
+      <div class="guide-body">
+        <ol class="guide-steps">
+          <li>Piliin ang <b>route</b> Balagtas, Guiguinto, o Malolos.</li>
+          <li>I-set ang <b>pickup</b> at <b>drop-off barangay</b> ng pasahero.</li>
+          <li>I-tap ang <b>+</b> para sa bilang ng Regular, Student, o Senior na pasahero.</li>
+          <li>Makikita agad ang <b>Total fare</b> base sa route at bilang ng pasahero.</li>
+          <li>Ilagay kung magkano ang <b>binayad</b> awtomatikong lalabas ang tamang <b>sukli</b>.</li>
+          <li>I-tap ang <b>Complete Trip</b> para ma-save ang fare sa total earnings mo.</li>
+        </ol>
+
+        <div class="guide-subheading">I-install sa iPhone (iOS)</div>
+        <ol class="guide-steps">
+          <li>Buksan ang link na ito gamit ang <b>Safari</b> (hindi gagana sa Chrome o ibang browser sa iPhone).</li>
+          <li>I-tap ang <b>Share icon</b> (kahon na may arrow pataas) sa ibaba ng screen.</li>
+          <li>I-scroll pababa sa share sheet, tapos i-tap ang <b>"Add to Home Screen."</b></li>
+          <li>Makikita ang pangalan na "Fare Matrix" i-tap ang <b>"Add"</b> sa taas.</li>
+          <li>Lalabas na ang icon sa home screen mo, parang normal na app, walang address bar.</li>
+        </ol>
+        <p class="guide-video-note">Panoorin ang buong <a href="https://www.tiktok.com/@aizen622/video/7664919817056488724" target="_blank" rel="noopener">video tutorial</a> para sa detalyadong walkthrough.</p>
+        <p class="guide-video-note">Gusto mo bang i-install ang Fare Matrix bilang app? Panoorin ito: <a href="https://vt.tiktok.com/ZSXnmeJW2/" target="_blank" rel="noopener">paano mag-install sa PC at mobile</a>.</p>
+        <p class="guide-video-note">Walang Multi Window ang phone mo? Panoorin ito: <a href="https://www.tiktok.com/@aizen622/video/7665225819869973781" target="_blank" rel="noopener">paggawa ng floating window</a>.</p>
+      </div>
+    </details>
+
+    <div class="route-tabs" id="routeTabs"></div>
+    <div class="recent-chips" id="recentChips"></div>
+
+    <div class="board" id="mainBoard">
+      <div class="direction-badge" id="directionOut"></div>
+      <div class="field-row">
+        <div class="field">
+          <label>Pickup barangay</label>
+          <select id="fromSelect"></select>
+        </div>
+        <button class="swap-btn" id="swapBtn" title="Swap">&#8646;</button>
+        <div class="field">
+          <label>Drop-off barangay</label>
+          <select id="toSelect"></select>
+        </div>
+      </div>
+
+      <div class="pax-board">
+        <div class="pax-board-header">
+          <span class="pax-board-title">Pasahero</span>
+          <button class="clear-pax-btn" id="clearPaxBtn">Clear</button>
+        </div>
+        <div class="pax-row" data-type="regular">
+          <div class="pax-info">
+            <span class="pax-name">Regular</span>
+            <span class="pax-fare" id="fareRegular">&#8369;13</span>
+          </div>
+          <div class="pax-stepper">
+            <button class="step-btn" data-type="regular" data-action="dec" aria-label="Remove regular passenger">&minus;</button>
+            <span class="pax-count" id="countRegular">0</span>
+            <button class="step-btn" data-type="regular" data-action="inc" aria-label="Add regular passenger">+</button>
+          </div>
+        </div>
+        <div class="pax-row" data-type="student">
+          <div class="pax-info">
+            <span class="pax-name">Student</span>
+            <span class="pax-fare" id="fareStudent">&#8369;11</span>
+          </div>
+          <div class="pax-stepper">
+            <button class="step-btn" data-type="student" data-action="dec" aria-label="Remove student passenger">&minus;</button>
+            <span class="pax-count" id="countStudent">0</span>
+            <button class="step-btn" data-type="student" data-action="inc" aria-label="Add student passenger">+</button>
+          </div>
+        </div>
+        <div class="pax-row" data-type="senior">
+          <div class="pax-info">
+            <span class="pax-name">Senior</span>
+            <span class="pax-fare" id="fareSenior">&#8369;11</span>
+          </div>
+          <div class="pax-stepper">
+            <button class="step-btn" data-type="senior" data-action="dec" aria-label="Remove senior passenger">&minus;</button>
+            <span class="pax-count" id="countSenior">0</span>
+            <button class="step-btn" data-type="senior" data-action="inc" aria-label="Add senior passenger">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="fare-display" id="fareDisplay">
+        <div class="fare-label">Total fare</div>
+        <div class="fare-amount"><span>&#8369;</span><span id="fareOut" aria-live="polite">13</span></div>
+        <div class="fare-breakdown" id="breakdownOut" aria-live="polite"></div>
+      </div>
+
+      <div class="route-list" id="routeListOut"></div>
+
+      <button class="complete-trip-btn" id="completeTripBtn">Complete trip</button>
+    </div>
+
+    <div class="session-board">
+      <div class="session-stat">
+        <div class="session-stat-label">Trips</div>
+        <div class="session-stat-value" id="tripCountOut" aria-live="polite">0</div>
+      </div>
+      <div class="session-stat">
+        <div class="session-stat-label">Session total</div>
+        <div class="session-stat-value" id="sessionTotalOut" aria-live="polite">&#8369;0</div>
+      </div>
+    </div>
+    <div class="session-reset-row">
+      <button class="session-save-btn" id="sessionSaveBtn">I-save ang session</button>
+      <button class="session-reset-btn" id="sessionResetBtn">Reset session</button>
+    </div>
+
+    <details class="guide-box">
+      <summary class="guide-summary">Session History (I-tap para makita)</summary>
+      <div class="guide-body">
+        <ul class="session-history-list" id="sessionHistoryList"></ul>
+        <button class="session-clear-history-btn" id="sessionClearHistoryBtn">I-clear ang history</button>
+      </div>
+    </details>
+
+    <div class="section-title">Sukli calculator</div>
+    <div class="board">
+      <div class="sukli-grid">
+        <div class="field">
+          <label>Total fare (php)</label>
+          <input type="number" id="fareInput" value="13" min="0" step="1" readonly aria-label="Total fare amount">
+        </div>
+        <div class="field">
+          <label>Binayad (php)</label>
+          <input type="number" id="paidInput" placeholder="0" min="0" step="1" aria-label="Amount paid">
+        </div>
+      </div>
+      <div class="quick-amounts" id="quickAmounts"></div>
+      <div class="sukli-result" id="sukliResult">
+        <div class="sukli-label">Naghihintay ng sukli</div>
+        <div class="sukli-amount" id="sukliOut" aria-live="polite">&#8369;0</div>
+        <div class="sukli-note" id="sukliNote">Ilagay ang binayad para makuha ang sukli.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       FEATURE: CODE REDEMPTION HUB
+       ============================================================ -->
+  <div class="feature-content" id="featureCodes">
+    <div class="board">
+      <div class="section-title" style="margin-top:0;">🎁 Code Redemption Hub</div>
+      <p class="section-subtitle">Mag-claim ng mga free rewards sa Diesel N' Steel gamit ang mga code na ito. I-copy at i-redeem sa game!</p>
+
+      <div class="code-grid" id="codeGrid">
+        <!-- Codes will be rendered here -->
+      </div>
+
+      <div class="code-hint">
+        💡 Paano mag-redeem: Pumunta sa <b>Menu</b> &rarr; <b>Codes</b> sa Diesel N' Steel at i-paste ang code.
+        <br>Para sa updated na list ng codes, bisitahin ang  
+        <a href="https://www.tiktok.com/@aizen622" target="_blank" rel="noopener">@aizen622</a> sa TikTok.
+      </div>
+
+      <div class="code-status" id="codeStatus">
+        <span class="valid">✅ 3 valid codes</span> &middot; 
+        <span class="expired">⏰ 0 expired</span> &middot; 
+        <span class="unknown">🔄 Last updated: July 30, 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       FEATURE: FUEL CALCULATOR
+       ============================================================ -->
+  <div class="feature-content" id="featureFuel">
+    <div class="board">
+      <div class="section-title" style="margin-top:0;">⛽ Fuel Calculator</div>
+      <p class="section-subtitle">Kalkulahin kung magkano ang gastos para magpa-full tank o magdagdag ng specific na dami ng gasolina sa iyong jeepney.</p>
+
+      <!-- Gas Station Selector with Image -->
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--paper-dim);margin-bottom:6px;">
+          🏪 Pumili ng Gas Station
+        </label>
+        
+        <!-- Station Image Display -->
+        <div id="stationImageContainer">
+          <img id="stationImage" src="GasStation1.png" alt="Gas Station 1" 
+               style="max-width:100%;max-height:120px;border-radius:8px;border:2px solid var(--line);background:var(--panel-2);padding:4px;display:block;margin:0 auto;">
+          <div id="stationFallback" style="display:none;font-size:48px;padding:20px;color:var(--paper-dim);text-align:center;">
+            🏪<br>
+            <span style="font-size:14px;font-family:'Oswald',sans-serif;color:var(--sign);">Gas Station</span>
+          </div>
+          <div id="stationNameDisplay" style="font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;color:var(--sign);margin-top:4px;">
+            Gas Station 1
+          </div>
+        </div>
+        
+        <select id="gasStationSelect" style="width:100%;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;font-weight:600;font-size:14px;border:none;border-radius:6px;padding:11px 10px;appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%2310160D' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 12px center;cursor:pointer;margin-top:8px;">
+          <option value="station1">📍 Gas Station 1</option>
+          <option value="station2">📍 Gas Station 2</option>
+          <option value="station3">📍 Gas Station 3</option>
+          <option value="station4">📍 Gas Station 4</option>
+          <option value="station5">📍 Gas Station 5</option>
+        </select>
+      </div>
+
+      <!-- Fuel Type Tabs -->
+      <div class="fuel-tabs" id="fuelTabs">
+        <div class="fuel-tab diesel active" data-fuel="diesel">
+          <span class="fuel-icon">🛢️</span> Diesel
+        </div>
+        <div class="fuel-tab unleaded" data-fuel="unleaded">
+          <span class="fuel-icon">⛽</span> Unleaded
+        </div>
+        <div class="fuel-tab premium" data-fuel="premium">
+          <span class="fuel-icon">🔥</span> Premium
+        </div>
+      </div>
+
+      <!-- Price Display -->
+      <div class="fuel-price-display">
+        <div class="fuel-price-label">Price per liter</div>
+        <div class="fuel-price-amount" id="fuelPriceDisplay">
+          ₱86.12
+          <span class="per-liter">/ L</span>
+        </div>
+      </div>
+
+      <!-- Input Grid -->
+      <div class="fuel-grid">
+        <div class="field">
+          <label>Amount (Liters)</label>
+          <input type="number" id="fuelAmount" placeholder="0" min="0" step="0.5" value="5">
+        </div>
+        <div class="field">
+          <label>Total Cost (₱)</label>
+          <input type="number" id="fuelCost" placeholder="0" min="0" step="1" readonly>
+        </div>
+      </div>
+
+      <!-- Quick Amount Buttons -->
+      <div class="fuel-quick-amounts" id="fuelQuickAmounts">
+        <button class="fuel-quick-btn" data-amount="5">5L</button>
+        <button class="fuel-quick-btn" data-amount="10">10L</button>
+        <button class="fuel-quick-btn" data-amount="20">20L</button>
+        <button class="fuel-quick-btn" data-amount="50">50L</button>
+        <button class="fuel-quick-btn" data-amount="100">100L</button>
+        <button class="fuel-quick-btn" data-amount="full">Full Tank</button>
+      </div>
+
+      <!-- Result -->
+      <div class="fuel-result" id="fuelResult">
+        <div class="fuel-result-label">Total Fuel Cost</div>
+        <div class="fuel-result-amount" id="fuelResultAmount">₱430.60</div>
+        <div class="fuel-result-note" id="fuelResultNote">5L of Diesel @ ₱86.12/L</div>
+        <div class="fuel-result-detail" id="fuelResultDetail">📍 Gas Station 1</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       FEEDBACK SECTION
+       ============================================================ -->
   <div class="section-title">Feedback</div>
   <p class="section-subtitle">May gusto ka bang sabihin bug, mali sa fare, o suggestion para sa Fare Matrix? Dito mo pwedeng ipadala, direkta itong mapupunta sa developer.</p>
   <div class="board">
@@ -1208,16 +1663,24 @@ select:focus-visible{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.1</span>
+          <span class="changelog-text">🖼️ Fixed gas station images: Renamed files to remove spaces (GasStation1.png, GasStation2.png, etc.) for better compatibility.<span class="changelog-date">July 30, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v4.0</span>
+          <span class="changelog-text">🎁 Added Code Redemption Hub with working Diesel N' Steel codes. ⛽ Added Fuel Calculator with 4 Gas Stations (Diesel, Unleaded, Premium). Players can now calculate fuel costs easily.<span class="changelog-date">July 30, 2026</span></span>
+        </li>
+        <li class="changelog-item">
           <span class="changelog-version">v3.1</span>
           <span class="changelog-text">🐛 Bug fixes: Fixed AudioContext autoplay issues, memory leaks, toast notification overlap, swap button missing feedback, fare display over-flashing, session name validation, service worker error handling, and added accessibility improvements.<span class="changelog-date">July 29, 2026</span></span>
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v3.0</span>
-          <span class="changelog-text">✨ Major UI/UX update: Added animations, micro-interactions, sound effects support, haptic feedback, and toast notifications. The app now feels more responsive and polished!<span class="changelog-date">July 29, 2026</span></span>
+          <span class="changelog-text">✨ Major UI/UX update: Added animations, micro-interactions, sound effects support, haptic feedback, and toast notifications.<span class="changelog-date">July 29, 2026</span></span>
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v2.8</span>
-          <span class="changelog-text">Idinagdag ang "I-save ang session" makakapag-pangalan ka na ng session (hal. "Biyahe 1") at makikita ang buong Session History list, kasama ang bilang ng trips at kinita bawat isa.<span class="changelog-date">July 28, 2026</span></span>
+          <span class="changelog-text">Idinagdag ang "I-save ang session" makakapag-pangalan ka na ng session (hal. "Biyahe 1") at makikita ang buong Session History list.<span class="changelog-date">July 28, 2026</span></span>
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v2.7</span>
@@ -1225,15 +1688,15 @@ select:focus-visible{
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v2.6</span>
-          <span class="changelog-text">May 60-second cooldown na ngayon bago makapagpadala ulit ng feedback, para maiwasan ang spam.<span class="changelog-date">July 27, 2026</span></span>
+          <span class="changelog-text">May 60-second cooldown na ngayon bago makapagpadala ulit ng feedback.<span class="changelog-date">July 27, 2026</span></span>
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v2.5</span>
-          <span class="changelog-text">Bug fixes: naayos ang pagkakataong nagpapalit ng barangay name sa dropdown kapag nag-swap o gumamit ng recent trip chip (Bagumbayan/San Jose, San Juan/Sto. Rosario). Naayos din ang feedback hint na hindi nag-re-reset pagkatapos magpadala.<span class="changelog-date">July 27, 2026</span></span>
+          <span class="changelog-text">Bug fixes: naayos ang pagkakataong nagpapalit ng barangay name sa dropdown kapag nag-swap o gumamit ng recent trip chip.<span class="changelog-date">July 27, 2026</span></span>
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v2.4</span>
-          <span class="changelog-text">Mas malinaw na hint sa Feedback form nagbabago base sa uri ng feedback (bug, suggestion, etc), may link din para sa TikTok DM kung may screenshot/video.<span class="changelog-date">July 26, 2026</span></span>
+          <span class="changelog-text">Mas malinaw na hint sa Feedback form nagbabago base sa uri ng feedback.<span class="changelog-date">July 26, 2026</span></span>
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v2.3</span>
@@ -1274,7 +1737,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v3.1 &middot; updated July 29, 2026</p>
+  <p class="version-tag">Fare Matrix v4.1 &middot; updated July 30, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -1286,10 +1749,9 @@ select:focus-visible{
 
 <script>
 // ============================================================
-// SOUND MANAGER - With Autoplay Fix
+// SOUND MANAGER
 // ============================================================
 const SoundFX = {
-  // --- Replace these URLs with your own sound files ---
   click: null,
   kaChing: null,
   error: null,
@@ -1299,10 +1761,8 @@ const SoundFX = {
   _ctx: null,
   _audioEnabled: false,
   
-  // Call this after user interaction
   enableAudio() {
     this._audioEnabled = true;
-    // Initialize and resume audio context
     const ctx = this._initAudio();
     if (ctx && ctx.state === 'suspended') {
       ctx.resume().catch(() => {});
@@ -1322,22 +1782,17 @@ const SoundFX = {
   
   _playFallback(type) {
     if (!this._audioEnabled) return;
-    
     const ctx = this._initAudio();
     if (!ctx) return;
-    
-    // Resume context if suspended (should be enabled by user interaction)
     if (ctx.state === 'suspended') {
       ctx.resume().catch(() => {});
     }
-    
     try {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(ctx.destination);
       gain.gain.value = 0.15;
-      
       switch(type) {
         case 'click':
           osc.frequency.value = 800;
@@ -1399,13 +1854,10 @@ const SoundFX = {
           osc3.stop(ctx.currentTime + 0.1);
           break;
       }
-    } catch(e) {
-      // Silently fail if audio can't play
-    }
+    } catch(e) {}
   },
   
   play(type) {
-    // Try to use custom audio file first
     const audio = this[type];
     if (audio instanceof Audio) {
       try {
@@ -1424,75 +1876,363 @@ const SoundFX = {
 // ============================================================
 // HAPTIC FEEDBACK
 // ============================================================
-function hapticLight() {
-  if (navigator.vibrate) {
-    navigator.vibrate(10);
-  }
-}
-
-function hapticMedium() {
-  if (navigator.vibrate) {
-    navigator.vibrate(30);
-  }
-}
-
-function hapticSuccess() {
-  if (navigator.vibrate) {
-    navigator.vibrate([10, 30, 10]);
-  }
-}
-
-function hapticError() {
-  if (navigator.vibrate) {
-    navigator.vibrate([50, 30, 50]);
-  }
-}
+function hapticLight() { if (navigator.vibrate) navigator.vibrate(10); }
+function hapticMedium() { if (navigator.vibrate) navigator.vibrate(30); }
+function hapticSuccess() { if (navigator.vibrate) navigator.vibrate([10, 30, 10]); }
+function hapticError() { if (navigator.vibrate) navigator.vibrate([50, 30, 50]); }
 
 // ============================================================
-// TOAST NOTIFICATION - Fixed with proper queue management
+// TOAST NOTIFICATION
 // ============================================================
 let toastTimeout = null;
-
 function showToast(message, duration = 2500) {
   const existing = document.querySelector('.toast');
-  if (existing) {
-    existing.remove();
-    if (toastTimeout) clearTimeout(toastTimeout);
-  }
-  
+  if (existing) { existing.remove(); if (toastTimeout) clearTimeout(toastTimeout); }
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.textContent = message;
   toast.setAttribute('role', 'alert');
   document.body.appendChild(toast);
-  
   toastTimeout = setTimeout(() => {
     toast.classList.add('out');
-    setTimeout(() => {
-      toast.remove();
-      toastTimeout = null;
-    }, 400);
+    setTimeout(() => { toast.remove(); toastTimeout = null; }, 400);
   }, duration);
 }
 
 // ============================================================
 // AUDIO ENABLE OVERLAY
 // ============================================================
-const audioOverlay = document.getElementById('audioOverlay');
-
 document.getElementById('audioEnableBtn').addEventListener('click', () => {
   SoundFX.enableAudio();
-  audioOverlay.classList.add('hidden');
-  // Pre-warm the audio system
+  document.getElementById('audioOverlay').classList.add('hidden');
   SoundFX.play('click');
-  // Show a quick toast
-  setTimeout(() => {
-    showToast('🔈 Sound enabled!');
-  }, 300);
+  setTimeout(() => showToast('🔈 Sound enabled!'), 300);
 });
 
 // ============================================================
-// MAIN APP
+// FEATURE TABS
+// ============================================================
+const featureTabs = document.querySelectorAll('.feature-tab');
+const featureContents = {
+  fare: document.getElementById('featureFare'),
+  codes: document.getElementById('featureCodes'),
+  fuel: document.getElementById('featureFuel')
+};
+
+featureTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const feature = tab.dataset.feature;
+    featureTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    Object.keys(featureContents).forEach(key => {
+      featureContents[key].classList.toggle('active', key === feature);
+    });
+    SoundFX.play('click');
+    hapticLight();
+  });
+});
+
+// ============================================================
+// CODE REDEMPTION HUB
+// ============================================================
+const CODES = [
+  { code: 'nitro', reward: '₱6767 Cash + 670 exp', expires: 'unknown', status: 'valid' },
+];
+
+const USED_CODES_KEY = 'fareMatrixUsedCodes';
+
+function getUsedCodes() {
+  try {
+    const raw = localStorage.getItem(USED_CODES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveUsedCodes(used) {
+  try { localStorage.setItem(USED_CODES_KEY, JSON.stringify(used)); } catch {}
+}
+
+function renderCodes() {
+  const grid = document.getElementById('codeGrid');
+  const usedCodes = getUsedCodes();
+  grid.innerHTML = '';
+  
+  const validCount = CODES.filter(c => c.status === 'valid').length;
+  const expiredCount = CODES.filter(c => c.status === 'expired').length;
+  
+  document.getElementById('codeStatus').innerHTML = `
+    <span class="valid">✅ ${validCount} valid codes</span> &middot; 
+    <span class="expired">⏰ ${expiredCount} expired</span> &middot; 
+    <span class="unknown">🔄 Last updated: July 30, 2026</span>
+  `;
+  
+  CODES.forEach(item => {
+    const isUsed = usedCodes.includes(item.code);
+    const card = document.createElement('div');
+    card.className = `code-card${isUsed ? ' used' : ''}`;
+    
+    const statusText = isUsed ? 'Used' : 
+                       item.status === 'expired' ? 'Expired' : 
+                       'Available';
+    const statusColor = isUsed ? 'var(--paper-dim)' : 
+                        item.status === 'expired' ? 'var(--route-red)' : 
+                        'var(--ok)';
+    
+    card.innerHTML = `
+      <div class="code-value">${item.code}</div>
+      <div class="code-reward">🎁 ${item.reward}</div>
+      <div class="code-expiry">📅 Expires: ${item.expires}</div>
+      <div style="margin-top:8px;display:flex;gap:6px;justify-content:center;align-items:center;">
+        <button class="code-copy-btn" data-code="${item.code}" ${isUsed || item.status === 'expired' ? 'disabled style="opacity:0.4;cursor:default;"' : ''}>
+          ${isUsed ? '✓ Used' : '📋 Copy'}
+        </button>
+        <span style="font-size:10px;color:${statusColor};font-family:'Inter',sans-serif;font-weight:600;">${statusText}</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+  
+  document.querySelectorAll('.code-copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const code = this.dataset.code;
+      if (!code) return;
+      if (this.disabled) return;
+      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          const used = getUsedCodes();
+          if (!used.includes(code)) {
+            used.push(code);
+            saveUsedCodes(used);
+          }
+          this.textContent = '✓ Copied!';
+          this.classList.add('copied');
+          setTimeout(() => {
+            this.textContent = '📋 Copy';
+            this.classList.remove('copied');
+          }, 2000);
+          SoundFX.play('click');
+          hapticLight();
+          showToast(`📋 Copied "${code}"!`);
+          renderCodes();
+        }).catch(() => {
+          copyFallback(code, this);
+        });
+      } else {
+        copyFallback(code, this);
+      }
+    });
+  });
+}
+
+function copyFallback(code, btn) {
+  const textarea = document.createElement('textarea');
+  textarea.value = code;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    document.execCommand('copy');
+    const used = getUsedCodes();
+    if (!used.includes(code)) {
+      used.push(code);
+      saveUsedCodes(used);
+    }
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '📋 Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+    SoundFX.play('click');
+    hapticLight();
+    showToast(`📋 Copied "${code}"!`);
+    renderCodes();
+  } catch(e) {
+    showToast('❌ Failed to copy. Please copy manually.');
+  }
+  document.body.removeChild(textarea);
+}
+
+renderCodes();
+
+// ============================================================
+// FUEL CALCULATOR - WITH GAS STATION IMAGES (FIXED)
+// ============================================================
+
+// Gas Station Data - 4 Stations (Station 5 coming soon)
+const GAS_STATIONS = {
+  station1: {
+    name: "Gas Station 1",
+    image: "GasStation1.png",
+    prices: { diesel: 86.12, unleaded: 84.26, premium: 87.43 }
+  },
+  station2: {
+    name: "Gas Station 2",
+    image: "GasStation2.png",
+    prices: { diesel: 85.64, unleaded: 80.80, premium: 87.43 }
+  },
+  station3: {
+    name: "Gas Station 3",
+    image: "GasStation3.png",
+    prices: { diesel: 90.22, unleaded: 87.22, premium: 89.32 }
+  },
+  station4: {
+    name: "Gas Station 4",
+    image: "GasStation4.png",
+    prices: { diesel: 85.67, unleaded: 80.80, premium: 78.43 }
+  },
+  station5: {
+    name: "Gas Station 5",
+    image: "GasStation5.png",
+    prices: { diesel: 0, unleaded: 0, premium: 0 }  // ← WILL UPDATE WHEN FOUND
+  }
+};
+
+let currentFuel = 'diesel';
+let currentStation = 'station1';
+
+function getFuelPrices() {
+  return GAS_STATIONS[currentStation]?.prices || { diesel: 86.12, unleaded: 84.26, premium: 87.43 };
+}
+
+function updateStationDisplay() {
+  const station = GAS_STATIONS[currentStation];
+  if (!station) return;
+  
+  const img = document.getElementById('stationImage');
+  const fallback = document.getElementById('stationFallback');
+  const nameDisplay = document.getElementById('stationNameDisplay');
+  
+  if (img) {
+    img.style.display = 'block';
+    img.src = station.image;
+    img.alt = station.name;
+    
+    img.onerror = function() {
+      this.style.display = 'none';
+      if (fallback) {
+        fallback.style.display = 'block';
+        fallback.innerHTML = `
+          🏪<br>
+          <span style="font-size:14px;font-family:'Oswald',sans-serif;color:var(--sign);">${station.name}</span>
+        `;
+      }
+    };
+    
+    img.onload = function() {
+      this.style.display = 'block';
+      if (fallback) {
+        fallback.style.display = 'none';
+      }
+    };
+  }
+  
+  if (nameDisplay) {
+    nameDisplay.textContent = station.name;
+  }
+}
+
+function updateFuelUI() {
+  const prices = getFuelPrices();
+  const price = prices[currentFuel] || 86.12;
+  document.getElementById('fuelPriceDisplay').innerHTML = `₱${price.toFixed(2)} <span class="per-liter">/ L</span>`;
+  
+  document.querySelectorAll('.fuel-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.fuel === currentFuel);
+  });
+  
+  updateStationDisplay();
+  calculateFuel();
+}
+
+function calculateFuel() {
+  const prices = getFuelPrices();
+  const price = prices[currentFuel] || 86.12;
+  const amountInput = document.getElementById('fuelAmount');
+  const costInput = document.getElementById('fuelCost');
+  const resultAmount = document.getElementById('fuelResultAmount');
+  const resultNote = document.getElementById('fuelResultNote');
+  const resultDetail = document.getElementById('fuelResultDetail');
+  
+  let amount = parseFloat(amountInput.value) || 0;
+  
+  if (amountInput.dataset.full === 'true') {
+    amount = 100;
+    amountInput.value = amount;
+  }
+  
+  const cost = amount * price;
+  costInput.value = cost > 0 ? cost.toFixed(2) : 0;
+  
+  if (amount <= 0) {
+    resultAmount.textContent = '₱0';
+    resultNote.textContent = 'Ilagay ang amount ng fuel na gusto mong bilhin.';
+    resultDetail.textContent = '';
+    return;
+  }
+  
+  resultAmount.textContent = `₱${cost.toFixed(2)}`;
+  
+  const fuelNames = { diesel: 'Diesel', unleaded: 'Unleaded', premium: 'Premium' };
+  resultNote.textContent = `${amount}L of ${fuelNames[currentFuel]} @ ₱${price.toFixed(2)}/L`;
+  
+  const station = GAS_STATIONS[currentStation];
+  resultDetail.textContent = `📍 ${station.name}`;
+  document.getElementById('fuelResult').style.borderColor = 'var(--jeep-green)';
+}
+
+// Fuel tab clicks
+document.querySelectorAll('.fuel-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    currentFuel = tab.dataset.fuel;
+    document.getElementById('fuelAmount').dataset.full = 'false';
+    updateFuelUI();
+    SoundFX.play('click');
+    hapticLight();
+  });
+});
+
+// Gas Station selection
+document.getElementById('gasStationSelect').addEventListener('change', function() {
+  currentStation = this.value;
+  updateFuelUI();
+  SoundFX.play('click');
+  hapticLight();
+  const station = GAS_STATIONS[currentStation];
+  showToast(`📍 ${station.name}`);
+});
+
+// Fuel amount input
+document.getElementById('fuelAmount').addEventListener('input', function() {
+  this.dataset.full = 'false';
+  calculateFuel();
+});
+
+// Quick amount buttons
+document.querySelectorAll('.fuel-quick-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const amount = btn.dataset.amount;
+    const input = document.getElementById('fuelAmount');
+    if (amount === 'full') {
+      input.dataset.full = 'true';
+      input.value = 100;
+    } else {
+      input.dataset.full = 'false';
+      input.value = amount;
+    }
+    calculateFuel();
+    SoundFX.play('click');
+    hapticLight();
+  });
+});
+
+// Initialize fuel UI
+updateFuelUI();
+
+// ============================================================
+// FARE CALCULATOR (Core)
 // ============================================================
 const ROUTES = {
   balagtas: {
@@ -1530,7 +2270,6 @@ const ROUTES = {
   }
 };
 
-// Constants
 const MINIMUM_UNITS = 4;
 const BASE_REGULAR_FARE = 13;
 const BASE_REDUCED_FARE = 11;
@@ -1565,14 +2304,14 @@ const fareRegular = document.getElementById("fareRegular");
 const fareStudent = document.getElementById("fareStudent");
 const fareSenior = document.getElementById("fareSenior");
 
-function buildTabs(){
+function buildTabs() {
   routeTabs.innerHTML = "";
-  Object.keys(ROUTES).forEach(key=>{
+  Object.keys(ROUTES).forEach(key => {
     const btn = document.createElement("div");
-    btn.className = "route-tab" + (key===currentRoute ? " active" : "");
+    btn.className = "route-tab" + (key === currentRoute ? " active" : "");
     btn.textContent = ROUTES[key].label + " \u21C4 Bulakan";
     btn.setAttribute('role', 'tab');
-    btn.setAttribute('aria-selected', key===currentRoute ? 'true' : 'false');
+    btn.setAttribute('aria-selected', key === currentRoute ? 'true' : 'false');
     btn.onclick = () => {
       if (key !== currentRoute && !isTransitioning) {
         SoundFX.play('chime');
@@ -1586,7 +2325,6 @@ function buildTabs(){
 function refreshRouteWithKey(key) {
   isTransitioning = true;
   mainBoard.classList.add('fade-transition');
-  
   setTimeout(() => {
     currentRoute = key;
     buildTabs();
@@ -1599,36 +2337,38 @@ function refreshRouteWithKey(key) {
   }, 300);
 }
 
-function flatBarangays(units){
+function flatBarangays(units) {
   const list = [];
-  units.forEach((unit, idx)=>{
-    unit.forEach(name => list.push({name, idx}));
+  units.forEach((unit, idx) => {
+    unit.forEach(name => list.push({ name, idx }));
   });
   return list;
 }
 
-function buildSelects(){
+function buildSelects() {
   const flat = flatBarangays(ROUTES[currentRoute].units);
   [fromSelect, toSelect].forEach(sel => sel.innerHTML = "");
   flat.forEach(item => {
     const opt1 = document.createElement("option");
-    opt1.value = `${item.idx}-${item.name}`; opt1.textContent = item.name;
+    opt1.value = `${item.idx}-${item.name}`;
+    opt1.textContent = item.name;
     fromSelect.appendChild(opt1);
     const opt2 = document.createElement("option");
-    opt2.value = `${item.idx}-${item.name}`; opt2.textContent = item.name;
+    opt2.value = `${item.idx}-${item.name}`;
+    opt2.textContent = item.name;
     toSelect.appendChild(opt2);
   });
   fromSelect.selectedIndex = 0;
   toSelect.selectedIndex = flat.length - 1;
 }
 
-function buildRouteList(){
+function buildRouteList() {
   const units = ROUTES[currentRoute].units;
   const parts = units.map(u => u.length > 1 ? `<span class="unit-pair">${u.join(" / ")}</span>` : u[0]);
   routeListOut.innerHTML = `<b>${ROUTES[currentRoute].label} - Bulakan</b> (${units.length} counted units)<br>` + parts.join(" &rarr; ");
 }
 
-function getSelectedIndex(select){
+function getSelectedIndex(select) {
   const value = select.value || "";
   const idx = parseInt(value.split("-")[0], 10);
   return Number.isFinite(idx) ? idx : -1;
@@ -1636,36 +2376,23 @@ function getSelectedIndex(select){
 
 function calculateFare(fromIdx, toIdx, pax) {
   if (fromIdx < 0 || toIdx < 0) return null;
-  
   const unitsCount = Math.abs(fromIdx - toIdx) + 1;
   const extra = Math.max(0, unitsCount - MINIMUM_UNITS);
   const regularFare = BASE_REGULAR_FARE + extra * EXTRA_FARE_PER_UNIT;
   const reducedFare = BASE_REDUCED_FARE + extra * EXTRA_FARE_PER_UNIT;
   const total = (pax.regular * regularFare) + ((pax.student + pax.senior) * reducedFare);
-  
-  return {
-    unitsCount,
-    extra,
-    regularFare,
-    reducedFare,
-    total,
-    totalPax: pax.regular + pax.student + pax.senior
-  };
+  return { unitsCount, extra, regularFare, reducedFare, total, totalPax: pax.regular + pax.student + pax.senior };
 }
 
 function computeFareDebounced() {
   if (computeTimeout) clearTimeout(computeTimeout);
-  computeTimeout = setTimeout(() => {
-    computeFare();
-    computeTimeout = null;
-  }, 50);
+  computeTimeout = setTimeout(() => { computeFare(); computeTimeout = null; }, 50);
 }
 
-function computeFare(){
+function computeFare() {
   const fromIdx = getSelectedIndex(fromSelect);
   const toIdx = getSelectedIndex(toSelect);
-  
-  if(fromIdx < 0 || toIdx < 0){
+  if (fromIdx < 0 || toIdx < 0) {
     fareOut.textContent = "0";
     fareInput.value = 0;
     breakdownOut.textContent = "Pumili ng valid na pickup at drop-off.";
@@ -1673,74 +2400,51 @@ function computeFare(){
     computeSukli();
     return;
   }
-  
   const result = calculateFare(fromIdx, toIdx, paxCounts);
   if (!result) return;
-  
   const { unitsCount, extra, regularFare, reducedFare, total, totalPax } = result;
-
   const routeLabel = ROUTES[currentRoute].label;
-  if(toIdx > fromIdx){
-    directionOut.textContent = "Bulakan \u2192 " + routeLabel;
-  } else if(toIdx < fromIdx){
-    directionOut.textContent = routeLabel + " \u2192 Bulakan";
-  } else {
-    directionOut.textContent = "Same barangay";
-  }
-
+  directionOut.textContent = toIdx > fromIdx ? `Bulakan \u2192 ${routeLabel}` : toIdx < fromIdx ? `${routeLabel} \u2192 Bulakan` : "Same barangay";
   fareRegular.textContent = "\u20B1" + regularFare;
   fareStudent.textContent = "\u20B1" + reducedFare;
   fareSenior.textContent = "\u20B1" + reducedFare;
-
-  // Only animate if fare changed
   if (total !== lastFareValue) {
     fareOut.classList.remove('pop');
     void fareOut.offsetWidth;
     fareOut.classList.add('pop');
     setTimeout(() => fareOut.classList.remove('pop'), 200);
-    
     fareDisplay.classList.add('flash');
     setTimeout(() => fareDisplay.classList.remove('flash'), 400);
-    
     lastFareValue = total;
   }
-
   fareOut.textContent = total;
   fareInput.value = total;
-
-  const unitNote = unitsCount <= MINIMUM_UNITS
-    ? `${unitsCount} unit(s), within minimum`
-    : `${unitsCount} units, +${extra} beyond minimum`;
-
-  if(totalPax === 0){
+  const unitNote = unitsCount <= MINIMUM_UNITS ? `${unitsCount} unit(s), within minimum` : `${unitsCount} units, +${extra} beyond minimum`;
+  if (totalPax === 0) {
     breakdownOut.textContent = `${unitNote} -> walang pasahero na naka-check pa`;
   } else {
     const pieces = [];
-    if(paxCounts.regular) pieces.push(`${paxCounts.regular} regular x \u20B1${regularFare}`);
-    if(paxCounts.student) pieces.push(`${paxCounts.student} student x \u20B1${reducedFare}`);
-    if(paxCounts.senior) pieces.push(`${paxCounts.senior} senior x \u20B1${reducedFare}`);
+    if (paxCounts.regular) pieces.push(`${paxCounts.regular} regular x \u20B1${regularFare}`);
+    if (paxCounts.student) pieces.push(`${paxCounts.student} student x \u20B1${reducedFare}`);
+    if (paxCounts.senior) pieces.push(`${paxCounts.senior} senior x \u20B1${reducedFare}`);
     breakdownOut.textContent = `${unitNote} -> ${pieces.join(" + ")}`;
   }
-  
   computeSukli();
 }
 
 let lastSukliValue = null;
 
-function computeSukli(){
+function computeSukli() {
   const fare = parseFloat(fareInput.value) || 0;
   const paid = parseFloat(paidInput.value);
-  
-  if(isNaN(paid)){
+  if (isNaN(paid)) {
     sukliOut.textContent = "\u20B10";
     sukliNote.textContent = "Ilagay ang binayad para makuha ang sukli.";
-    sukliResult.classList.remove("short");
-    sukliResult.classList.remove("bounce");
+    sukliResult.classList.remove("short", "bounce");
     return;
   }
-  
   const change = paid - fare;
-  if(change < 0){
+  if (change < 0) {
     sukliResult.classList.remove("bounce");
     sukliResult.classList.add("short");
     sukliOut.textContent = "\u20B1" + Math.abs(change);
@@ -1754,7 +2458,6 @@ function computeSukli(){
     sukliResult.classList.remove("short");
     sukliOut.textContent = "\u20B1" + change;
     sukliNote.textContent = change === 0 ? "Eksakto, walang sukli." : "Ibigay ang sukling ito sa pasahero.";
-    
     if (lastSukliValue !== null && lastSukliValue !== change && change > 0) {
       sukliResult.classList.remove('bounce');
       void sukliResult.offsetWidth;
@@ -1766,23 +2469,18 @@ function computeSukli(){
   }
 }
 
-function buildQuickAmounts(){
+function buildQuickAmounts() {
   quickAmounts.innerHTML = "";
   [20, 50, 100, 200, 500].forEach(amt => {
     const b = document.createElement("div");
     b.className = "quick-btn";
     b.textContent = "\u20B1" + amt;
-    b.onclick = () => { 
-      paidInput.value = amt; 
-      computeSukli();
-      hapticLight();
-      SoundFX.play('click');
-    };
+    b.onclick = () => { paidInput.value = amt; computeSukli(); hapticLight(); SoundFX.play('click'); };
     quickAmounts.appendChild(b);
   });
 }
 
-function refreshRoute(){
+function refreshRoute() {
   buildTabs();
   buildSelects();
   buildRouteList();
@@ -1796,8 +2494,7 @@ document.querySelectorAll(".step-btn").forEach(btn => {
     const type = btn.dataset.type;
     const action = btn.dataset.action;
     const countEl = document.getElementById("count" + type.charAt(0).toUpperCase() + type.slice(1));
-    
-    if(action === "inc"){
+    if (action === "inc") {
       paxCounts[type] += 1;
       SoundFX.play('click');
       hapticLight();
@@ -1809,12 +2506,10 @@ document.querySelectorAll(".step-btn").forEach(btn => {
       }
     }
     countEl.textContent = paxCounts[type];
-    
     countEl.classList.remove('pop');
     void countEl.offsetWidth;
     countEl.classList.add('pop');
     setTimeout(() => countEl.classList.remove('pop'), 250);
-    
     computeFareDebounced();
   };
 });
@@ -1828,14 +2523,8 @@ document.getElementById("swapBtn").onclick = () => {
   computeFareDebounced();
 };
 
-fromSelect.addEventListener("change", () => {
-  SoundFX.play('click');
-  computeFareDebounced();
-});
-toSelect.addEventListener("change", () => {
-  SoundFX.play('click');
-  computeFareDebounced();
-});
+fromSelect.addEventListener("change", () => { SoundFX.play('click'); computeFareDebounced(); });
+toSelect.addEventListener("change", () => { SoundFX.play('click'); computeFareDebounced(); });
 paidInput.addEventListener("input", computeSukli);
 
 document.getElementById("clearPaxBtn").onclick = () => {
@@ -1846,17 +2535,17 @@ document.getElementById("clearPaxBtn").onclick = () => {
   computeFareDebounced();
 };
 
-function syncPaxDisplay(){
+function syncPaxDisplay() {
   document.getElementById("countRegular").textContent = paxCounts.regular;
   document.getElementById("countStudent").textContent = paxCounts.student;
   document.getElementById("countSenior").textContent = paxCounts.senior;
 }
 
-function renderRecentChips(){
+function renderRecentChips() {
   const wrap = document.getElementById("recentChips");
   wrap.innerHTML = "";
   const filtered = recentDestinations.filter(d => d.routeKey === currentRoute);
-  if(filtered.length === 0){
+  if (filtered.length === 0) {
     wrap.innerHTML = '<span class="recent-empty">Recent trips will show up here as chips.</span>';
     return;
   }
@@ -1865,7 +2554,7 @@ function renderRecentChips(){
     chip.className = "recent-chip";
     chip.textContent = dest.label;
     chip.onclick = () => {
-      if(dest.fromValue && dest.toValue){
+      if (dest.fromValue && dest.toValue) {
         fromSelect.value = dest.fromValue;
         toSelect.value = dest.toValue;
       }
@@ -1877,29 +2566,23 @@ function renderRecentChips(){
   });
 }
 
-function pushRecentDestination(){
+function pushRecentDestination() {
   const fromName = fromSelect.options[fromSelect.selectedIndex]?.textContent || "";
   const toName = toSelect.options[toSelect.selectedIndex]?.textContent || "";
   const label = `${fromName} \u2192 ${toName}`;
   recentDestinations = recentDestinations.filter(d => d.label !== label);
-  recentDestinations.unshift({
-    routeKey: currentRoute,
-    fromValue: fromSelect.value,
-    toValue: toSelect.value,
-    label
-  });
+  recentDestinations.unshift({ routeKey: currentRoute, fromValue: fromSelect.value, toValue: toSelect.value, label });
   recentDestinations = recentDestinations.slice(0, 5);
   renderRecentChips();
 }
 
-function updateSessionDisplay(){
+function updateSessionDisplay() {
   const tripEl = document.getElementById("tripCountOut");
   tripEl.textContent = tripCount;
   tripEl.classList.remove('pop');
   void tripEl.offsetWidth;
   tripEl.classList.add('pop');
   setTimeout(() => tripEl.classList.remove('pop'), 300);
-  
   const totalEl = document.getElementById("sessionTotalOut");
   totalEl.textContent = "\u20B1" + sessionTotal;
   totalEl.classList.remove('pop');
@@ -1911,27 +2594,20 @@ function updateSessionDisplay(){
 // Session History
 const SESSION_HISTORY_KEY = "fareMatrixSessionHistory";
 
-function loadSessionHistory(){
-  try {
-    const raw = localStorage.getItem(SESSION_HISTORY_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch(err) {
-    return [];
-  }
+function loadSessionHistory() {
+  try { return JSON.parse(localStorage.getItem(SESSION_HISTORY_KEY)) || []; } catch { return []; }
 }
 
-function saveSessionHistoryToStorage(history){
-  try {
-    localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(history));
-  } catch(err) {}
+function saveSessionHistoryToStorage(history) {
+  try { localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(history)); } catch {}
 }
 
 let sessionHistory = loadSessionHistory();
 
-function renderSessionHistory(){
+function renderSessionHistory() {
   const list = document.getElementById("sessionHistoryList");
   list.innerHTML = "";
-  if(sessionHistory.length === 0){
+  if (sessionHistory.length === 0) {
     list.innerHTML = '<li class="session-history-empty">Wala pang na-save na session.</li>';
     return;
   }
@@ -1957,25 +2633,17 @@ function escapeHtml(text) {
 
 document.getElementById("completeTripBtn").onclick = () => {
   const fare = parseFloat(fareInput.value) || 0;
-  if(fare <= 0) {
-    showToast("Walang pasahero o fare na zero.");
-    return;
-  }
-  
+  if (fare <= 0) { showToast("Walang pasahero o fare na zero."); return; }
   sessionTotal += fare;
   tripCount += 1;
   updateSessionDisplay();
   pushRecentDestination();
-  
   SoundFX.play('kaChing');
   hapticSuccess();
-  
   const btn = document.getElementById("completeTripBtn");
   btn.classList.add('success');
   setTimeout(() => btn.classList.remove('success'), 800);
-  
   showToast(`✓ Trip completed! +₱${fare}`);
-  
   paxCounts = { regular: 0, student: 0, senior: 0 };
   syncPaxDisplay();
   paidInput.value = "";
@@ -1983,25 +2651,15 @@ document.getElementById("completeTripBtn").onclick = () => {
 };
 
 document.getElementById("sessionSaveBtn").onclick = () => {
-  if(tripCount === 0 && sessionTotal === 0){
-    showToast("Walang trip na na-save sa session.");
-    return;
-  }
-  
+  if (tripCount === 0 && sessionTotal === 0) { showToast("Walang trip na na-save sa session."); return; }
   let defaultName = `Biyahe ${sessionHistory.length + 1}`;
   let name = defaultName;
   let attempts = 0;
-  
   while (attempts < 3) {
     const input = prompt("Pangalan ng session:", name);
     if (input === null) return;
-    
     const trimmed = input.trim();
-    if (!trimmed) {
-      name = defaultName;
-      break;
-    }
-    
+    if (!trimmed) { name = defaultName; break; }
     const exists = sessionHistory.some(entry => entry.name === trimmed);
     if (exists) {
       alert(`Mayroon nang session na "${trimmed}". Gumamit ng ibang pangalan.`);
@@ -2009,22 +2667,16 @@ document.getElementById("sessionSaveBtn").onclick = () => {
       attempts++;
       continue;
     }
-    
     name = trimmed;
     break;
   }
-  
-  const dateStr = new Date().toLocaleString("en-PH", {
-    year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
-  });
-  
+  const dateStr = new Date().toLocaleString("en-PH", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   sessionHistory.unshift({ name, date: dateStr, trips: tripCount, total: sessionTotal });
   saveSessionHistoryToStorage(sessionHistory);
   renderSessionHistory();
   SoundFX.play('chime');
   hapticMedium();
   showToast(`✓ Nai-save ang "${name}"`);
-  
   tripCount = 0;
   sessionTotal = 0;
   updateSessionDisplay();
@@ -2040,9 +2692,8 @@ document.getElementById("sessionResetBtn").onclick = () => {
 };
 
 document.getElementById("sessionClearHistoryBtn").onclick = () => {
-  if(sessionHistory.length === 0) return;
-  const confirmed = confirm("Sigurado ka bang gusto mong i-clear ang buong session history? Hindi na ito mababawi.");
-  if(confirmed){
+  if (sessionHistory.length === 0) return;
+  if (confirm("Sigurado ka bang gusto mong i-clear ang buong session history? Hindi na ito mababawi.")) {
     sessionHistory = [];
     saveSessionHistoryToStorage(sessionHistory);
     renderSessionHistory();
@@ -2054,39 +2705,25 @@ document.getElementById("sessionClearHistoryBtn").onclick = () => {
 
 renderSessionHistory();
 
-// Service Worker - Fixed
-if("serviceWorker" in navigator){
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+if ("serviceWorker" in navigator) {
   let updateInterval = null;
   let refreshing = false;
-
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if(refreshing) return;
+    if (refreshing) return;
     document.getElementById("updateBanner").style.display = "flex";
   });
-
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("sw.js")
       .then((reg) => {
         console.log('Service Worker registered successfully');
-        // Check for updates every 5 minutes
-        updateInterval = setInterval(() => {
-          reg.update().catch(() => {});
-        }, 5 * 60 * 1000);
-        
-        // Clean up on page unload
-        window.addEventListener('beforeunload', () => {
-          if (updateInterval) {
-            clearInterval(updateInterval);
-            updateInterval = null;
-          }
-        });
+        updateInterval = setInterval(() => { reg.update().catch(() => {}); }, 5 * 60 * 1000);
+        window.addEventListener('beforeunload', () => { if (updateInterval) { clearInterval(updateInterval); updateInterval = null; } });
       })
-      .catch((err) => {
-        console.warn('Service Worker registration failed:', err);
-        // App works without SW, just log
-      });
+      .catch((err) => console.warn('Service Worker registration failed:', err));
   });
-
   document.getElementById("updateRefreshBtn").onclick = () => {
     refreshing = true;
     SoundFX.play('click');
@@ -2094,7 +2731,9 @@ if("serviceWorker" in navigator){
   };
 }
 
-// Feedback Form
+// ============================================================
+// FEEDBACK FORM
+// ============================================================
 const feedbackForm = document.getElementById("feedbackForm");
 const feedbackStatus = document.getElementById("feedbackStatus");
 const feedbackSubmitBtn = document.getElementById("feedbackSubmitBtn");
@@ -2104,7 +2743,7 @@ const feedbackMessageInput = document.getElementById("feedbackMessage");
 
 const feedbackHints = {
   Suggestion: "Isulat dito ang suggestion mo anong feature o pagbabago ang gusto mong idagdag?",
-  Bug: "Para mas mabilis maayos: isama ang route, pickup/drop-off barangay, bilang ng pasahero, at binayad. Halimbawa: \"Balagtas route, Bagumbayan-Wawa, 2 regular, binayad ₱50, mali ang sukli.\"",
+  Bug: "Para mas mabilis maayos: isama ang route, pickup/drop-off barangay, bilang ng pasahero, at binayad.",
   Question: "Itanong dito ang tanong mo tungkol sa Fare Matrix.",
   Other: "Isulat dito ang feedback mo..."
 };
@@ -2116,7 +2755,7 @@ const feedbackPlaceholders = {
   Other: "Isulat dito ang feedback mo..."
 };
 
-function updateFeedbackHint(){
+function updateFeedbackHint() {
   const type = feedbackTypeSelect.value;
   feedbackHint.textContent = feedbackHints[type] || feedbackHints.Other;
   feedbackMessageInput.placeholder = feedbackPlaceholders[type] || feedbackPlaceholders.Other;
@@ -2129,29 +2768,24 @@ const FEEDBACK_COOLDOWN_MS = 60 * 1000;
 const FEEDBACK_COOLDOWN_KEY = "fareMatrixLastFeedback";
 let feedbackCooldownInterval = null;
 
-function getFeedbackCooldownRemaining(){
+function getFeedbackCooldownRemaining() {
   try {
     const last = parseInt(localStorage.getItem(FEEDBACK_COOLDOWN_KEY) || "0", 10);
     return Math.max(0, FEEDBACK_COOLDOWN_MS - (Date.now() - last));
-  } catch(err) {
-    return 0;
-  }
+  } catch { return 0; }
 }
 
-function updateFeedbackCooldownUI(){
+function updateFeedbackCooldownUI() {
   const remaining = getFeedbackCooldownRemaining();
-  if(remaining <= 0){
+  if (remaining <= 0) {
     feedbackSubmitBtn.disabled = false;
     feedbackSubmitBtn.textContent = "Ipadala";
-    if(feedbackCooldownInterval){
-      clearInterval(feedbackCooldownInterval);
-      feedbackCooldownInterval = null;
-    }
+    if (feedbackCooldownInterval) { clearInterval(feedbackCooldownInterval); feedbackCooldownInterval = null; }
     return;
   }
   feedbackSubmitBtn.disabled = true;
   feedbackSubmitBtn.textContent = `Maghintay (${Math.ceil(remaining / 1000)}s)`;
-  if(!feedbackCooldownInterval){
+  if (!feedbackCooldownInterval) {
     feedbackCooldownInterval = setInterval(updateFeedbackCooldownUI, 1000);
   }
 }
@@ -2160,35 +2794,27 @@ updateFeedbackCooldownUI();
 
 feedbackForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-
-  if(getFeedbackCooldownRemaining() > 0){
+  if (getFeedbackCooldownRemaining() > 0) {
     feedbackStatus.textContent = "Sandali lang, maghintay muna bago ulit magpadala.";
     feedbackStatus.className = "feedback-status error";
     return;
   }
-
   document.getElementById("feedbackDate").value = new Date().toLocaleString("en-PH", {
     year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit"
   });
-
   const nameVal = document.getElementById("feedbackName").value.trim();
-  if(!nameVal){
-    document.getElementById("feedbackName").value = "Anonymous";
-  }
-
+  if (!nameVal) document.getElementById("feedbackName").value = "Anonymous";
   feedbackSubmitBtn.disabled = true;
   feedbackSubmitBtn.textContent = "Ipinapadala...";
   feedbackStatus.textContent = "";
   feedbackStatus.className = "feedback-status";
-
   try {
     const res = await fetch("https://formspree.io/f/xvzevzpy", {
       method: "POST",
       headers: { "Accept": "application/json" },
       body: new FormData(feedbackForm)
     });
-
-    if(res.ok){
+    if (res.ok) {
       feedbackStatus.textContent = "Salamat! Natanggap na ang feedback mo.";
       feedbackStatus.className = "feedback-status success";
       feedbackForm.reset();
@@ -2196,7 +2822,7 @@ feedbackForm.addEventListener("submit", async (e) => {
       SoundFX.play('chime');
       hapticSuccess();
       showToast("✓ Naipadala ang feedback!");
-      try { localStorage.setItem(FEEDBACK_COOLDOWN_KEY, String(Date.now())); } catch(err) {}
+      try { localStorage.setItem(FEEDBACK_COOLDOWN_KEY, String(Date.now())); } catch {}
       updateFeedbackCooldownUI();
     } else {
       feedbackStatus.textContent = "May problema sa pagpadala. Subukan ulit.";
@@ -2204,7 +2830,7 @@ feedbackForm.addEventListener("submit", async (e) => {
       feedbackSubmitBtn.disabled = false;
       feedbackSubmitBtn.textContent = "Ipadala";
     }
-  } catch(err) {
+  } catch (err) {
     feedbackStatus.textContent = "Walang internet connection. Subukan ulit.";
     feedbackStatus.className = "feedback-status error";
     feedbackSubmitBtn.disabled = false;
@@ -2212,7 +2838,9 @@ feedbackForm.addEventListener("submit", async (e) => {
   }
 });
 
-// Initialize
+// ============================================================
+// INITIALIZATION
+// ============================================================
 document.getElementById("countRegular").textContent = paxCounts.regular;
 document.getElementById("countStudent").textContent = paxCounts.student;
 document.getElementById("countSenior").textContent = paxCounts.senior;
@@ -2221,19 +2849,16 @@ buildQuickAmounts();
 refreshRoute();
 updateSessionDisplay();
 
-// Check if audio overlay should be shown (for browsers that block autoplay)
-// We'll show it by default and hide after user clicks
+// ============================================================
+// GOATCOUNTER ANALYTICS
+// ============================================================
 </script>
 <script data-goatcounter="https://aizen1.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <script>
 window.addEventListener("appinstalled", () => {
-  function sendInstallEvent(){
-    if(window.goatcounter && window.goatcounter.count){
-      window.goatcounter.count({
-        path: "pwa-installed",
-        title: "Fare Matrix Installed",
-        event: true
-      });
+  function sendInstallEvent() {
+    if (window.goatcounter && window.goatcounter.count) {
+      window.goatcounter.count({ path: "pwa-installed", title: "Fare Matrix Installed", event: true });
     } else {
       setTimeout(sendInstallEvent, 300);
     }

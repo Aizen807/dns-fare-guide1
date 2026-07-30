@@ -1857,7 +1857,7 @@ select:focus-visible{
       <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--paper-dim);">
         ⭐ Rate Fare Matrix on Discord!
       </p>
-      <a href="https://discord.com/channels/1532292577036861470/1532367792332865727" target="_blank" rel="noopener" style="color:var(--sign);font-weight:600;text-decoration:underline;font-family:'Inter',sans-serif;font-size:13px;">
+      <a href="https://discord.gg/2kHcc73bQ" target="_blank" rel="noopener" style="color:var(--sign);font-weight:600;text-decoration:underline;font-family:'Inter',sans-serif;font-size:13px;">
         Join #⭐-ratings channel →
       </a>
     </div>
@@ -1913,8 +1913,12 @@ select:focus-visible{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.9.2</span>
+          <span class="changelog-text">🔄 Fixed Rush Hour timer and JavaScript errors. Removed webhook integration from app (now handled by GitHub Actions).<span class="changelog-date">July 31, 2026</span></span>
+        </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.9.1</span>
-          <span class="changelog-text">🔄 Removed Discord webhook from app to fix Rush Hour timer. Notifications now rely solely on GitHub Actions (rush-hour.yml).<span class="changelog-date">July 31, 2026</span></span>
+          <span class="changelog-text">🔄 Removed Discord webhook from app to fix Rush Hour timer. Notifications now rely solely on GitHub Actions.<span class="changelog-date">July 31, 2026</span></span>
         </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9</span>
@@ -2031,7 +2035,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9.1 &middot; updated July 31, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.2 &middot; updated July 31, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -2295,6 +2299,7 @@ function updateRushHourUI() {
   const countdownContainer = document.getElementById('rushCountdown');
   const phTimeDisplay = document.getElementById('rushPhTime');
   const timerLabel = document.querySelector('.rush-timer-label');
+  const timerEl = document.getElementById('rushCountdownTimer');
   
   const phTime = getPhilippinesTime();
   const timeStr = `${String(phTime.hours).padStart(2, '0')}:${String(phTime.minutes).padStart(2, '0')}`;
@@ -2388,13 +2393,6 @@ function updateCountdown(targetTime, isNext = false) {
   
   const timerEl = document.getElementById('rushCountdownTimer');
   timerEl.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  
-  const labelEl = document.querySelector('.rush-timer-label');
-  if (isNext) {
-    labelEl.textContent = 'Next Rush Hour in';
-  } else {
-    labelEl.textContent = 'Rush Hour ends in';
-  }
 }
 
 function initRushHour() {
@@ -2420,29 +2418,32 @@ featureTabs.forEach(tab => {
 // ============================================================
 // SHARE BUTTON
 // ============================================================
-document.getElementById('shareBtn').addEventListener('click', function() {
-  SoundFX.play('click');
-  hapticLight();
-  
-  if (navigator.share) {
-    navigator.share({
-      title: 'Fare Matrix — Diesel N Steel Calculator',
-      text: '🚐 Calculate fares for Diesel N Steel (Roblox)! Pick your route, passengers, and get instant fare + sukli!',
-      url: window.location.href
-    }).catch(() => {});
-  } else {
-    const url = window.location.href;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(() => {
-        showToast('📋 Link copied! Share it with your friends!');
-      }).catch(() => {
-        copyFallback(url);
-      });
+const shareBtn = document.getElementById('shareBtn');
+if (shareBtn) {
+  shareBtn.addEventListener('click', function() {
+    SoundFX.play('click');
+    hapticLight();
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Fare Matrix — Diesel N Steel Calculator',
+        text: '🚐 Calculate fares for Diesel N Steel (Roblox)! Pick your route, passengers, and get instant fare + sukli!',
+        url: window.location.href
+      }).catch(() => {});
     } else {
-      copyFallback(url);
+      const url = window.location.href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('📋 Link copied! Share it with your friends!');
+        }).catch(() => {
+          copyFallback(url);
+        });
+      } else {
+        copyFallback(url);
+      }
     }
-  }
-});
+  });
+}
 
 function copyFallback(text) {
   const textarea = document.createElement('textarea');

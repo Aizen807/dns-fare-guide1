@@ -43,6 +43,68 @@
   --fuel-premium:#B84A6A;
 }
 
+/* Rush Hour Styles */
+#rushHourPanel {
+  background:var(--panel-2);
+  border:2px solid var(--line);
+  border-radius:10px;
+  padding:14px 16px;
+  margin-bottom:20px;
+  transition:all 0.5s ease;
+  text-align:center;
+}
+#rushHourPanel.active {
+  border-color:#F59E0B;
+  background:rgba(245, 158, 11, 0.15);
+  box-shadow:0 0 30px rgba(245, 158, 11, 0.1);
+}
+.rush-status {
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:20px;
+  letter-spacing:1px;
+}
+.rush-status.inactive {
+  color:var(--paper-dim);
+}
+.rush-status.active-morning {
+  color:#FBBF24;
+}
+.rush-status.active-evening {
+  color:#F97316;
+}
+.rush-time {
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  color:var(--paper-dim);
+  margin-top:4px;
+}
+.rush-bonus {
+  display:inline-block;
+  background:#F59E0B;
+  color:#1A2415;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:12px;
+  padding:2px 12px;
+  border-radius:12px;
+  margin-top:4px;
+  letter-spacing:0.5px;
+}
+.rush-countdown {
+  font-family:'Anton',sans-serif;
+  font-size:18px;
+  color:var(--sign);
+  margin-top:4px;
+}
+.rush-timer-label {
+  font-family:'Oswald',sans-serif;
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+}
+
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -1404,6 +1466,21 @@ select:focus-visible{
     </div>
   </div>
 
+  <!-- Rush Hour Panel -->
+  <div id="rushHourPanel">
+    <div id="rushStatus" class="rush-status inactive">
+      ⏰ Checking Rush Hour...
+    </div>
+    <div class="rush-time" id="rushTimeDisplay">Morning: 4:00 AM - 8:00 AM | Evening: 5:00 PM - 10:00 PM</div>
+    <div id="rushBonusDisplay" style="display:none;">
+      <span class="rush-bonus">+20% Fare Bonus Active!</span>
+    </div>
+    <div id="rushCountdown">
+      <div class="rush-timer-label">Next Rush Hour in</div>
+      <div class="rush-countdown" id="rushCountdownTimer">--:--:--</div>
+    </div>
+  </div>
+
   <!-- ============================================================
        FEATURE: FARE CALCULATOR
        ============================================================ -->
@@ -2006,6 +2083,194 @@ const featureContents = {
   codes: document.getElementById('featureCodes'),
   fuel: document.getElementById('featureFuel')
 };
+
+// ============================================================
+// RUSH HOUR SYSTEM
+// ============================================================
+const RUSH_HOURS = {
+  morning: { start: 4, end: 8, label: 'Morning Rush', emoji: '🌅' },
+  evening: { start: 17, end: 22, label: 'Evening Rush', emoji: '🌆' }
+};
+
+const RUSH_BONUS_PERCENT = 20; // 20% bonus during rush hour
+let isRushActive = false;
+let rushPeriod = null;
+let rushCountdownInterval = null;
+
+function checkRushHour() {
+  const now = new Date();
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  const time = hours + minutes / 60;
+  
+  // Check morning rush: 4:00 AM - 8:00 AM
+  if (time >= RUSH_HOURS.morning.start && time < RUSH_HOURS.morning.end) {
+    return { active: true, period: 'morning', endTime: RUSH_HOURS.morning.end };
+  }
+  
+  // Check evening rush: 5:00 PM - 10:00 PM (17:00 - 22:00)
+  if (time >= RUSH_HOURS.evening.start && time < RUSH_HOURS.evening.end) {
+    return { active: true, period: 'evening', endTime: RUSH_HOURS.evening.end };
+  }
+  
+  // Not rush hour - find next rush
+  let nextStart = null;
+  let nextPeriod = null;
+  
+  // Check if morning rush is tomorrow or later today
+  if (time < RUSH_HOURS.morning.start) {
+    nextStart = RUSH_HOURS.morning.start;
+    nextPeriod = 'morning';
+  } else if (time < RUSH_HOURS.evening.start) {
+    nextStart = RUSH_HOURS.evening.start;
+    nextPeriod = 'evening';
+  } else {
+    // After evening rush, next is tomorrow morning
+    nextStart = RUSH_HOURS.morning.start + 24;
+    nextPeriod = 'morning';
+  }
+  
+  return { active: false, nextStart: nextStart, nextPeriod: nextPeriod };
+}
+
+function getRushHourEndTime() {
+  const now = new Date();
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  const time = hours + minutes / 60;
+  
+  if (time >= RUSH_HOURS.morning.start && time < RUSH_HOURS.morning.end) {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), RUSH_HOURS.morning.end, 0, 0);
+  }
+  if (time >= RUSH_HOURS.evening.start && time < RUSH_HOURS.evening.end) {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), RUSH_HOURS.evening.end, 0, 0);
+  }
+  return null;
+}
+
+function updateRushHourUI() {
+  const status = checkRushHour();
+  const panel = document.getElementById('rushHourPanel');
+  const statusEl = document.getElementById('rushStatus');
+  const bonusEl = document.getElementById('rushBonusDisplay');
+  const countdownEl = document.getElementById('rushCountdownTimer');
+  const countdownContainer = document.getElementById('rushCountdown');
+  
+  if (status.active) {
+    // Rush Hour is ACTIVE
+    isRushActive = true;
+    rushPeriod = status.period;
+    panel.classList.add('active');
+    
+    const periodInfo = RUSH_HOURS[status.period];
+    statusEl.className = `rush-status active-${status.period}`;
+    statusEl.textContent = `${periodInfo.emoji} ${periodInfo.label} - RUSH HOUR ACTIVE! 🚦`;
+    bonusEl.style.display = 'block';
+    
+    // Show countdown to end
+    const endTime = getRushHourEndTime();
+    if (endTime) {
+      countdownContainer.style.display = 'block';
+      updateCountdown(endTime);
+      if (!rushCountdownInterval) {
+        rushCountdownInterval = setInterval(() => {
+          const newEndTime = getRushHourEndTime();
+          if (newEndTime) updateCountdown(newEndTime);
+        }, 1000);
+      }
+    }
+  } else {
+    // Not Rush Hour
+    isRushActive = false;
+    rushPeriod = null;
+    panel.classList.remove('active');
+    statusEl.className = 'rush-status inactive';
+    statusEl.textContent = '⏰ Not Rush Hour';
+    bonusEl.style.display = 'none';
+    
+    // Show countdown to next rush
+    if (status.nextStart !== null) {
+      const nextTime = new Date();
+      let nextHour = status.nextStart;
+      if (nextHour >= 24) {
+        nextHour -= 24;
+        nextTime.setDate(nextTime.getDate() + 1);
+      }
+      nextTime.setHours(nextHour, 0, 0, 0);
+      
+      const periodLabel = status.nextPeriod === 'morning' ? 'Morning Rush (🌅)' : 'Evening Rush (🌆)';
+      countdownContainer.style.display = 'block';
+      updateCountdown(nextTime, true);
+      if (!rushCountdownInterval) {
+        rushCountdownInterval = setInterval(() => {
+          const newStatus = checkRushHour();
+          if (newStatus.active) {
+            updateRushHourUI();
+          } else {
+            const newNextTime = new Date();
+            let nextHour = newStatus.nextStart;
+            if (nextHour >= 24) {
+              nextHour -= 24;
+              newNextTime.setDate(newNextTime.getDate() + 1);
+            }
+            newNextTime.setHours(nextHour, 0, 0, 0);
+            updateCountdown(newNextTime, true);
+          }
+        }, 1000);
+      }
+    } else {
+      countdownContainer.style.display = 'none';
+    }
+  }
+}
+
+function updateCountdown(targetTime, isNext = false) {
+  const now = new Date();
+  const diff = targetTime - now;
+  
+  if (diff <= 0) {
+    if (isNext) {
+      // It's time for rush hour!
+      clearInterval(rushCountdownInterval);
+      rushCountdownInterval = null;
+      updateRushHourUI();
+    }
+    return;
+  }
+  
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  
+  const timerEl = document.getElementById('rushCountdownTimer');
+  timerEl.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  
+  // Update timer label
+  const labelEl = document.querySelector('.rush-timer-label');
+  if (isNext) {
+    labelEl.textContent = 'Next Rush Hour in';
+  } else {
+    labelEl.textContent = 'Rush Hour ends in';
+  }
+}
+
+// Calculate fare with rush bonus
+function calculateFareWithRushBonus(fare) {
+  if (isRushActive) {
+    return Math.round(fare * (1 + RUSH_BONUS_PERCENT / 100));
+  }
+  return fare;
+}
+
+// Initialize rush hour system
+function initRushHour() {
+  updateRushHourUI();
+  // Check every 30 seconds
+  setInterval(updateRushHourUI, 30000);
+}
+
+// Call init when page loads
+initRushHour();
 
 featureTabs.forEach(tab => {
   tab.addEventListener('click', () => {
@@ -2661,7 +2926,16 @@ function computeFare() {
     setTimeout(() => fareDisplay.classList.remove('flash'), 400);
     lastFareValue = total;
   }
-  fareOut.textContent = total;
+  // Apply rush hour bonus if active
+  const finalFare = calculateFareWithRushBonus(total);
+  fareOut.textContent = finalFare;
+  fareInput.value = finalFare;
+
+  // Add rush bonus indicator to breakdown
+  if (isRushActive && total > 0) {
+    const bonusAmount = Math.round(total * RUSH_BONUS_PERCENT / 100);
+    breakdownOut.textContent += ` (+${RUSH_BONUS_PERCENT}% Rush Bonus: +₱${bonusAmount})`;
+  }  
   fareInput.value = total;
   const unitNote = unitsCount <= MINIMUM_UNITS ? `${unitsCount} unit(s), within minimum` : `${unitsCount} units, +${extra} beyond minimum`;
   if (totalPax === 0) {

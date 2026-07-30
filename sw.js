@@ -1,4 +1,4 @@
-const CACHE_NAME = "fare-matrix-v43";
+const CACHE_NAME = "fare-matrix-v45";
 const ASSETS = [
   "./",
   "./index.html",
@@ -8,7 +8,8 @@ const ASSETS = [
   "GasStation1.png",
   "GasStation2.png",
   "GasStation3.png",
-  "GasStation4.png"
+  "GasStation4.png",
+  "GasStation5.png"
 ];
 
 self.addEventListener("install", (event) => {

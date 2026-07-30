@@ -46,10 +46,8 @@ jobs:
             
             # Calculate next rush (evening)
             NEXT_START_MIN=$EVENING_START_MIN
-            NEXT_HOURS=$((NEXT_START_MIN / 60))
-            NEXT_MINS=$((NEXT_START_MIN % 60))
             echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
-            echo "next_rush_time=${NEXT_HOURS}:${NEXT_MINS} PM" >> $GITHUB_OUTPUT
+            echo "next_rush_time=5:00 PM" >> $GITHUB_OUTPUT
             
           elif [ $PH_TIME -ge $START_EVENING ] && [ $PH_TIME -lt $END_EVENING ]; then
             echo "rush_status=evening" >> $GITHUB_OUTPUT
@@ -62,9 +60,6 @@ jobs:
             echo "remaining_time=${REMAINING_HOURS}h ${REMAINING_MINS}m" >> $GITHUB_OUTPUT
             
             # Calculate next rush (morning tomorrow)
-            NEXT_START_MIN=$((24 * 60 + MORNING_START_MIN))
-            NEXT_HOURS=$((NEXT_START_MIN / 60))
-            NEXT_MINS=$((NEXT_START_MIN % 60))
             echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
             echo "next_rush_time=4:00 AM (tomorrow)" >> $GITHUB_OUTPUT
             
@@ -74,26 +69,22 @@ jobs:
             
             # Calculate time until next rush
             if [ $PH_TIME -lt $START_MORNING ]; then
-              # Next is morning rush today
               NEXT_START_MIN=$MORNING_START_MIN
               DIFF_MIN=$((NEXT_START_MIN - CURRENT_MINUTES))
               NEXT_NAME="Morning Rush"
               NEXT_TIME="4:00 AM"
             elif [ $PH_TIME -lt $START_EVENING ]; then
-              # Next is evening rush today
               NEXT_START_MIN=$EVENING_START_MIN
               DIFF_MIN=$((NEXT_START_MIN - CURRENT_MINUTES))
               NEXT_NAME="Evening Rush"
               NEXT_TIME="5:00 PM"
             else
-              # Next is morning rush tomorrow
               NEXT_START_MIN=$((24 * 60 + MORNING_START_MIN))
               DIFF_MIN=$((NEXT_START_MIN - CURRENT_MINUTES))
               NEXT_NAME="Morning Rush"
               NEXT_TIME="4:00 AM (tomorrow)"
             fi
             
-            # Format countdown
             DIFF_HOURS=$((DIFF_MIN / 60))
             DIFF_MINS=$((DIFF_MIN % 60))
             echo "next_rush=${NEXT_NAME}" >> $GITHUB_OUTPUT
@@ -205,7 +196,6 @@ jobs:
         run: |
           RUSH_STATUS="${{ steps.rush_check.outputs.rush_status }}"
           
-          # Only send status updates every 30 minutes
           PH_MINUTE=$(TZ='Asia/Manila' date +"%M")
           
           if [ "$RUSH_STATUS" == "none" ] && ([ "$PH_MINUTE" == "00" ] || [ "$PH_MINUTE" == "30" ]); then

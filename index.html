@@ -104,6 +104,13 @@
   text-transform:uppercase;
   color:var(--paper-dim);
 }
+.rush-ph-time {
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--paper-dim);
+  opacity:0.6;
+  margin-top:2px;
+}
 
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -1471,7 +1478,7 @@ select:focus-visible{
     <div id="rushStatus" class="rush-status inactive">
       ⏰ Checking Rush Hour...
     </div>
-    <div class="rush-time" id="rushTimeDisplay">Morning: 4:00 AM - 8:00 AM | Evening: 5:00 PM - 10:00 PM</div>
+    <div class="rush-time" id="rushTimeDisplay">Morning: 4:00 AM - 8:00 AM | Evening: 5:00 PM - 10:00 PM (Philippines Time)</div>
     <div id="rushPassengerDisplay" style="display:none;">
       <span class="rush-bonus">🚶 More Passengers Available!</span>
     </div>
@@ -1479,6 +1486,7 @@ select:focus-visible{
       <div class="rush-timer-label">Next Rush Hour in</div>
       <div class="rush-countdown" id="rushCountdownTimer">--:--:--</div>
     </div>
+    <div class="rush-ph-time" id="rushPhTime">🇵🇭 Philippines Time: --:--</div>
   </div>
 
   <!-- ============================================================
@@ -1809,6 +1817,10 @@ select:focus-visible{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.6.1</span>
+          <span class="changelog-text">🌍 Fixed Rush Hour timezone - now uses Philippines Time (UTC+8) so players worldwide get the correct rush hour schedule.<span class="changelog-date">July 30, 2026</span></span>
+        </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.6</span>
           <span class="changelog-text">🚦 Added Rush Hour system! Morning (4AM-8AM) and Evening (5PM-10PM) - more passengers available during these times. Real-time countdown timer shows when next rush hour starts/ends.<span class="changelog-date">July 30, 2026</span></span>
         </li>
@@ -1903,7 +1915,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.6 &middot; updated July 30, 2026</p>
+  <p class="version-tag">Fare Matrix v4.6.1 &middot; updated July 30, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -2024,7 +2036,6 @@ const SoundFX = {
   },
   
   play(type) {
-    // Don't play if audio isn't enabled
     if (!this._audioEnabled) return;
     
     const audio = this[type];
@@ -2089,7 +2100,7 @@ const featureContents = {
 };
 
 // ============================================================
-// RUSH HOUR SYSTEM (NO BONUS - JUST MORE PASSENGERS)
+// RUSH HOUR SYSTEM - USING PHILIPPINES TIME (UTC+8)
 // ============================================================
 const RUSH_HOURS = {
   morning: { start: 4, end: 8, label: 'Morning Rush', emoji: '🌅' },
@@ -2100,11 +2111,28 @@ let isRushActive = false;
 let rushPeriod = null;
 let rushCountdownInterval = null;
 
-function checkRushHour() {
+// Get current time in Philippines (UTC+8)
+function getPhilippinesTime() {
   const now = new Date();
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const time = hours + minutes / 60;
+  const utcHours = now.getUTCHours();
+  const utcMinutes = now.getUTCMinutes();
+  let phHours = utcHours + 8;
+  if (phHours >= 24) phHours -= 24;
+  return { hours: phHours, minutes: utcMinutes, time: phHours + utcMinutes / 60 };
+}
+
+// Get a Date object for Philippines time
+function getPhilippinesDate() {
+  const now = new Date();
+  const phTime = getPhilippinesTime();
+  const phDate = new Date(now);
+  phDate.setUTCHours(phTime.hours, phTime.minutes, 0, 0);
+  return phDate;
+}
+
+function checkRushHour() {
+  const phTime = getPhilippinesTime();
+  const time = phTime.time;
   
   if (time >= RUSH_HOURS.morning.start && time < RUSH_HOURS.morning.end) {
     return { active: true, period: 'morning', endTime: RUSH_HOURS.morning.end };
@@ -2132,16 +2160,23 @@ function checkRushHour() {
 }
 
 function getRushHourEndTime() {
+  const phTime = getPhilippinesTime();
+  const time = phTime.time;
   const now = new Date();
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const time = hours + minutes / 60;
   
   if (time >= RUSH_HOURS.morning.start && time < RUSH_HOURS.morning.end) {
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), RUSH_HOURS.morning.end, 0, 0);
+    const endDate = new Date(now);
+    let endHour = RUSH_HOURS.morning.end - 8;
+    if (endHour < 0) endHour += 24;
+    endDate.setUTCHours(endHour, 0, 0, 0);
+    return endDate;
   }
   if (time >= RUSH_HOURS.evening.start && time < RUSH_HOURS.evening.end) {
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), RUSH_HOURS.evening.end, 0, 0);
+    const endDate = new Date(now);
+    let endHour = RUSH_HOURS.evening.end - 8;
+    if (endHour < 0) endHour += 24;
+    endDate.setUTCHours(endHour, 0, 0, 0);
+    return endDate;
   }
   return null;
 }
@@ -2152,6 +2187,12 @@ function updateRushHourUI() {
   const statusEl = document.getElementById('rushStatus');
   const passengerEl = document.getElementById('rushPassengerDisplay');
   const countdownContainer = document.getElementById('rushCountdown');
+  const phTimeDisplay = document.getElementById('rushPhTime');
+  
+  // Show Philippines time for reference
+  const phTime = getPhilippinesTime();
+  const timeStr = `${String(phTime.hours).padStart(2, '0')}:${String(phTime.minutes).padStart(2, '0')}`;
+  phTimeDisplay.textContent = `🇵🇭 Philippines Time: ${timeStr}`;
   
   if (status.active) {
     isRushActive = true;
@@ -2187,9 +2228,11 @@ function updateRushHourUI() {
       let nextHour = status.nextStart;
       if (nextHour >= 24) {
         nextHour -= 24;
-        nextTime.setDate(nextTime.getDate() + 1);
+        nextTime.setUTCDate(nextTime.getUTCDate() + 1);
       }
-      nextTime.setHours(nextHour, 0, 0, 0);
+      let utcHour = nextHour - 8;
+      if (utcHour < 0) utcHour += 24;
+      nextTime.setUTCHours(utcHour, 0, 0, 0);
       
       countdownContainer.style.display = 'block';
       updateCountdown(nextTime, true);
@@ -2203,9 +2246,11 @@ function updateRushHourUI() {
             let nextHour = newStatus.nextStart;
             if (nextHour >= 24) {
               nextHour -= 24;
-              newNextTime.setDate(newNextTime.getDate() + 1);
+              newNextTime.setUTCDate(newNextTime.getUTCDate() + 1);
             }
-            newNextTime.setHours(nextHour, 0, 0, 0);
+            let utcHour = nextHour - 8;
+            if (utcHour < 0) utcHour += 24;
+            newNextTime.setUTCHours(utcHour, 0, 0, 0);
             updateCountdown(newNextTime, true);
           }
         }, 1000);
@@ -2474,7 +2519,6 @@ function updateStationDisplay() {
   const nameDisplay = document.getElementById('stationNameDisplay');
   
   if (img) {
-    // Show loading state
     img.style.display = 'block';
     img.style.opacity = '0.5';
     img.className = 'loading';
@@ -2533,7 +2577,6 @@ function getBestStationForFuel(fuelType) {
   Object.keys(GAS_STATIONS).forEach(key => {
     const station = GAS_STATIONS[key];
     const price = station.prices[fuelType];
-    // Only include valid prices (not null, undefined, or 0)
     if (price && price > 0) {
       allPrices.push({ name: station.name, price: price, key: key });
       if (price < bestPrice) {
@@ -2544,7 +2587,6 @@ function getBestStationForFuel(fuelType) {
     }
   });
   
-  // If no valid stations found
   if (allPrices.length === 0) {
     return {
       name: null,
@@ -2555,7 +2597,6 @@ function getBestStationForFuel(fuelType) {
     };
   }
   
-  // Find the most expensive station for comparison
   let mostExpensive = 0;
   let mostExpensiveName = '';
   allPrices.forEach(p => {
@@ -2606,7 +2647,6 @@ function updateBestStation() {
     savingsEl.style.display = 'none';
   }
   
-  // Highlight if current station is the best
   const currentStationName = GAS_STATIONS[currentStation]?.name;
   const panel = document.getElementById('bestStationPanel');
   if (currentStationName === result.name) {
@@ -2905,7 +2945,6 @@ function computeFare() {
     setTimeout(() => fareDisplay.classList.remove('flash'), 400);
     lastFareValue = total;
   }
-  // NO RUSH BONUS - just normal fare
   fareOut.textContent = total;
   fareInput.value = total;
   

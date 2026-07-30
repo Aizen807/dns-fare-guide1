@@ -8,205 +8,182 @@ on:
 jobs:
   check-rush-hour:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Check Rush Hour Status with Countdown
+      - name: Check Rush Hour Status (with real epoch timestamps)
         id: rush_check
         run: |
-          # Get current time in Philippines (UTC+8)
-          PH_HOUR=$(TZ='Asia/Manila' date +"%H")
-          PH_MINUTE=$(TZ='Asia/Manila' date +"%M")
-          PH_TIME=$((PH_HOUR * 100 + PH_MINUTE))
-          
-          echo "🕐 Philippines Time: $PH_HOUR:$PH_MINUTE"
-          
-          # Rush Hour times
-          START_MORNING=400
-          END_MORNING=800
-          START_EVENING=1700
-          END_EVENING=2200
-          
-          # Calculate countdown
-          CURRENT_MINUTES=$((PH_HOUR * 60 + PH_MINUTE))
-          MORNING_START_MIN=$((4 * 60))
-          MORNING_END_MIN=$((8 * 60))
-          EVENING_START_MIN=$((17 * 60))
-          EVENING_END_MIN=$((22 * 60))
-          
-          # Check current status
-          if [ $PH_TIME -ge $START_MORNING ] && [ $PH_TIME -lt $END_MORNING ]; then
-            echo "rush_status=morning" >> $GITHUB_OUTPUT
+          export TZ='Asia/Manila'
+
+          NOW_EPOCH=$(date +%s)
+          # 10# forces base-10 parsing so "08" / "09" don't crash as invalid octal
+          PH_HOUR=$(date +"%H")
+          PH_MIN=$(date +"%M")
+          PH_TIME=$((10#$PH_HOUR * 100 + 10#$PH_MIN))
+          TODAY=$(date +"%Y-%m-%d")
+
+          echo "🕐 Philippines Time: $PH_HOUR:$PH_MIN"
+
+          MORNING_START_EPOCH=$(date -d "$TODAY 04:00:00" +%s)
+          MORNING_END_EPOCH=$(date -d "$TODAY 08:00:00" +%s)
+          EVENING_START_EPOCH=$(date -d "$TODAY 17:00:00" +%s)
+          EVENING_END_EPOCH=$(date -d "$TODAY 22:00:00" +%s)
+          NEXT_MORNING_START_EPOCH=$(date -d "$TODAY +1 day 04:00:00" +%s)
+
+          echo "ph_time=$PH_TIME" >> $GITHUB_OUTPUT
+
+          JUST_ENDED="none"
+          IS_START="false"
+
+          if [ "$NOW_EPOCH" -ge "$MORNING_START_EPOCH" ] && [ "$NOW_EPOCH" -lt "$MORNING_END_EPOCH" ]; then
+            STATUS="morning"
+            END_EPOCH=$MORNING_END_EPOCH
+            NEXT_LABEL="Evening Rush"
+            NEXT_EPOCH=$EVENING_START_EPOCH
+            if [ $((NOW_EPOCH - MORNING_START_EPOCH)) -lt 300 ]; then IS_START="true"; fi
             echo "🌅 Morning Rush is active!"
-            
-            # Calculate time remaining in morning rush
-            REMAINING_MIN=$((MORNING_END_MIN - CURRENT_MINUTES))
-            REMAINING_HOURS=$((REMAINING_MIN / 60))
-            REMAINING_MINS=$((REMAINING_MIN % 60))
-            echo "remaining_time=${REMAINING_HOURS}h ${REMAINING_MINS}m" >> $GITHUB_OUTPUT
-            
-            # Calculate next rush (evening)
-            NEXT_START_MIN=$EVENING_START_MIN
-            echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
-            echo "next_rush_time=5:00 PM" >> $GITHUB_OUTPUT
-            
-          elif [ $PH_TIME -ge $START_EVENING ] && [ $PH_TIME -lt $END_EVENING ]; then
-            echo "rush_status=evening" >> $GITHUB_OUTPUT
+
+          elif [ "$NOW_EPOCH" -ge "$EVENING_START_EPOCH" ] && [ "$NOW_EPOCH" -lt "$EVENING_END_EPOCH" ]; then
+            STATUS="evening"
+            END_EPOCH=$EVENING_END_EPOCH
+            NEXT_LABEL="Morning Rush"
+            NEXT_EPOCH=$NEXT_MORNING_START_EPOCH
+            if [ $((NOW_EPOCH - EVENING_START_EPOCH)) -lt 300 ]; then IS_START="true"; fi
             echo "🌆 Evening Rush is active!"
-            
-            # Calculate time remaining in evening rush
-            REMAINING_MIN=$((EVENING_END_MIN - CURRENT_MINUTES))
-            REMAINING_HOURS=$((REMAINING_MIN / 60))
-            REMAINING_MINS=$((REMAINING_MIN % 60))
-            echo "remaining_time=${REMAINING_HOURS}h ${REMAINING_MINS}m" >> $GITHUB_OUTPUT
-            
-            # Calculate next rush (morning tomorrow)
-            echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
-            echo "next_rush_time=4:00 AM (tomorrow)" >> $GITHUB_OUTPUT
-            
+
           else
-            echo "rush_status=none" >> $GITHUB_OUTPUT
+            STATUS="none"
+            END_EPOCH=0
             echo "⏰ No rush hour currently."
-            
-            # Calculate time until next rush
-            if [ $PH_TIME -lt $START_MORNING ]; then
-              NEXT_START_MIN=$MORNING_START_MIN
-              DIFF_MIN=$((NEXT_START_MIN - CURRENT_MINUTES))
-              NEXT_NAME="Morning Rush"
-              NEXT_TIME="4:00 AM"
-            elif [ $PH_TIME -lt $START_EVENING ]; then
-              NEXT_START_MIN=$EVENING_START_MIN
-              DIFF_MIN=$((NEXT_START_MIN - CURRENT_MINUTES))
-              NEXT_NAME="Evening Rush"
-              NEXT_TIME="5:00 PM"
-            else
-              NEXT_START_MIN=$((24 * 60 + MORNING_START_MIN))
-              DIFF_MIN=$((NEXT_START_MIN - CURRENT_MINUTES))
-              NEXT_NAME="Morning Rush"
-              NEXT_TIME="4:00 AM (tomorrow)"
+
+            DIFF_MORNING_END=$((NOW_EPOCH - MORNING_END_EPOCH))
+            DIFF_EVENING_END=$((NOW_EPOCH - EVENING_END_EPOCH))
+
+            if [ "$DIFF_MORNING_END" -ge 0 ] && [ "$DIFF_MORNING_END" -lt 300 ]; then
+              JUST_ENDED="morning"
+            elif [ "$DIFF_EVENING_END" -ge 0 ] && [ "$DIFF_EVENING_END" -lt 300 ]; then
+              JUST_ENDED="evening"
             fi
-            
-            DIFF_HOURS=$((DIFF_MIN / 60))
-            DIFF_MINS=$((DIFF_MIN % 60))
-            echo "next_rush=${NEXT_NAME}" >> $GITHUB_OUTPUT
-            echo "next_rush_time=${NEXT_TIME}" >> $GITHUB_OUTPUT
-            echo "countdown_to_next=${DIFF_HOURS}h ${DIFF_MINS}m" >> $GITHUB_OUTPUT
+
+            if [ "$NOW_EPOCH" -lt "$MORNING_START_EPOCH" ]; then
+              NEXT_LABEL="Morning Rush"; NEXT_EPOCH=$MORNING_START_EPOCH
+            elif [ "$NOW_EPOCH" -lt "$EVENING_START_EPOCH" ]; then
+              NEXT_LABEL="Evening Rush"; NEXT_EPOCH=$EVENING_START_EPOCH
+            else
+              NEXT_LABEL="Morning Rush"; NEXT_EPOCH=$NEXT_MORNING_START_EPOCH
+            fi
           fi
-          
+
+          echo "rush_status=$STATUS" >> $GITHUB_OUTPUT
+          echo "end_epoch=$END_EPOCH" >> $GITHUB_OUTPUT
+          echo "next_rush=$NEXT_LABEL" >> $GITHUB_OUTPUT
+          echo "next_epoch=$NEXT_EPOCH" >> $GITHUB_OUTPUT
+          echo "is_start=$IS_START" >> $GITHUB_OUTPUT
+          echo "just_ended=$JUST_ENDED" >> $GITHUB_OUTPUT
+
       - name: Send Morning Rush Start Notification
+        if: steps.rush_check.outputs.rush_status == 'morning' && steps.rush_check.outputs.is_start == 'true'
         env:
           WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
         run: |
-          if [ "${{ steps.rush_check.outputs.rush_status }}" == "morning" ]; then
-            curl -X POST -H "Content-Type: application/json" -d '{
-              "embeds": [{
-                "title": "🌅 RUSH HOUR STARTED!",
-                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n⏳ **Ends in: '"${{ steps.rush_check.outputs.remaining_time }}"'**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
-                "color": 16497956,
-                "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
-                "footer": {
-                  "text": "🚐 Fare Matrix • Diesel N Steel",
-                  "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
-                },
-                "fields": [
-                  {"name": "⏰ Time", "value": "4:00 AM - 8:00 AM", "inline": true},
-                  {"name": "⏳ Ends In", "value": "'"${{ steps.rush_check.outputs.remaining_time }}"'", "inline": true},
-                  {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
-                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true},
-                  {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' at '"${{ steps.rush_check.outputs.next_rush_time }}"'", "inline": false}
-                ]
-              }]
-            }' $WEBHOOK_URL
-            echo "✅ Morning Rush notification sent!"
-          fi
-          
+          curl -X POST -H "Content-Type: application/json" -d '{
+            "embeds": [{
+              "title": "🌅 RUSH HOUR STARTED!",
+              "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n⏳ **Ends: <t:'"${{ steps.rush_check.outputs.end_epoch }}"':R>**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+              "color": 16497956,
+              "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
+              "footer": {
+                "text": "🚐 Fare Matrix • Diesel N Steel",
+                "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
+              },
+              "fields": [
+                {"name": "⏰ Time", "value": "4:00 AM - 8:00 AM", "inline": true},
+                {"name": "⏳ Ends", "value": "<t:'"${{ steps.rush_check.outputs.end_epoch }}"':R>", "inline": true},
+                {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
+                {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true},
+                {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' • <t:'"${{ steps.rush_check.outputs.next_epoch }}"':R>", "inline": false}
+              ]
+            }]
+          }' $WEBHOOK_URL
+          echo "✅ Morning Rush notification sent!"
+
       - name: Send Evening Rush Start Notification
+        if: steps.rush_check.outputs.rush_status == 'evening' && steps.rush_check.outputs.is_start == 'true'
         env:
           WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
         run: |
-          if [ "${{ steps.rush_check.outputs.rush_status }}" == "evening" ]; then
-            curl -X POST -H "Content-Type: application/json" -d '{
-              "embeds": [{
-                "title": "🌆 RUSH HOUR STARTED!",
-                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n⏳ **Ends in: '"${{ steps.rush_check.outputs.remaining_time }}"'**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
-                "color": 16334072,
-                "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
-                "footer": {
-                  "text": "🚐 Fare Matrix • Diesel N Steel",
-                  "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
-                },
-                "fields": [
-                  {"name": "⏰ Time", "value": "5:00 PM - 10:00 PM", "inline": true},
-                  {"name": "⏳ Ends In", "value": "'"${{ steps.rush_check.outputs.remaining_time }}"'", "inline": true},
-                  {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
-                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true},
-                  {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' at '"${{ steps.rush_check.outputs.next_rush_time }}"'", "inline": false}
-                ]
-              }]
-            }' $WEBHOOK_URL
-            echo "✅ Evening Rush notification sent!"
-          fi
-          
+          curl -X POST -H "Content-Type: application/json" -d '{
+            "embeds": [{
+              "title": "🌆 RUSH HOUR STARTED!",
+              "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n⏳ **Ends: <t:'"${{ steps.rush_check.outputs.end_epoch }}"':R>**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+              "color": 16334072,
+              "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
+              "footer": {
+                "text": "🚐 Fare Matrix • Diesel N Steel",
+                "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
+              },
+              "fields": [
+                {"name": "⏰ Time", "value": "5:00 PM - 10:00 PM", "inline": true},
+                {"name": "⏳ Ends", "value": "<t:'"${{ steps.rush_check.outputs.end_epoch }}"':R>", "inline": true},
+                {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
+                {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true},
+                {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' • <t:'"${{ steps.rush_check.outputs.next_epoch }}"':R>", "inline": false}
+              ]
+            }]
+          }' $WEBHOOK_URL
+          echo "✅ Evening Rush notification sent!"
+
       - name: Send Rush Hour Ended Notification (Morning)
+        if: steps.rush_check.outputs.just_ended == 'morning'
         env:
           WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
         run: |
-          PH_TIME=${{ steps.rush_check.outputs.ph_time }}
-          
-          if [ $PH_TIME -ge 800 ] && [ $PH_TIME -lt 805 ]; then
-            curl -X POST -H "Content-Type: application/json" -d '{
-              "embeds": [{
-                "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **Evening Rush** at **5:00 PM**\n⏳ **Starts in: 9h**",
-                "color": 7039855,
-                "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
-                "footer": {
-                  "text": "🚐 Fare Matrix • Diesel N Steel",
-                  "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
-                }
-              }]
-            }' $WEBHOOK_URL
-            echo "✅ Morning Rush Ended notification sent!"
-          fi
-          
+          curl -X POST -H "Content-Type: application/json" -d '{
+            "embeds": [{
+              "title": "⏰ RUSH HOUR ENDED",
+              "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **'"${{ steps.rush_check.outputs.next_rush }}"'**\n⏳ **Starts: <t:'"${{ steps.rush_check.outputs.next_epoch }}"':R>**",
+              "color": 7039855,
+              "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
+              "footer": {
+                "text": "🚐 Fare Matrix • Diesel N Steel",
+                "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
+              }
+            }]
+          }' $WEBHOOK_URL
+          echo "✅ Morning Rush Ended notification sent!"
+
       - name: Send Rush Hour Ended Notification (Evening)
+        if: steps.rush_check.outputs.just_ended == 'evening'
         env:
           WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
         run: |
-          PH_TIME=${{ steps.rush_check.outputs.ph_time }}
-          
-          if [ $PH_TIME -ge 2200 ] && [ $PH_TIME -lt 2205 ]; then
-            curl -X POST -H "Content-Type: application/json" -d '{
-              "embeds": [{
-                "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **Morning Rush** at **4:00 AM**\n⏳ **Starts in: 6h**",
-                "color": 7039855,
-                "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
-                "footer": {
-                  "text": "🚐 Fare Matrix • Diesel N Steel",
-                  "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
-                }
-              }]
-            }' $WEBHOOK_URL
-            echo "✅ Evening Rush Ended notification sent!"
-          fi
-          
-      - name: Send No Rush Hour Status with Countdown
+          curl -X POST -H "Content-Type: application/json" -d '{
+            "embeds": [{
+              "title": "⏰ RUSH HOUR ENDED",
+              "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **'"${{ steps.rush_check.outputs.next_rush }}"'**\n⏳ **Starts: <t:'"${{ steps.rush_check.outputs.next_epoch }}"':R>**",
+              "color": 7039855,
+              "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
+              "footer": {
+                "text": "🚐 Fare Matrix • Diesel N Steel",
+                "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
+              }
+            }]
+          }' $WEBHOOK_URL
+          echo "✅ Evening Rush Ended notification sent!"
+
+      - name: Send No Rush Hour Status (twice hourly heartbeat)
+        if: steps.rush_check.outputs.rush_status == 'none' && steps.rush_check.outputs.just_ended == 'none'
         env:
           WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
         run: |
-          RUSH_STATUS="${{ steps.rush_check.outputs.rush_status }}"
-          
-          PH_MINUTE=$(TZ='Asia/Manila' date +"%M")
-          
-          if [ "$RUSH_STATUS" == "none" ] && ([ "$PH_MINUTE" == "00" ] || [ "$PH_MINUTE" == "30" ]); then
-            NEXT_RUSH="${{ steps.rush_check.outputs.next_rush }}"
-            NEXT_TIME="${{ steps.rush_check.outputs.next_rush_time }}"
-            COUNTDOWN="${{ steps.rush_check.outputs.countdown_to_next }}"
-            
+          export TZ='Asia/Manila'
+          PH_MIN=$(date +"%M")
+
+          if [ "$PH_MIN" == "00" ] || [ "$PH_MIN" == "30" ]; then
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ NORMAL HOURS",
-                "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"$NEXT_RUSH"'** at **'"$NEXT_TIME"'**\n⏳ **Starts in: '"$COUNTDOWN"'**\n🚶 Normal passenger volume.",
+                "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"${{ steps.rush_check.outputs.next_rush }}"'**\n⏳ **Starts: <t:'"${{ steps.rush_check.outputs.next_epoch }}"':R>**\n🚶 Normal passenger volume.",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {

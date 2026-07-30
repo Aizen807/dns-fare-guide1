@@ -1913,6 +1913,10 @@ select:focus-visible{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.9.1</span>
+          <span class="changelog-text">🔄 Removed Discord webhook from app to fix Rush Hour timer. Notifications now rely solely on GitHub Actions (rush-hour.yml).<span class="changelog-date">July 31, 2026</span></span>
+        </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.9</span>
           <span class="changelog-text">🚦 Added Discord Webhook integration! Rush Hour start/end notifications are now sent to the #🚦-rush-hour channel on Discord automatically.<span class="changelog-date">July 30, 2026</span></span>
         </li>
@@ -2027,7 +2031,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9 &middot; updated July 30, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.1 &middot; updated July 31, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -2223,94 +2227,6 @@ let isRushActive = false;
 let rushPeriod = null;
 let rushCountdownInterval = null;
 
-// ============================================================
-// DISCORD WEBHOOK - RUSH HOUR NOTIFICATIONS
-// ============================================================
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG";
-
-let rushNotified = false;
-let lastRushPeriod = null;
-
-function sendDiscordWebhook(title, description, color, fields = []) {
-  if (!DISCORD_WEBHOOK_URL) {
-    console.log('[Rush Hour] Webhook not configured');
-    return;
-  }
-  
-  const embed = {
-    title: title,
-    description: description,
-    color: color,
-    timestamp: new Date().toISOString(),
-    footer: { 
-      text: "🚐 Fare Matrix • Diesel N Steel",
-      icon_url: "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
-    }
-  };
-  
-  if (fields.length > 0) {
-    embed.fields = fields;
-  }
-  
-  fetch(DISCORD_WEBHOOK_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ embeds: [embed] })
-  }).catch(() => {});
-}
-
-function formatTime(hour) {
-  if (hour === 0) return '12:00 AM';
-  if (hour < 12) return `${hour}:00 AM`;
-  if (hour === 12) return `12:00 PM`;
-  return `${hour - 12}:00 PM`;
-}
-
-function checkRushHourNotification() {
-  const status = checkRushHour();
-  
-  if (status.active && !rushNotified) {
-    // Rush Hour STARTED
-    const periodInfo = RUSH_HOURS[status.period];
-    const color = status.period === 'morning' ? 0xFBBF24 : 0xF97316;
-    const emoji = status.period === 'morning' ? '🌅' : '🌆';
-    const startTime = formatTime(RUSH_HOURS[status.period].start);
-    const endTime = formatTime(RUSH_HOURS[status.period].end);
-    
-    const title = `${emoji} RUSH HOUR STARTED!`;
-    const description = `**${periodInfo.label}** is now active!\n\n` +
-                        `🕐 **${startTime} - ${endTime}** (Philippines Time)\n` +
-                        `🚶 **More passengers available!**\n\n` +
-                        `💡 This is the best time to drive for maximum earnings!`;
-    
-    const fields = [
-      { name: "⏰ Time", value: `${startTime} - ${endTime}`, inline: true },
-      { name: "🚶 Passengers", value: "⬆️ High Volume", inline: true },
-      { name: "💰 Earnings", value: "🔥 Maximum", inline: true }
-    ];
-    
-    sendDiscordWebhook(title, description, color, fields);
-    rushNotified = true;
-    lastRushPeriod = status.period;
-    
-  } else if (!status.active && rushNotified) {
-    // Rush Hour ENDED
-    const periodInfo = RUSH_HOURS[lastRushPeriod || 'morning'];
-    const emoji = (lastRushPeriod === 'morning' || lastRushPeriod === null) ? '🌅' : '🌆';
-    const nextPeriod = status.nextPeriod === 'morning' ? 'Morning' : 'Evening';
-    const nextStart = formatTime(status.nextStart > 24 ? status.nextStart - 24 : status.nextStart);
-    
-    const title = `⏰ RUSH HOUR ENDED`;
-    const description = `${emoji} ${periodInfo.label} has ended.\n\n` +
-                        `📊 **Normal passenger volume** now.\n\n` +
-                        `🕐 Next Rush Hour: **${nextPeriod} Rush** at ${nextStart}`;
-    
-    sendDiscordWebhook(title, description, 0x6B7280);
-    rushNotified = false;
-    lastRushPeriod = null;
-  }
-}
-
 function getPhilippinesTime() {
   const now = new Date();
   const utcHours = now.getUTCHours();
@@ -2378,6 +2294,7 @@ function updateRushHourUI() {
   const passengerEl = document.getElementById('rushPassengerDisplay');
   const countdownContainer = document.getElementById('rushCountdown');
   const phTimeDisplay = document.getElementById('rushPhTime');
+  const timerLabel = document.querySelector('.rush-timer-label');
   
   const phTime = getPhilippinesTime();
   const timeStr = `${String(phTime.hours).padStart(2, '0')}:${String(phTime.minutes).padStart(2, '0')}`;
@@ -2396,6 +2313,7 @@ function updateRushHourUI() {
     const endTime = getRushHourEndTime();
     if (endTime) {
       countdownContainer.style.display = 'block';
+      timerLabel.textContent = 'Rush Hour ends in';
       updateCountdown(endTime);
       if (!rushCountdownInterval) {
         rushCountdownInterval = setInterval(() => {
@@ -2424,6 +2342,7 @@ function updateRushHourUI() {
       nextTime.setUTCHours(utcHour, 0, 0, 0);
       
       countdownContainer.style.display = 'block';
+      timerLabel.textContent = 'Next Rush Hour in';
       updateCountdown(nextTime, true);
       if (!rushCountdownInterval) {
         rushCountdownInterval = setInterval(() => {
@@ -2448,9 +2367,6 @@ function updateRushHourUI() {
       countdownContainer.style.display = 'none';
     }
   }
-  
-  // Check for Rush Hour notifications
-  checkRushHourNotification();
 }
 
 function updateCountdown(targetTime, isNext = false) {
@@ -2484,8 +2400,6 @@ function updateCountdown(targetTime, isNext = false) {
 function initRushHour() {
   updateRushHourUI();
   setInterval(updateRushHourUI, 30000);
-  // Check for notifications every 30 seconds
-  setInterval(checkRushHourNotification, 30000);
 }
 
 initRushHour();

@@ -1,0 +1,168 @@
+name: 🚦 Rush Hour Notifications
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes
+  workflow_dispatch:  # Manual trigger button
+
+jobs:
+  check-rush-hour:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check Rush Hour Status
+        id: rush_check
+        run: |
+          # Get current time in Philippines (UTC+8)
+          PH_HOUR=$(TZ='Asia/Manila' date +"%H")
+          PH_MINUTE=$(TZ='Asia/Manila' date +"%M")
+          PH_TIME=$((PH_HOUR * 100 + PH_MINUTE))
+          
+          echo "🕐 Philippines Time: $PH_HOUR:$PH_MINUTE"
+          
+          # Rush Hour times
+          START_MORNING=400
+          END_MORNING=800
+          START_EVENING=1700
+          END_EVENING=2200
+          
+          # Check current status
+          if [ $PH_TIME -ge $START_MORNING ] && [ $PH_TIME -lt $END_MORNING ]; then
+            echo "rush_status=morning" >> $GITHUB_OUTPUT
+            echo "🌅 Morning Rush is active!"
+          elif [ $PH_TIME -ge $START_EVENING ] && [ $PH_TIME -lt $END_EVENING ]; then
+            echo "rush_status=evening" >> $GITHUB_OUTPUT
+            echo "🌆 Evening Rush is active!"
+          else
+            echo "rush_status=none" >> $GITHUB_OUTPUT
+            echo "⏰ No rush hour currently."
+          fi
+          
+          echo "ph_time=$PH_TIME" >> $GITHUB_OUTPUT
+          
+      - name: Send Morning Rush Start Notification
+        env:
+          WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
+        run: |
+          if [ "${{ steps.rush_check.outputs.rush_status }}" == "morning" ]; then
+            curl -X POST -H "Content-Type: application/json" -d '{
+              "embeds": [{
+                "title": "🌅 RUSH HOUR STARTED!",
+                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "color": 16497956,
+                "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
+                "footer": {
+                  "text": "🚐 Fare Matrix • Diesel N Steel",
+                  "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
+                },
+                "fields": [
+                  {"name": "⏰ Time", "value": "4:00 AM - 8:00 AM", "inline": true},
+                  {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
+                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
+                ]
+              }]
+            }' $WEBHOOK_URL
+            echo "✅ Morning Rush notification sent!"
+          fi
+          
+      - name: Send Evening Rush Start Notification
+        env:
+          WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
+        run: |
+          if [ "${{ steps.rush_check.outputs.rush_status }}" == "evening" ]; then
+            curl -X POST -H "Content-Type: application/json" -d '{
+              "embeds": [{
+                "title": "🌆 RUSH HOUR STARTED!",
+                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "color": 16334072,
+                "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
+                "footer": {
+                  "text": "🚐 Fare Matrix • Diesel N Steel",
+                  "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
+                },
+                "fields": [
+                  {"name": "⏰ Time", "value": "5:00 PM - 10:00 PM", "inline": true},
+                  {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
+                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
+                ]
+              }]
+            }' $WEBHOOK_URL
+            echo "✅ Evening Rush notification sent!"
+          fi
+          
+      - name: Send Rush Hour Ended Notification (Morning)
+        env:
+          WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
+        run: |
+          PH_TIME=${{ steps.rush_check.outputs.ph_time }}
+          
+          if [ $PH_TIME -ge 800 ] && [ $PH_TIME -lt 805 ]; then
+            curl -X POST -H "Content-Type: application/json" -d '{
+              "embeds": [{
+                "title": "⏰ RUSH HOUR ENDED",
+                "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **Evening Rush** at **5:00 PM**",
+                "color": 7039855,
+                "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
+                "footer": {
+                  "text": "🚐 Fare Matrix • Diesel N Steel",
+                  "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
+                }
+              }]
+            }' $WEBHOOK_URL
+            echo "✅ Morning Rush Ended notification sent!"
+          fi
+          
+      - name: Send Rush Hour Ended Notification (Evening)
+        env:
+          WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
+        run: |
+          PH_TIME=${{ steps.rush_check.outputs.ph_time }}
+          
+          if [ $PH_TIME -ge 2200 ] && [ $PH_TIME -lt 2205 ]; then
+            curl -X POST -H "Content-Type: application/json" -d '{
+              "embeds": [{
+                "title": "⏰ RUSH HOUR ENDED",
+                "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **Morning Rush** at **4:00 AM**",
+                "color": 7039855,
+                "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
+                "footer": {
+                  "text": "🚐 Fare Matrix • Diesel N Steel",
+                  "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
+                }
+              }]
+            }' $WEBHOOK_URL
+            echo "✅ Evening Rush Ended notification sent!"
+          fi
+          
+      - name: Send No Rush Hour Status (Optional)
+        env:
+          WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
+        run: |
+          RUSH_STATUS="${{ steps.rush_check.outputs.rush_status }}"
+          PH_TIME=${{ steps.rush_check.outputs.ph_time }}
+          
+          PH_MINUTE=$(TZ='Asia/Manila' date +"%M")
+          
+          if [ "$RUSH_STATUS" == "none" ] && ([ "$PH_MINUTE" == "00" ] || [ "$PH_MINUTE" == "30" ]); then
+            if [ $PH_TIME -lt 400 ]; then
+              NEXT_RUSH="Morning Rush at 4:00 AM"
+            elif [ $PH_TIME -lt 1700 ]; then
+              NEXT_RUSH="Evening Rush at 5:00 PM"
+            else
+              NEXT_RUSH="Morning Rush at 4:00 AM (tomorrow)"
+            fi
+            
+            curl -X POST -H "Content-Type: application/json" -d '{
+              "embeds": [{
+                "title": "⏰ Normal Hours",
+                "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"$NEXT_RUSH"'**\n\n🚶 Normal passenger volume.",
+                "color": 7039855,
+                "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
+                "footer": {
+                  "text": "🚐 Fare Matrix • Diesel N Steel",
+                  "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
+                }
+              }]
+            }' $WEBHOOK_URL
+            echo "✅ Status update sent!"
+          fi

@@ -1312,6 +1312,13 @@ select:focus-visible{
   object-fit:contain;
   display:block;
   margin:0 auto;
+  transition:opacity 0.3s ease;
+}
+#stationImage.loading {
+  opacity:0.5;
+}
+#stationImage.loaded {
+  opacity:1;
 }
 #stationNameDisplay {
   font-family:'Oswald',sans-serif;
@@ -1358,6 +1365,10 @@ select:focus-visible{
 }
 #bestStationPanel:hover {
   border-color:var(--ok);
+}
+#bestStationPanel .equal-price {
+  color:var(--paper-dim);
+  font-size:12px;
 }
 </style>
 </head>
@@ -1554,7 +1565,7 @@ select:focus-visible{
       </div>
 
       <div class="code-status" id="codeStatus">
-        <span class="valid">✅ 3 valid codes</span> &middot; 
+        <span class="valid">✅ 1 valid codes</span> &middot; 
         <span class="expired">⏰ 0 expired</span> &middot; 
         <span class="unknown">🔄 Last updated: July 30, 2026</span>
       </div>
@@ -1602,7 +1613,7 @@ select:focus-visible{
         <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--paper-dim);margin-bottom:2px;">
           🏆 Best Station for <span id="bestFuelTypeName" style="color:var(--sign);">Diesel</span>
         </div>
-        <div style="font-family:'Anton',sans-serif;font-size:22px;color:var(--ok);" id="bestStationName">
+        <div style="font-family:'Anton',sans-serif;font-size:22px;color:var(--ok);" id="bestStationName" aria-live="polite">
           Gas Station 2
         </div>
         <div style="font-family:'Inter',sans-serif;font-size:13px;color:var(--paper);">
@@ -1664,18 +1675,18 @@ select:focus-visible{
 
       <!-- Quick Amount Buttons -->
       <div class="fuel-quick-amounts" id="fuelQuickAmounts">
-        <button class="fuel-quick-btn" data-amount="5">5L</button>
-        <button class="fuel-quick-btn" data-amount="10">10L</button>
-        <button class="fuel-quick-btn" data-amount="20">20L</button>
-        <button class="fuel-quick-btn" data-amount="50">50L</button>
-        <button class="fuel-quick-btn" data-amount="100">100L</button>
-        <button class="fuel-quick-btn" data-amount="full">Full Tank</button>
+        <button class="fuel-quick-btn" data-amount="5" aria-label="5 liters">5L</button>
+        <button class="fuel-quick-btn" data-amount="10" aria-label="10 liters">10L</button>
+        <button class="fuel-quick-btn" data-amount="20" aria-label="20 liters">20L</button>
+        <button class="fuel-quick-btn" data-amount="50" aria-label="50 liters">50L</button>
+        <button class="fuel-quick-btn" data-amount="100" aria-label="100 liters">100L</button>
+        <button class="fuel-quick-btn" data-amount="full" aria-label="Full tank">Full Tank</button>
       </div>
 
       <!-- Result -->
       <div class="fuel-result" id="fuelResult">
         <div class="fuel-result-label">Total Fuel Cost</div>
-        <div class="fuel-result-amount" id="fuelResultAmount">₱430.60</div>
+        <div class="fuel-result-amount" id="fuelResultAmount" aria-live="polite">₱430.60</div>
         <div class="fuel-result-note" id="fuelResultNote">5L of Diesel @ ₱86.12/L</div>
         <div class="fuel-result-detail" id="fuelResultDetail">📍 Gas Station 1</div>
       </div>
@@ -1720,6 +1731,14 @@ select:focus-visible{
     <summary class="guide-summary">Mga Update (I-tap para makita)</summary>
     <div class="guide-body">
       <ul class="changelog-list">
+        <li class="changelog-item">
+          <span class="changelog-version">v4.5</span>
+          <span class="changelog-text">⛽ Added Gas Station 5! Diesel: ₱89.91, Unleaded: ₱87.22, Premium: ₱89.32. All 5 gas stations are now complete!<span class="changelog-date">July 30, 2026</span></span>
+          </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v4.4</span>
+          <span class="changelog-text">🐛 Bug fixes: Fixed Station 5 (disabled until found), fixed audio check, added loading states for images, improved best station panel for equal prices, fixed code status count, removed unused variable.<span class="changelog-date">July 30, 2026</span></span>
+        </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.3</span>
           <span class="changelog-text">🏆 Added "Best Station" recommendation panel - automatically shows the cheapest gas station for each fuel type with savings comparison.<span class="changelog-date">July 30, 2026</span></span>
@@ -1803,7 +1822,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.3 &middot; updated July 30, 2026</p>
+  <p class="version-tag">Fare Matrix v4.5 &middot; updated July 30, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -1924,6 +1943,9 @@ const SoundFX = {
   },
   
   play(type) {
+    // Don't play if audio isn't enabled
+    if (!this._audioEnabled) return;
+    
     const audio = this[type];
     if (audio instanceof Audio) {
       try {
@@ -2127,7 +2149,7 @@ renderCodes();
 // FUEL CALCULATOR - WITH GAS STATION IMAGES & INFO PANEL
 // ============================================================
 
-// Gas Station Data - 4 Stations (Station 5 coming soon)
+// Gas Station Data - All 5 Stations
 const GAS_STATIONS = {
   station1: {
     name: "Gas Station 1",
@@ -2152,7 +2174,7 @@ const GAS_STATIONS = {
   station5: {
     name: "Gas Station 5",
     image: "GasStation5.png",
-    prices: { diesel: 0, unleaded: 0, premium: 0 }  // ← WILL UPDATE WHEN FOUND
+    prices: { diesel: 89.91, unleaded: 87.22, premium: 89.32 }
   }
 };
 
@@ -2208,9 +2230,21 @@ function updateStationDisplay() {
   const nameDisplay = document.getElementById('stationNameDisplay');
   
   if (img) {
+    // Show loading state
     img.style.display = 'block';
+    img.style.opacity = '0.5';
+    img.className = 'loading';
     img.src = station.image;
     img.alt = station.name;
+    
+    img.onload = function() {
+      this.style.display = 'block';
+      this.style.opacity = '1';
+      this.className = 'loaded';
+      if (fallback) {
+        fallback.style.display = 'none';
+      }
+    };
     
     img.onerror = function() {
       this.style.display = 'none';
@@ -2220,13 +2254,6 @@ function updateStationDisplay() {
           🏪<br>
           <span style="font-size:14px;font-family:'Oswald',sans-serif;color:var(--sign);">${station.name}</span>
         `;
-      }
-    };
-    
-    img.onload = function() {
-      this.style.display = 'block';
-      if (fallback) {
-        fallback.style.display = 'none';
       }
     };
   }
@@ -2262,6 +2289,7 @@ function getBestStationForFuel(fuelType) {
   Object.keys(GAS_STATIONS).forEach(key => {
     const station = GAS_STATIONS[key];
     const price = station.prices[fuelType];
+    // Only include valid prices (not null, undefined, or 0)
     if (price && price > 0) {
       allPrices.push({ name: station.name, price: price, key: key });
       if (price < bestPrice) {
@@ -2271,6 +2299,17 @@ function getBestStationForFuel(fuelType) {
       }
     }
   });
+  
+  // If no valid stations found
+  if (allPrices.length === 0) {
+    return {
+      name: null,
+      price: 0,
+      savings: 0,
+      mostExpensiveName: null,
+      allPrices: []
+    };
+  }
   
   // Find the most expensive station for comparison
   let mostExpensive = 0;
@@ -2307,11 +2346,20 @@ function updateBestStation() {
   document.getElementById('bestStationName').textContent = result.name;
   document.getElementById('bestStationPrice').textContent = result.price.toFixed(2);
   
+  const savingsEl = document.getElementById('bestStationSavings');
+  
   if (result.savings > 0 && result.mostExpensiveName) {
-    document.getElementById('bestStationSavings').textContent = `(Save ₱${result.savings.toFixed(2)} vs ${result.mostExpensiveName})`;
-    document.getElementById('bestStationSavings').style.display = 'inline';
+    savingsEl.textContent = `(Save ₱${result.savings.toFixed(2)} vs ${result.mostExpensiveName})`;
+    savingsEl.style.display = 'inline';
+    savingsEl.style.color = 'var(--sign)';
+    savingsEl.className = '';
+  } else if (result.allPrices.length > 1 && result.savings === 0) {
+    savingsEl.textContent = '(All stations have the same price)';
+    savingsEl.style.display = 'inline';
+    savingsEl.style.color = 'var(--paper-dim)';
+    savingsEl.className = 'equal-price';
   } else {
-    document.getElementById('bestStationSavings').style.display = 'none';
+    savingsEl.style.display = 'none';
   }
   
   // Highlight if current station is the best

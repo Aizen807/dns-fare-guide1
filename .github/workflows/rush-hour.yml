@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Check Rush Hour Status
+      - name: Check Rush Hour Status with Countdown
         id: rush_check
         run: |
           # Get current time in Philippines (UTC+8)
@@ -26,19 +26,80 @@ jobs:
           START_EVENING=1700
           END_EVENING=2200
           
+          # Calculate countdown
+          CURRENT_MINUTES=$((PH_HOUR * 60 + PH_MINUTE))
+          MORNING_START_MIN=$((4 * 60))
+          MORNING_END_MIN=$((8 * 60))
+          EVENING_START_MIN=$((17 * 60))
+          EVENING_END_MIN=$((22 * 60))
+          
           # Check current status
           if [ $PH_TIME -ge $START_MORNING ] && [ $PH_TIME -lt $END_MORNING ]; then
             echo "rush_status=morning" >> $GITHUB_OUTPUT
             echo "🌅 Morning Rush is active!"
+            
+            # Calculate time remaining in morning rush
+            REMAINING_MIN=$((MORNING_END_MIN - CURRENT_MINUTES))
+            REMAINING_HOURS=$((REMAINING_MIN / 60))
+            REMAINING_MINS=$((REMAINING_MIN % 60))
+            echo "remaining_time=${REMAINING_HOURS}h ${REMAINING_MINS}m" >> $GITHUB_OUTPUT
+            
+            # Calculate next rush (evening)
+            NEXT_START_MIN=$EVENING_START_MIN
+            NEXT_HOURS=$((NEXT_START_MIN / 60))
+            NEXT_MINS=$((NEXT_START_MIN % 60))
+            echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
+            echo "next_rush_time=${NEXT_HOURS}:${NEXT_MINS} PM" >> $GITHUB_OUTPUT
+            
           elif [ $PH_TIME -ge $START_EVENING ] && [ $PH_TIME -lt $END_EVENING ]; then
             echo "rush_status=evening" >> $GITHUB_OUTPUT
             echo "🌆 Evening Rush is active!"
+            
+            # Calculate time remaining in evening rush
+            REMAINING_MIN=$((EVENING_END_MIN - CURRENT_MINUTES))
+            REMAINING_HOURS=$((REMAINING_MIN / 60))
+            REMAINING_MINS=$((REMAINING_MIN % 60))
+            echo "remaining_time=${REMAINING_HOURS}h ${REMAINING_MINS}m" >> $GITHUB_OUTPUT
+            
+            # Calculate next rush (morning tomorrow)
+            NEXT_START_MIN=$((24 * 60 + MORNING_START_MIN))
+            NEXT_HOURS=$((NEXT_START_MIN / 60))
+            NEXT_MINS=$((NEXT_START_MIN % 60))
+            echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
+            echo "next_rush_time=4:00 AM (tomorrow)" >> $GITHUB_OUTPUT
+            
           else
             echo "rush_status=none" >> $GITHUB_OUTPUT
             echo "⏰ No rush hour currently."
+            
+            # Calculate time until next rush
+            if [ $PH_TIME -lt $START_MORNING ]; then
+              # Next is morning rush today
+              NEXT_START_MIN=$MORNING_START_MIN
+              DIFF_MIN=$((NEXT_START_MIN - CURRENT_MINUTES))
+              NEXT_NAME="Morning Rush"
+              NEXT_TIME="4:00 AM"
+            elif [ $PH_TIME -lt $START_EVENING ]; then
+              # Next is evening rush today
+              NEXT_START_MIN=$EVENING_START_MIN
+              DIFF_MIN=$((NEXT_START_MIN - CURRENT_MINUTES))
+              NEXT_NAME="Evening Rush"
+              NEXT_TIME="5:00 PM"
+            else
+              # Next is morning rush tomorrow
+              NEXT_START_MIN=$((24 * 60 + MORNING_START_MIN))
+              DIFF_MIN=$((NEXT_START_MIN - CURRENT_MINUTES))
+              NEXT_NAME="Morning Rush"
+              NEXT_TIME="4:00 AM (tomorrow)"
+            fi
+            
+            # Format countdown
+            DIFF_HOURS=$((DIFF_MIN / 60))
+            DIFF_MINS=$((DIFF_MIN % 60))
+            echo "next_rush=${NEXT_NAME}" >> $GITHUB_OUTPUT
+            echo "next_rush_time=${NEXT_TIME}" >> $GITHUB_OUTPUT
+            echo "countdown_to_next=${DIFF_HOURS}h ${DIFF_MINS}m" >> $GITHUB_OUTPUT
           fi
-          
-          echo "ph_time=$PH_TIME" >> $GITHUB_OUTPUT
           
       - name: Send Morning Rush Start Notification
         env:
@@ -48,7 +109,7 @@ jobs:
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "🌅 RUSH HOUR STARTED!",
-                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n⏳ **Ends in: '"${{ steps.rush_check.outputs.remaining_time }}"'**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
                 "color": 16497956,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -57,8 +118,10 @@ jobs:
                 },
                 "fields": [
                   {"name": "⏰ Time", "value": "4:00 AM - 8:00 AM", "inline": true},
+                  {"name": "⏳ Ends In", "value": "'"${{ steps.rush_check.outputs.remaining_time }}"'", "inline": true},
                   {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
-                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
+                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true},
+                  {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' at '"${{ steps.rush_check.outputs.next_rush_time }}"'", "inline": false}
                 ]
               }]
             }' $WEBHOOK_URL
@@ -73,7 +136,7 @@ jobs:
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "🌆 RUSH HOUR STARTED!",
-                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n⏳ **Ends in: '"${{ steps.rush_check.outputs.remaining_time }}"'**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
                 "color": 16334072,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -82,8 +145,10 @@ jobs:
                 },
                 "fields": [
                   {"name": "⏰ Time", "value": "5:00 PM - 10:00 PM", "inline": true},
+                  {"name": "⏳ Ends In", "value": "'"${{ steps.rush_check.outputs.remaining_time }}"'", "inline": true},
                   {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
-                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
+                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true},
+                  {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' at '"${{ steps.rush_check.outputs.next_rush_time }}"'", "inline": false}
                 ]
               }]
             }' $WEBHOOK_URL
@@ -100,7 +165,7 @@ jobs:
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **Evening Rush** at **5:00 PM**",
+                "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **Evening Rush** at **5:00 PM**\n⏳ **Starts in: 9h**",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -122,7 +187,7 @@ jobs:
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **Morning Rush** at **4:00 AM**",
+                "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **Morning Rush** at **4:00 AM**\n⏳ **Starts in: 6h**",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -134,28 +199,24 @@ jobs:
             echo "✅ Evening Rush Ended notification sent!"
           fi
           
-      - name: Send No Rush Hour Status (Optional)
+      - name: Send No Rush Hour Status with Countdown
         env:
           WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
         run: |
           RUSH_STATUS="${{ steps.rush_check.outputs.rush_status }}"
-          PH_TIME=${{ steps.rush_check.outputs.ph_time }}
           
+          # Only send status updates every 30 minutes
           PH_MINUTE=$(TZ='Asia/Manila' date +"%M")
           
           if [ "$RUSH_STATUS" == "none" ] && ([ "$PH_MINUTE" == "00" ] || [ "$PH_MINUTE" == "30" ]); then
-            if [ $PH_TIME -lt 400 ]; then
-              NEXT_RUSH="Morning Rush at 4:00 AM"
-            elif [ $PH_TIME -lt 1700 ]; then
-              NEXT_RUSH="Evening Rush at 5:00 PM"
-            else
-              NEXT_RUSH="Morning Rush at 4:00 AM (tomorrow)"
-            fi
+            NEXT_RUSH="${{ steps.rush_check.outputs.next_rush }}"
+            NEXT_TIME="${{ steps.rush_check.outputs.next_rush_time }}"
+            COUNTDOWN="${{ steps.rush_check.outputs.countdown_to_next }}"
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
-                "title": "⏰ Normal Hours",
-                "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"$NEXT_RUSH"'**\n\n🚶 Normal passenger volume.",
+                "title": "⏰ NORMAL HOURS",
+                "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"$NEXT_RUSH"'** at **'"$NEXT_TIME"'**\n⏳ **Starts in: '"$COUNTDOWN"'**\n🚶 Normal passenger volume.",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {

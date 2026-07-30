@@ -41,6 +41,8 @@
   --fuel-diesel:#4A7A8C;
   --fuel-unleaded:#8CB84A;
   --fuel-premium:#B84A6A;
+  --discord:#5865F2;
+  --discord-hover:#4752C4;
 }
 
 /* Rush Hour Styles */
@@ -112,6 +114,89 @@
   margin-top:2px;
 }
 
+/* Star Rating Styles */
+.star-rating {
+  text-align:center;
+  margin:12px 0;
+}
+.stars span {
+  font-size:30px;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  opacity:0.3;
+  display:inline-block;
+  user-select:none;
+}
+.stars span:hover,
+.stars span.active {
+  opacity:1;
+  transform:scale(1.2);
+}
+.stars span.active {
+  opacity:1;
+}
+
+/* Share Button Styles */
+.share-btn {
+  width:100%;
+  margin-top:10px;
+  background:var(--sign);
+  border:2px solid var(--sign);
+  color:var(--sign-deep);
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:13px;
+  border-radius:8px;
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
+.share-btn:hover {
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(243, 178, 44, 0.4);
+}
+.share-btn:active {
+  transform:scale(0.98);
+}
+.share-btn:focus-visible {
+  outline:3px solid var(--sign-deep);
+  outline-offset:2px;
+}
+
+/* Discord Button Styles */
+.discord-btn {
+  display:block;
+  width:100%;
+  background:var(--discord);
+  border:2px solid var(--discord);
+  color:#fff;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:16px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:14px;
+  border-radius:8px;
+  text-align:center;
+  text-decoration:none;
+  transition:all 0.2s ease;
+}
+.discord-btn:hover {
+  background:var(--discord-hover);
+  border-color:var(--discord-hover);
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(88, 101, 242, 0.4);
+}
+.discord-btn:active {
+  transform:scale(0.98);
+}
+.discord-btn:focus-visible {
+  outline:3px solid #fff;
+  outline-offset:2px;
+}
+
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -132,7 +217,8 @@ body{
 
 button, select, .recent-chip, .route-tab, .quick-btn, .complete-trip-btn,
 .feedback-submit-btn, .session-save-btn, .session-reset-btn, .session-clear-history-btn,
-.clear-pax-btn, .code-copy-btn, .fuel-tab, .fuel-quick-btn {
+.clear-pax-btn, .code-copy-btn, .fuel-tab, .fuel-quick-btn, .share-btn, .stars span,
+.discord-btn {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
@@ -1779,6 +1865,41 @@ select:focus-visible{
   </div>
 
   <!-- ============================================================
+       SHARE & RATE SECTION
+       ============================================================ -->
+  <div class="section-title">📤 Share & Rate</div>
+  <div class="board">
+    <p class="section-subtitle">Help other Diesel N Steel players discover Fare Matrix!</p>
+    
+    <button class="share-btn" id="shareBtn">
+      📤 Share Fare Matrix
+    </button>
+    
+    <div class="star-rating">
+      <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--paper-dim);margin:12px 0 6px;">Rate Fare Matrix:</p>
+      <div class="stars" id="starRating">
+        <span data-value="1">⭐</span>
+        <span data-value="2">⭐</span>
+        <span data-value="3">⭐</span>
+        <span data-value="4">⭐</span>
+        <span data-value="5">⭐</span>
+      </div>
+      <div id="ratingMessage" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--paper-dim);margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       DISCORD SECTION
+       ============================================================ -->
+  <div class="section-title">💬 Join Our Discord</div>
+  <div class="board">
+    <p class="section-subtitle">Join the Fare Matrix community! Get updates, share feedback, and connect with other Diesel N Steel players.</p>
+    <a href="https://aizen807.github.io/dns-fare-guide1/" target="_blank" rel="noopener" class="discord-btn">
+      💬 Join Discord Server
+    </a>
+  </div>
+
+  <!-- ============================================================
        FEEDBACK SECTION
        ============================================================ -->
   <div class="section-title">Feedback</div>
@@ -1816,6 +1937,14 @@ select:focus-visible{
     <summary class="guide-summary">Mga Update (I-tap para makita)</summary>
     <div class="guide-body">
       <ul class="changelog-list">
+        <li class="changelog-item">
+          <span class="changelog-version">v4.8</span>
+          <span class="changelog-text">💬 Added Discord section! Join the Fare Matrix community to get updates, share feedback, and connect with other Diesel N Steel players.<span class="changelog-date">July 30, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v4.7</span>
+          <span class="changelog-text">📤 Added Share & Rate section! Share Fare Matrix with friends and rate the app with a 5-star rating system (saved locally).<span class="changelog-date">July 30, 2026</span></span>
+        </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.6.1</span>
           <span class="changelog-text">🌍 Fixed Rush Hour timezone - now uses Philippines Time (UTC+8) so players worldwide get the correct rush hour schedule.<span class="changelog-date">July 30, 2026</span></span>
@@ -1915,7 +2044,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.6.1 &middot; updated July 30, 2026</p>
+  <p class="version-tag">Fare Matrix v4.8 &middot; updated July 30, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -2111,7 +2240,6 @@ let isRushActive = false;
 let rushPeriod = null;
 let rushCountdownInterval = null;
 
-// Get current time in Philippines (UTC+8)
 function getPhilippinesTime() {
   const now = new Date();
   const utcHours = now.getUTCHours();
@@ -2119,15 +2247,6 @@ function getPhilippinesTime() {
   let phHours = utcHours + 8;
   if (phHours >= 24) phHours -= 24;
   return { hours: phHours, minutes: utcMinutes, time: phHours + utcMinutes / 60 };
-}
-
-// Get a Date object for Philippines time
-function getPhilippinesDate() {
-  const now = new Date();
-  const phTime = getPhilippinesTime();
-  const phDate = new Date(now);
-  phDate.setUTCHours(phTime.hours, phTime.minutes, 0, 0);
-  return phDate;
 }
 
 function checkRushHour() {
@@ -2189,7 +2308,6 @@ function updateRushHourUI() {
   const countdownContainer = document.getElementById('rushCountdown');
   const phTimeDisplay = document.getElementById('rushPhTime');
   
-  // Show Philippines time for reference
   const phTime = getPhilippinesTime();
   const timeStr = `${String(phTime.hours).padStart(2, '0')}:${String(phTime.minutes).padStart(2, '0')}`;
   phTimeDisplay.textContent = `🇵🇭 Philippines Time: ${timeStr}`;
@@ -2308,6 +2426,98 @@ featureTabs.forEach(tab => {
     hapticLight();
   });
 });
+
+// ============================================================
+// STAR RATING SYSTEM
+// ============================================================
+const ratingKey = 'fareMatrixUserRating';
+const savedRating = localStorage.getItem(ratingKey);
+
+const stars = document.querySelectorAll('.stars span');
+const ratingMsg = document.getElementById('ratingMessage');
+
+if (savedRating) {
+  const rating = parseInt(savedRating);
+  stars.forEach((star, index) => {
+    if (index < rating) star.classList.add('active');
+  });
+  const messages = {
+    1: '😔 Sorry you didn\'t like it. Please send feedback to improve!',
+    2: '😕 We can do better! Let us know what you think.',
+    3: '🙂 Thanks! We\'ll keep improving.',
+    4: '😊 Glad you like it! Share with your friends!',
+    5: '🎉 Awesome! Thank you so much!'
+  };
+  ratingMsg.textContent = messages[rating] || `⭐ ${rating} stars! Thank you!`;
+}
+
+stars.forEach(star => {
+  star.addEventListener('click', function() {
+    const value = parseInt(this.dataset.value);
+    localStorage.setItem(ratingKey, value);
+    
+    stars.forEach(s => s.classList.remove('active'));
+    stars.forEach((s, index) => {
+      if (index < value) s.classList.add('active');
+    });
+    
+    const messages = {
+      1: '😔 Sorry you didn\'t like it. Please send feedback to improve!',
+      2: '😕 We can do better! Let us know what you think.',
+      3: '🙂 Thanks! We\'ll keep improving.',
+      4: '😊 Glad you like it! Share with your friends!',
+      5: '🎉 Awesome! Thank you so much!'
+    };
+    ratingMsg.textContent = messages[value] || `⭐ ${value} stars! Thank you!`;
+    
+    SoundFX.play('click');
+    hapticLight();
+    showToast('⭐ Rating saved! Thank you!');
+  });
+});
+
+// ============================================================
+// SHARE BUTTON
+// ============================================================
+document.getElementById('shareBtn').addEventListener('click', function() {
+  SoundFX.play('click');
+  hapticLight();
+  
+  if (navigator.share) {
+    navigator.share({
+      title: 'Fare Matrix — Diesel N Steel Calculator',
+      text: '🚐 Calculate fares for Diesel N Steel (Roblox)! Pick your route, passengers, and get instant fare + sukli!',
+      url: window.location.href
+    }).catch(() => {});
+  } else {
+    const url = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('📋 Link copied! Share it with your friends!');
+      }).catch(() => {
+        copyFallback(url);
+      });
+    } else {
+      copyFallback(url);
+    }
+  }
+});
+
+function copyFallback(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    document.execCommand('copy');
+    showToast('📋 Link copied! Share it with your friends!');
+  } catch(e) {
+    showToast('📤 Share this link with your friends!');
+  }
+  document.body.removeChild(textarea);
+}
 
 // ============================================================
 // CODE REDEMPTION HUB

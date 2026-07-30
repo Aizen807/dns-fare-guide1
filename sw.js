@@ -1,13 +1,16 @@
-const CACHE_NAME = "fare-matrix-v31";
+const CACHE_NAME = "fare-matrix-v41";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./icon-192.png",
-  "./icon-512.png"
+  "./icon-512.png",
+  "GasStation1.png",
+  "GasStation2.png",
+  "GasStation3.png",
+  "GasStation4.png"
 ];
 
-// Install event - cache assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -19,11 +22,9 @@ self.addEventListener("install", (event) => {
         console.warn('[SW] Failed to cache assets:', err);
       })
   );
-  // Force the waiting service worker to become the active service worker
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
@@ -39,70 +40,46 @@ self.addEventListener("activate", (event) => {
       })
       .then(() => {
         console.log('[SW] Claiming clients');
-        // Take control of all clients immediately
         return self.clients.claim();
       })
   );
 });
 
-// Fetch event - serve from cache, fallback to network
 self.addEventListener("fetch", (event) => {
-  // Skip non-GET requests and cross-origin requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  // Only handle requests for our own origin
+  if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
-  if (url.origin !== location.origin) {
-    return;
-  }
-
+  if (url.origin !== location.origin) return;
+  
   event.respondWith(
     caches.match(event.request)
       .then((cached) => {
         if (cached) {
-          // Return cached response, but update in background
           const fetchPromise = fetch(event.request)
             .then((networkResponse) => {
-              // Update cache with fresh response
               if (networkResponse && networkResponse.status === 200) {
                 caches.open(CACHE_NAME)
-                  .then((cache) => {
-                    cache.put(event.request, networkResponse.clone());
-                  })
+                  .then((cache) => cache.put(event.request, networkResponse.clone()))
                   .catch(() => {});
               }
               return networkResponse;
             })
-            .catch(() => {
-              // If network fails, cached response is still returned
-            });
-          
-          // Return cached response immediately
+            .catch(() => {});
           return cached;
         }
-        
-        // No cache, go to network
         return fetch(event.request)
           .then((response) => {
-            // Cache successful responses for future
             if (response && response.status === 200) {
               const responseClone = response.clone();
               caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(event.request, responseClone);
-                })
+                .then((cache) => cache.put(event.request, responseClone))
                 .catch(() => {});
             }
             return response;
           })
           .catch(() => {
-            // Return a fallback offline page for HTML requests
             if (event.request.headers.get('accept')?.includes('text/html')) {
               return caches.match('./index.html');
             }
-            // For other requests, just reject
             return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
           });
       })

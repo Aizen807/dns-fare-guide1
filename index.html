@@ -1913,6 +1913,10 @@ select:focus-visible{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.9.3</span>
+          <span class="changelog-text">🚦 Fixed Rush Hour timer: Added getNextPhTime() function to correctly calculate countdown during active Rush Hour. Timer now works during both Morning (4AM-8AM) and Evening (5PM-10PM) Rush Hours.<span class="changelog-date">July 31, 2026</span></span>
+        </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.9.2</span>
           <span class="changelog-text">🔄 Fixed Rush Hour timer and JavaScript errors. Removed webhook integration from app (now handled by GitHub Actions).<span class="changelog-date">July 31, 2026</span></span>
         </li>
@@ -2035,7 +2039,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9.2 &middot; updated July 31, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.3 &middot; updated July 31, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -3120,4 +3124,425 @@ function computeSukli() {
   const change = paid - fare;
   if (change < 0) {
     sukliResult.classList.remove("bounce");
-    sukl
+    sukliResult.classList.add("short");
+    sukliOut.textContent = "\u20B1" + Math.abs(change);
+    sukliNote.textContent = "Kulang ng amount na ito, hingin muna ang balanse.";
+    if (lastSukliValue !== null && lastSukliValue >= 0) {
+      SoundFX.play('error');
+      hapticError();
+    }
+    lastSukliValue = change;
+  } else {
+    sukliResult.classList.remove("short");
+    sukliOut.textContent = "\u20B1" + change;
+    sukliNote.textContent = change === 0 ? "Eksakto, walang sukli." : "Ibigay ang sukling ito sa pasahero.";
+    if (lastSukliValue !== null && lastSukliValue !== change && change > 0) {
+      sukliResult.classList.remove('bounce');
+      void sukliResult.offsetWidth;
+      sukliResult.classList.add('bounce');
+      SoundFX.play('coin');
+      hapticLight();
+    }
+    lastSukliValue = change;
+  }
+}
+
+function buildQuickAmounts() {
+  quickAmounts.innerHTML = "";
+  [20, 50, 100, 200, 500].forEach(amt => {
+    const b = document.createElement("div");
+    b.className = "quick-btn";
+    b.textContent = "\u20B1" + amt;
+    b.onclick = () => { paidInput.value = amt; computeSukli(); hapticLight(); SoundFX.play('click'); };
+    quickAmounts.appendChild(b);
+  });
+}
+
+function refreshRoute() {
+  buildTabs();
+  buildSelects();
+  buildRouteList();
+  renderRecentChips();
+  computeFareDebounced();
+}
+
+// Event Listeners
+document.querySelectorAll(".step-btn").forEach(btn => {
+  btn.onclick = () => {
+    const type = btn.dataset.type;
+    const action = btn.dataset.action;
+    const countEl = document.getElementById("count" + type.charAt(0).toUpperCase() + type.slice(1));
+    if (action === "inc") {
+      paxCounts[type] += 1;
+      SoundFX.play('click');
+      hapticLight();
+    } else {
+      if (paxCounts[type] > 0) {
+        paxCounts[type] -= 1;
+        SoundFX.play('click');
+        hapticLight();
+      }
+    }
+    countEl.textContent = paxCounts[type];
+    countEl.classList.remove('pop');
+    void countEl.offsetWidth;
+    countEl.classList.add('pop');
+    setTimeout(() => countEl.classList.remove('pop'), 250);
+    computeFareDebounced();
+  };
+});
+
+document.getElementById("swapBtn").onclick = () => {
+  const tmp = fromSelect.value;
+  fromSelect.value = toSelect.value;
+  toSelect.value = tmp;
+  SoundFX.play('click');
+  hapticLight();
+  computeFareDebounced();
+};
+
+fromSelect.addEventListener("change", () => { SoundFX.play('click'); computeFareDebounced(); });
+toSelect.addEventListener("change", () => { SoundFX.play('click'); computeFareDebounced(); });
+paidInput.addEventListener("input", computeSukli);
+
+document.getElementById("clearPaxBtn").onclick = () => {
+  paxCounts = { regular: 0, student: 0, senior: 0 };
+  syncPaxDisplay();
+  SoundFX.play('click');
+  hapticLight();
+  computeFareDebounced();
+};
+
+function syncPaxDisplay() {
+  document.getElementById("countRegular").textContent = paxCounts.regular;
+  document.getElementById("countStudent").textContent = paxCounts.student;
+  document.getElementById("countSenior").textContent = paxCounts.senior;
+}
+
+function renderRecentChips() {
+  const wrap = document.getElementById("recentChips");
+  wrap.innerHTML = "";
+  const filtered = recentDestinations.filter(d => d.routeKey === currentRoute);
+  if (filtered.length === 0) {
+    wrap.innerHTML = '<span class="recent-empty">Recent trips will show up here as chips.</span>';
+    return;
+  }
+  filtered.forEach(dest => {
+    const chip = document.createElement("div");
+    chip.className = "recent-chip";
+    chip.textContent = dest.label;
+    chip.onclick = () => {
+      if (dest.fromValue && dest.toValue) {
+        fromSelect.value = dest.fromValue;
+        toSelect.value = dest.toValue;
+      }
+      SoundFX.play('click');
+      hapticLight();
+      computeFareDebounced();
+    };
+    wrap.appendChild(chip);
+  });
+}
+
+function pushRecentDestination() {
+  const fromName = fromSelect.options[fromSelect.selectedIndex]?.textContent || "";
+  const toName = toSelect.options[toSelect.selectedIndex]?.textContent || "";
+  const label = `${fromName} \u2192 ${toName}`;
+  recentDestinations = recentDestinations.filter(d => d.label !== label);
+  recentDestinations.unshift({ routeKey: currentRoute, fromValue: fromSelect.value, toValue: toSelect.value, label });
+  recentDestinations = recentDestinations.slice(0, 5);
+  renderRecentChips();
+}
+
+function updateSessionDisplay() {
+  const tripEl = document.getElementById("tripCountOut");
+  tripEl.textContent = tripCount;
+  tripEl.classList.remove('pop');
+  void tripEl.offsetWidth;
+  tripEl.classList.add('pop');
+  setTimeout(() => tripEl.classList.remove('pop'), 300);
+  const totalEl = document.getElementById("sessionTotalOut");
+  totalEl.textContent = "\u20B1" + sessionTotal;
+  totalEl.classList.remove('pop');
+  void totalEl.offsetWidth;
+  totalEl.classList.add('pop');
+  setTimeout(() => totalEl.classList.remove('pop'), 300);
+}
+
+// Session History
+const SESSION_HISTORY_KEY = "fareMatrixSessionHistory";
+
+function loadSessionHistory() {
+  try { return JSON.parse(localStorage.getItem(SESSION_HISTORY_KEY)) || []; } catch { return []; }
+}
+
+function saveSessionHistoryToStorage(history) {
+  try { localStorage.setItem(SESSION_HISTORY_KEY, JSON.stringify(history)); } catch {}
+}
+
+let sessionHistory = loadSessionHistory();
+
+function renderSessionHistory() {
+  const list = document.getElementById("sessionHistoryList");
+  list.innerHTML = "";
+  if (sessionHistory.length === 0) {
+    list.innerHTML = '<li class="session-history-empty">Wala pang na-save na session.</li>';
+    return;
+  }
+  sessionHistory.forEach(entry => {
+    const li = document.createElement("li");
+    li.className = "session-history-item";
+    li.innerHTML = `
+      <div class="session-history-info">
+        <span class="session-history-name">${escapeHtml(entry.name)}</span>
+        <span class="session-history-date">${escapeHtml(entry.date)}</span>
+      </div>
+      <div class="session-history-stats">\u20B1${entry.total}<span class="session-history-trips">${entry.trips} trip(s)</span></div>
+    `;
+    list.appendChild(li);
+  });
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+document.getElementById("completeTripBtn").onclick = () => {
+  const fare = parseFloat(fareInput.value) || 0;
+  if (fare <= 0) { showToast("Walang pasahero o fare na zero."); return; }
+  sessionTotal += fare;
+  tripCount += 1;
+  updateSessionDisplay();
+  pushRecentDestination();
+  SoundFX.play('kaChing');
+  hapticSuccess();
+  const btn = document.getElementById("completeTripBtn");
+  btn.classList.add('success');
+  setTimeout(() => btn.classList.remove('success'), 800);
+  showToast(`✓ Trip completed! +₱${fare}`);
+  paxCounts = { regular: 0, student: 0, senior: 0 };
+  syncPaxDisplay();
+  paidInput.value = "";
+  computeFareDebounced();
+};
+
+document.getElementById("sessionSaveBtn").onclick = () => {
+  if (tripCount === 0 && sessionTotal === 0) { showToast("Walang trip na na-save sa session."); return; }
+  let defaultName = `Biyahe ${sessionHistory.length + 1}`;
+  let name = defaultName;
+  let attempts = 0;
+  while (attempts < 3) {
+    const input = prompt("Pangalan ng session:", name);
+    if (input === null) return;
+    const trimmed = input.trim();
+    if (!trimmed) { name = defaultName; break; }
+    const exists = sessionHistory.some(entry => entry.name === trimmed);
+    if (exists) {
+      alert(`Mayroon nang session na "${trimmed}". Gumamit ng ibang pangalan.`);
+      name = `${trimmed} (2)`;
+      attempts++;
+      continue;
+    }
+    name = trimmed;
+    break;
+  }
+  const dateStr = new Date().toLocaleString("en-PH", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  sessionHistory.unshift({ name, date: dateStr, trips: tripCount, total: sessionTotal });
+  saveSessionHistoryToStorage(sessionHistory);
+  renderSessionHistory();
+  SoundFX.play('chime');
+  hapticMedium();
+  showToast(`✓ Nai-save ang "${name}"`);
+  tripCount = 0;
+  sessionTotal = 0;
+  updateSessionDisplay();
+};
+
+document.getElementById("sessionResetBtn").onclick = () => {
+  tripCount = 0;
+  sessionTotal = 0;
+  updateSessionDisplay();
+  SoundFX.play('click');
+  hapticLight();
+  showToast("Na-reset ang session.");
+};
+
+document.getElementById("sessionClearHistoryBtn").onclick = () => {
+  if (sessionHistory.length === 0) return;
+  if (confirm("Sigurado ka bang gusto mong i-clear ang buong session history? Hindi na ito mababawi.")) {
+    sessionHistory = [];
+    saveSessionHistoryToStorage(sessionHistory);
+    renderSessionHistory();
+    SoundFX.play('click');
+    hapticMedium();
+    showToast("Na-clear ang history.");
+  }
+};
+
+renderSessionHistory();
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+if ("serviceWorker" in navigator) {
+  let updateInterval = null;
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    document.getElementById("updateBanner").style.display = "flex";
+  });
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js")
+      .then((reg) => {
+        console.log('Service Worker registered successfully');
+        updateInterval = setInterval(() => { reg.update().catch(() => {}); }, 5 * 60 * 1000);
+        window.addEventListener('beforeunload', () => { if (updateInterval) { clearInterval(updateInterval); updateInterval = null; } });
+      })
+      .catch((err) => console.warn('Service Worker registration failed:', err));
+  });
+  document.getElementById("updateRefreshBtn").onclick = () => {
+    refreshing = true;
+    SoundFX.play('click');
+    window.location.reload();
+  };
+}
+
+// ============================================================
+// FEEDBACK FORM
+// ============================================================
+const feedbackForm = document.getElementById("feedbackForm");
+const feedbackStatus = document.getElementById("feedbackStatus");
+const feedbackSubmitBtn = document.getElementById("feedbackSubmitBtn");
+const feedbackTypeSelect = document.getElementById("feedbackType");
+const feedbackHint = document.getElementById("feedbackHint");
+const feedbackMessageInput = document.getElementById("feedbackMessage");
+
+const feedbackHints = {
+  Suggestion: "Isulat dito ang suggestion mo anong feature o pagbabago ang gusto mong idagdag?",
+  Bug: "Para mas mabilis maayos: isama ang route, pickup/drop-off barangay, bilang ng pasahero, at binayad.",
+  Question: "Itanong dito ang tanong mo tungkol sa Fare Matrix.",
+  Other: "Isulat dito ang feedback mo..."
+};
+
+const feedbackPlaceholders = {
+  Suggestion: "Halimbawa: pwede bang magdagdag ng dark mode...",
+  Bug: "Halimbawa: Balagtas route, Bagumbayan-Wawa, 2 regular, binayad ₱50, mali ang sukli...",
+  Question: "Halimbawa: paano gamitin ang sukli calculator...",
+  Other: "Isulat dito ang feedback mo..."
+};
+
+function updateFeedbackHint() {
+  const type = feedbackTypeSelect.value;
+  feedbackHint.textContent = feedbackHints[type] || feedbackHints.Other;
+  feedbackMessageInput.placeholder = feedbackPlaceholders[type] || feedbackPlaceholders.Other;
+}
+
+feedbackTypeSelect.addEventListener("change", updateFeedbackHint);
+updateFeedbackHint();
+
+const FEEDBACK_COOLDOWN_MS = 60 * 1000;
+const FEEDBACK_COOLDOWN_KEY = "fareMatrixLastFeedback";
+let feedbackCooldownInterval = null;
+
+function getFeedbackCooldownRemaining() {
+  try {
+    const last = parseInt(localStorage.getItem(FEEDBACK_COOLDOWN_KEY) || "0", 10);
+    return Math.max(0, FEEDBACK_COOLDOWN_MS - (Date.now() - last));
+  } catch { return 0; }
+}
+
+function updateFeedbackCooldownUI() {
+  const remaining = getFeedbackCooldownRemaining();
+  if (remaining <= 0) {
+    feedbackSubmitBtn.disabled = false;
+    feedbackSubmitBtn.textContent = "Ipadala";
+    if (feedbackCooldownInterval) { clearInterval(feedbackCooldownInterval); feedbackCooldownInterval = null; }
+    return;
+  }
+  feedbackSubmitBtn.disabled = true;
+  feedbackSubmitBtn.textContent = `Maghintay (${Math.ceil(remaining / 1000)}s)`;
+  if (!feedbackCooldownInterval) {
+    feedbackCooldownInterval = setInterval(updateFeedbackCooldownUI, 1000);
+  }
+}
+
+updateFeedbackCooldownUI();
+
+feedbackForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (getFeedbackCooldownRemaining() > 0) {
+    feedbackStatus.textContent = "Sandali lang, maghintay muna bago ulit magpadala.";
+    feedbackStatus.className = "feedback-status error";
+    return;
+  }
+  document.getElementById("feedbackDate").value = new Date().toLocaleString("en-PH", {
+    year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit"
+  });
+  const nameVal = document.getElementById("feedbackName").value.trim();
+  if (!nameVal) document.getElementById("feedbackName").value = "Anonymous";
+  feedbackSubmitBtn.disabled = true;
+  feedbackSubmitBtn.textContent = "Ipinapadala...";
+  feedbackStatus.textContent = "";
+  feedbackStatus.className = "feedback-status";
+  try {
+    const res = await fetch("https://formspree.io/f/xvzevzpy", {
+      method: "POST",
+      headers: { "Accept": "application/json" },
+      body: new FormData(feedbackForm)
+    });
+    if (res.ok) {
+      feedbackStatus.textContent = "Salamat! Natanggap na ang feedback mo.";
+      feedbackStatus.className = "feedback-status success";
+      feedbackForm.reset();
+      updateFeedbackHint();
+      SoundFX.play('chime');
+      hapticSuccess();
+      showToast("✓ Naipadala ang feedback!");
+      try { localStorage.setItem(FEEDBACK_COOLDOWN_KEY, String(Date.now())); } catch {}
+      updateFeedbackCooldownUI();
+    } else {
+      feedbackStatus.textContent = "May problema sa pagpadala. Subukan ulit.";
+      feedbackStatus.className = "feedback-status error";
+      feedbackSubmitBtn.disabled = false;
+      feedbackSubmitBtn.textContent = "Ipadala";
+    }
+  } catch (err) {
+    feedbackStatus.textContent = "Walang internet connection. Subukan ulit.";
+    feedbackStatus.className = "feedback-status error";
+    feedbackSubmitBtn.disabled = false;
+    feedbackSubmitBtn.textContent = "Ipadala";
+  }
+});
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+document.getElementById("countRegular").textContent = paxCounts.regular;
+document.getElementById("countStudent").textContent = paxCounts.student;
+document.getElementById("countSenior").textContent = paxCounts.senior;
+
+buildQuickAmounts();
+refreshRoute();
+updateSessionDisplay();
+
+// ============================================================
+// GOATCOUNTER ANALYTICS
+// ============================================================
+</script>
+<script data-goatcounter="https://aizen1.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script>
+window.addEventListener("appinstalled", () => {
+  function sendInstallEvent() {
+    if (window.goatcounter && window.goatcounter.count) {
+      window.goatcounter.count({ path: "pwa-installed", title: "Fare Matrix Installed", event: true });
+    } else {
+      setTimeout(sendInstallEvent, 300);
+    }
+  }
+  sendInstallEvent();
+});
+</script>
+</body>
+</html>

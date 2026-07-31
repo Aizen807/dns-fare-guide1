@@ -17,10 +17,16 @@ self.addEventListener("install", (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('[SW] Caching assets');
-        return cache.addAll(ASSETS);
-      })
-      .catch((err) => {
-        console.warn('[SW] Failed to cache assets:', err);
+        // Cache each asset independently so one missing/renamed file
+        // (404, case mismatch, etc.) doesn't silently sink the entire
+        // precache, as cache.addAll() would.
+        return Promise.all(
+          ASSETS.map((asset) =>
+            cache.add(asset).catch((err) => {
+              console.warn('[SW] Failed to cache asset:', asset, err);
+            })
+          )
+        );
       })
   );
   self.skipWaiting();

@@ -2305,8 +2305,38 @@ function getPhilippinesTime() {
   const utcMinutes = now.getUTCMinutes();
   let phHours = utcHours + 8;
   if (phHours >= 24) phHours -= 24;
-  return { hours: phHours, minutes: utcMinutes, time: phHours + utcMinutes / 60 };
+  
+  // Convert to 12-hour format
+  let displayHours = phHours % 12;
+  if (displayHours === 0) displayHours = 12;
+  const ampm = phHours >= 12 ? 'PM' : 'AM';
+  
+  return { 
+    hours: phHours, 
+    minutes: utcMinutes, 
+    time: phHours + utcMinutes / 60,
+    displayHours: displayHours,
+    ampm: ampm
+  };
 }
+
+// ============================================================
+// REAL-TIME CLOCK UPDATER (Updates every second)
+// ============================================================
+function updateClock() {
+  const phTime = getPhilippinesTime();
+  const phTimeDisplay = document.getElementById('rushPhTime');
+  
+  // 12-hour format with AM/PM
+  const timeStr = `${String(phTime.displayHours)}:${String(phTime.minutes).padStart(2, '0')} ${phTime.ampm}`;
+  phTimeDisplay.textContent = `🇵🇭 Philippines Time: ${timeStr}`;
+}
+
+// Start the clock updater (runs every second)
+setInterval(updateClock, 1000);
+
+// Also update clock immediately on page load
+updateClock();
 
 function checkRushHour() {
   const phTime = getPhilippinesTime();
@@ -2368,13 +2398,8 @@ function updateRushHourUI() {
   const statusEl = document.getElementById('rushStatus');
   const passengerEl = document.getElementById('rushPassengerDisplay');
   const countdownContainer = document.getElementById('rushCountdown');
-  const phTimeDisplay = document.getElementById('rushPhTime');
   const timerLabel = document.querySelector('.rush-timer-label');
   const timerEl = document.getElementById('rushCountdownTimer');
-  
-  const phTime = getPhilippinesTime();
-  const timeStr = `${String(phTime.hours).padStart(2, '0')}:${String(phTime.minutes).padStart(2, '0')}`;
-  phTimeDisplay.textContent = `🇵🇭 Philippines Time: ${timeStr}`;
   
   if (status.active) {
     isRushActive = true;

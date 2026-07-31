@@ -159,7 +159,7 @@ jobs:
                   {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' at <t:'"$NEXT_EPOCH"':t>", "inline": false}
                 ]
               }]
-            }' "$WEBHOOK_URL"
+            }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
             echo "✅ Morning Rush START notification sent with role mentions!"
             
           elif [ "$PREV_STATUS" == "morning" ] && [ "$RUSH_STATUS" == "none" ]; then
@@ -177,7 +177,7 @@ jobs:
                   "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
                 }
               }]
-            }' "$WEBHOOK_URL"
+            }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
             echo "✅ Morning Rush END notification sent!"
             
           elif [ "$PREV_STATUS" == "none" ] && [ "$RUSH_STATUS" == "evening" ]; then
@@ -204,7 +204,7 @@ jobs:
                   {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' at <t:'"$NEXT_EPOCH"':t>", "inline": false}
                 ]
               }]
-            }' "$WEBHOOK_URL"
+            }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
             echo "✅ Evening Rush START notification sent with role mentions!"
             
           elif [ "$PREV_STATUS" == "evening" ] && [ "$RUSH_STATUS" == "none" ]; then
@@ -222,7 +222,7 @@ jobs:
                   "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
                 }
               }]
-            }' "$WEBHOOK_URL"
+            }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
             echo "✅ Evening Rush END notification sent!"
             
           # Send Normal Hours status every 5 minutes
@@ -241,7 +241,7 @@ jobs:
                   "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
                 }
               }]
-            }' "$WEBHOOK_URL"
+            }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
             echo "✅ Normal Hours status update sent!"
           fi
           

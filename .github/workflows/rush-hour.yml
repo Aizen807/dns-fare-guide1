@@ -101,9 +101,6 @@ jobs:
             fi
           fi
           
-      # ============================================================
-      # DEBUG STEP - MOVED HERE SO IT ALWAYS RUNS
-      # ============================================================
       - name: Debug Timestamps
         run: |
           echo "=========================================="
@@ -115,15 +112,13 @@ jobs:
           echo "📊 rush_status: ${{ steps.rush_check.outputs.rush_status }}"
           echo "=========================================="
           
-          # Check if values are empty
           if [ -z "${{ steps.rush_check.outputs.end_unix }}" ]; then
-            echo "⚠️ end_unix is EMPTY!"
+            echo "⚠️ end_unix is EMPTY (this is normal when no rush hour)"
           fi
           if [ -z "${{ steps.rush_check.outputs.next_unix }}" ]; then
             echo "⚠️ next_unix is EMPTY!"
           fi
           
-          # Calculate and show human-readable time from timestamp
           if [ ! -z "${{ steps.rush_check.outputs.next_unix }}" ]; then
             NEXT_TS=${{ steps.rush_check.outputs.next_unix }}
             HUMAN_TIME=$(TZ='Asia/Manila' date -d "@$NEXT_TS" +"%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "invalid timestamp")
@@ -150,7 +145,7 @@ jobs:
           ROLE_IDS: "<@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259>"
         run: |
           if [ -z "$WEBHOOK_URL" ]; then
-            echo "❌ WEBHOOK_URL secret is empty or not set! Check Settings > Secrets and variables > Actions."
+            echo "❌ WEBHOOK_URL secret is empty or not set!"
             exit 1
           fi
 
@@ -165,15 +160,23 @@ jobs:
           echo "📊 Previous Status: $PREV_STATUS"
           echo "📊 Current Status: $RUSH_STATUS"
           
-          # Function to calculate exact time string
+          # ============================================================
+          # FIXED: calculate_time function with proper argument handling
+          # ============================================================
           calculate_time() {
-            local target_epoch=$1
+            local target_epoch="$1"
+            
+            # Check if argument is empty or not a number
+            if [ -z "$target_epoch" ] || ! [[ "$target_epoch" =~ ^[0-9]+$ ]]; then
+              echo "unknown"
+              return
+            fi
+            
             local current_time=$(date -u +%s)
             local diff=$((target_epoch - current_time))
             
             # If diff is negative, it's in the past
             if [ $diff -lt 0 ]; then
-              diff=$((diff * -1))
               echo "past"
               return
             fi
@@ -184,7 +187,7 @@ jobs:
             if [ $hours -gt 0 ] && [ $minutes -gt 0 ]; then
               echo "${hours}h ${minutes}m"
             elif [ $hours -gt 0 ]; then
-              echo "${hours}h"
+              echo "${hours}h ${minutes}m"  # Show minutes even if hours > 0
             elif [ $minutes -gt 0 ]; then
               echo "${minutes}m"
             else
@@ -197,7 +200,7 @@ jobs:
             echo "🌅 Morning Rush STARTED!"
             END_EPOCH="${{ steps.rush_check.outputs.end_unix }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
-            END_TIME=$(calculate_time $END_EPOCH)
+            END_TIME=$(calculate_time "$END_EPOCH")
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Morning Rush has started!",
@@ -218,12 +221,12 @@ jobs:
                 ]
               }]
             }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
-            echo "✅ Morning Rush START notification sent with role mentions!"
+            echo "✅ Morning Rush START notification sent!"
             
           elif [ "$PREV_STATUS" == "morning" ] && [ "$RUSH_STATUS" == "none" ]; then
             echo "🌅 Morning Rush ENDED!"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
-            NEXT_TIME=$(calculate_time $NEXT_EPOCH)
+            NEXT_TIME=$(calculate_time "$NEXT_EPOCH")
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
@@ -243,7 +246,7 @@ jobs:
             echo "🌆 Evening Rush STARTED!"
             END_EPOCH="${{ steps.rush_check.outputs.end_unix }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
-            END_TIME=$(calculate_time $END_EPOCH)
+            END_TIME=$(calculate_time "$END_EPOCH")
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Evening Rush has started!",
@@ -264,12 +267,12 @@ jobs:
                 ]
               }]
             }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
-            echo "✅ Evening Rush START notification sent with role mentions!"
+            echo "✅ Evening Rush START notification sent!"
             
           elif [ "$PREV_STATUS" == "evening" ] && [ "$RUSH_STATUS" == "none" ]; then
             echo "🌆 Evening Rush ENDED!"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
-            NEXT_TIME=$(calculate_time $NEXT_EPOCH)
+            NEXT_TIME=$(calculate_time "$NEXT_EPOCH")
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
@@ -289,7 +292,7 @@ jobs:
           elif [ "$RUSH_STATUS" == "none" ]; then
             NEXT_RUSH="${{ steps.rush_check.outputs.next_rush }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
-            NEXT_TIME=$(calculate_time $NEXT_EPOCH)
+            NEXT_TIME=$(calculate_time "$NEXT_EPOCH")
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{

@@ -1,9 +1,7 @@
 name: 🚦 Rush Hour Notifications
 
 on:
-  workflow_dispatch:  # Manual trigger
-  schedule:
-    - cron: '*/5 * * * *'  # Every 5 minutes
+  workflow_dispatch:  # Manual trigger only (Pipedream handles scheduling)
 
 jobs:
   check-rush-hour:
@@ -23,15 +21,10 @@ jobs:
           # Get current UNIX timestamp
           UNIX_TIME=$(date -u +%s)
           
-          # Rush Hour times
-          START_MORNING=400
-          END_MORNING=800
-          START_EVENING=1700
-          END_EVENING=2200
-          
           # Get today's date in Philippines time
           PH_DATE=$(TZ='Asia/Manila' date +"%Y-%m-%d")
           
+          # Calculate timestamps using date command (more reliable)
           # Morning start: today 4:00 AM
           MORNING_START_EPOCH=$(TZ='Asia/Manila' date -d "$PH_DATE 04:00:00" +%s 2>/dev/null || echo "")
           if [ -z "$MORNING_START_EPOCH" ]; then
@@ -71,7 +64,7 @@ jobs:
           fi
           
           # Determine rush status and set proper timestamps
-          if [ $PH_TIME -ge $START_MORNING ] && [ $PH_TIME -lt $END_MORNING ]; then
+          if [ $PH_TIME -ge 400 ] && [ $PH_TIME -lt 800 ]; then
             echo "rush_status=morning" >> $GITHUB_OUTPUT
             echo "🌅 Morning Rush is active!"
             
@@ -79,7 +72,7 @@ jobs:
             echo "next_unix=$EVENING_START_EPOCH" >> $GITHUB_OUTPUT
             echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
             
-          elif [ $PH_TIME -ge $START_EVENING ] && [ $PH_TIME -lt $END_EVENING ]; then
+          elif [ $PH_TIME -ge 1700 ] && [ $PH_TIME -lt 2200 ]; then
             echo "rush_status=evening" >> $GITHUB_OUTPUT
             echo "🌆 Evening Rush is active!"
             
@@ -94,10 +87,10 @@ jobs:
             echo "⏰ No rush hour currently."
             
             # Find the next rush hour
-            if [ $PH_TIME -lt $START_MORNING ]; then
+            if [ $PH_TIME -lt 400 ]; then
               echo "next_unix=$MORNING_START_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
-            elif [ $PH_TIME -lt $START_EVENING ]; then
+            elif [ $PH_TIME -lt 1700 ]; then
               echo "next_unix=$EVENING_START_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
             else
@@ -125,7 +118,7 @@ jobs:
           ROLE_IDS: "<@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259>"
         run: |
           if [ -z "$WEBHOOK_URL" ]; then
-            echo "❌ WEBHOOK_URL secret is empty or not set! Check Settings > Secrets and variables > Actions."
+            echo "❌ WEBHOOK_URL secret is empty or not set!"
             exit 1
           fi
 
@@ -166,7 +159,7 @@ jobs:
                 ]
               }]
             }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
-            echo "✅ Morning Rush START notification sent with role mentions!"
+            echo "✅ Morning Rush START notification sent!"
             
           elif [ "$PREV_STATUS" == "morning" ] && [ "$RUSH_STATUS" == "none" ]; then
             echo "🌅 Morning Rush ENDED!"
@@ -211,7 +204,7 @@ jobs:
                 ]
               }]
             }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
-            echo "✅ Evening Rush START notification sent with role mentions!"
+            echo "✅ Evening Rush START notification sent!"
             
           elif [ "$PREV_STATUS" == "evening" ] && [ "$RUSH_STATUS" == "none" ]; then
             echo "🌆 Evening Rush ENDED!"
@@ -231,7 +224,7 @@ jobs:
             }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
             echo "✅ Evening Rush END notification sent!"
             
-          # Send Normal Hours status update (every 5 minutes)
+          # Send Normal Hours status update (when manually triggered)
           elif [ "$RUSH_STATUS" == "none" ]; then
             NEXT_RUSH="${{ steps.rush_check.outputs.next_rush }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"

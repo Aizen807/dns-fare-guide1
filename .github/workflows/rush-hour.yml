@@ -1,7 +1,9 @@
 name: 🚦 Rush Hour Notifications
 
 on:
-  workflow_dispatch:  # Manual trigger button (Pipedream calls this)
+  workflow_dispatch:  # Manual trigger
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes
 
 jobs:
   check-rush-hour:
@@ -11,12 +13,15 @@ jobs:
       - name: Check Rush Hour Status
         id: rush_check
         run: |
-          # Get current time in Philippines (UTC+8)
+          # Get current Philippines time
           PH_HOUR=$(TZ='Asia/Manila' date +"%H")
           PH_MINUTE=$(TZ='Asia/Manila' date +"%M")
           PH_TIME=$((PH_HOUR * 100 + PH_MINUTE))
           
           echo "🕐 Philippines Time: $PH_HOUR:$PH_MINUTE"
+          
+          # Get current UNIX timestamp
+          UNIX_TIME=$(date -u +%s)
           
           # Rush Hour times
           START_MORNING=400
@@ -24,86 +29,88 @@ jobs:
           START_EVENING=1700
           END_EVENING=2200
           
-          # Calculate countdown
-          CURRENT_MINUTES=$((PH_HOUR * 60 + PH_MINUTE))
-          MORNING_START_MIN=$((4 * 60))
-          MORNING_END_MIN=$((8 * 60))
-          EVENING_START_MIN=$((17 * 60))
-          EVENING_END_MIN=$((22 * 60))
+          # Get today's date in Philippines time
+          PH_DATE=$(TZ='Asia/Manila' date +"%Y-%m-%d")
           
-          # Get current UNIX timestamp for Discord
-          UNIX_TIME=$(date -u +%s)
+          # Morning start: today 4:00 AM
+          MORNING_START_EPOCH=$(TZ='Asia/Manila' date -d "$PH_DATE 04:00:00" +%s 2>/dev/null || echo "")
+          if [ -z "$MORNING_START_EPOCH" ]; then
+            MORNING_START_EPOCH=$((UNIX_TIME + (4 * 3600) - (PH_HOUR * 3600 + PH_MINUTE * 60)))
+          fi
           
-          # Determine rush status
+          # Morning end: today 8:00 AM
+          MORNING_END_EPOCH=$(TZ='Asia/Manila' date -d "$PH_DATE 08:00:00" +%s 2>/dev/null || echo "")
+          if [ -z "$MORNING_END_EPOCH" ]; then
+            MORNING_END_EPOCH=$((UNIX_TIME + (8 * 3600) - (PH_HOUR * 3600 + PH_MINUTE * 60)))
+          fi
+          
+          # Evening start: today 5:00 PM
+          EVENING_START_EPOCH=$(TZ='Asia/Manila' date -d "$PH_DATE 17:00:00" +%s 2>/dev/null || echo "")
+          if [ -z "$EVENING_START_EPOCH" ]; then
+            EVENING_START_EPOCH=$((UNIX_TIME + (17 * 3600) - (PH_HOUR * 3600 + PH_MINUTE * 60)))
+          fi
+          
+          # Evening end: today 10:00 PM
+          EVENING_END_EPOCH=$(TZ='Asia/Manila' date -d "$PH_DATE 22:00:00" +%s 2>/dev/null || echo "")
+          if [ -z "$EVENING_END_EPOCH" ]; then
+            EVENING_END_EPOCH=$((UNIX_TIME + (22 * 3600) - (PH_HOUR * 3600 + PH_MINUTE * 60)))
+          fi
+          
+          # If timestamps are in the past, add 24 hours
+          if [ $MORNING_START_EPOCH -lt $UNIX_TIME ]; then
+            MORNING_START_EPOCH=$((MORNING_START_EPOCH + 86400))
+          fi
+          if [ $MORNING_END_EPOCH -lt $UNIX_TIME ]; then
+            MORNING_END_EPOCH=$((MORNING_END_EPOCH + 86400))
+          fi
+          if [ $EVENING_START_EPOCH -lt $UNIX_TIME ]; then
+            EVENING_START_EPOCH=$((EVENING_START_EPOCH + 86400))
+          fi
+          if [ $EVENING_END_EPOCH -lt $UNIX_TIME ]; then
+            EVENING_END_EPOCH=$((EVENING_END_EPOCH + 86400))
+          fi
+          
+          # Determine rush status and set proper timestamps
           if [ $PH_TIME -ge $START_MORNING ] && [ $PH_TIME -lt $END_MORNING ]; then
             echo "rush_status=morning" >> $GITHUB_OUTPUT
             echo "🌅 Morning Rush is active!"
             
-            REMAINING_MIN=$((MORNING_END_MIN - CURRENT_MINUTES))
-            REMAINING_HOURS=$((REMAINING_MIN / 60))
-            REMAINING_MINS=$((REMAINING_MIN % 60))
-            echo "remaining_time=${REMAINING_HOURS}h ${REMAINING_MINS}m" >> $GITHUB_OUTPUT
+            echo "end_unix=$MORNING_END_EPOCH" >> $GITHUB_OUTPUT
+            echo "next_unix=$EVENING_START_EPOCH" >> $GITHUB_OUTPUT
             echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
-            
-            END_UNIX=$(TZ='Asia/Manila' date -d "08:00" +%s 2>/dev/null || echo "")
-            if [ -z "$END_UNIX" ]; then
-              END_UNIX=$((UNIX_TIME + (MORNING_END_MIN - CURRENT_MINUTES) * 60))
-            fi
-            echo "end_unix=$END_UNIX" >> $GITHUB_OUTPUT
-            
-            NEXT_UNIX=$(TZ='Asia/Manila' date -d "17:00" +%s 2>/dev/null || echo "")
-            if [ -z "$NEXT_UNIX" ]; then
-              NEXT_UNIX=$((UNIX_TIME + (EVENING_START_MIN - CURRENT_MINUTES) * 60))
-            fi
-            echo "next_unix=$NEXT_UNIX" >> $GITHUB_OUTPUT
             
           elif [ $PH_TIME -ge $START_EVENING ] && [ $PH_TIME -lt $END_EVENING ]; then
             echo "rush_status=evening" >> $GITHUB_OUTPUT
             echo "🌆 Evening Rush is active!"
             
-            REMAINING_MIN=$((EVENING_END_MIN - CURRENT_MINUTES))
-            REMAINING_HOURS=$((REMAINING_MIN / 60))
-            REMAINING_MINS=$((REMAINING_MIN % 60))
-            echo "remaining_time=${REMAINING_HOURS}h ${REMAINING_MINS}m" >> $GITHUB_OUTPUT
+            echo "end_unix=$EVENING_END_EPOCH" >> $GITHUB_OUTPUT
+            # Next rush is morning tomorrow
+            TOMORROW_EPOCH=$((MORNING_START_EPOCH + 86400))
+            echo "next_unix=$TOMORROW_EPOCH" >> $GITHUB_OUTPUT
             echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
-            
-            END_UNIX=$(TZ='Asia/Manila' date -d "22:00" +%s 2>/dev/null || echo "")
-            if [ -z "$END_UNIX" ]; then
-              END_UNIX=$((UNIX_TIME + (EVENING_END_MIN - CURRENT_MINUTES) * 60))
-            fi
-            echo "end_unix=$END_UNIX" >> $GITHUB_OUTPUT
-            
-            NEXT_UNIX=$(TZ='Asia/Manila' date -d "tomorrow 04:00" +%s 2>/dev/null || echo "")
-            if [ -z "$NEXT_UNIX" ]; then
-              NEXT_UNIX=$((UNIX_TIME + (24 * 60 + MORNING_START_MIN - CURRENT_MINUTES) * 60))
-            fi
-            echo "next_unix=$NEXT_UNIX" >> $GITHUB_OUTPUT
             
           else
             echo "rush_status=none" >> $GITHUB_OUTPUT
             echo "⏰ No rush hour currently."
             
+            # Find the next rush hour
             if [ $PH_TIME -lt $START_MORNING ]; then
-              NEXT_UNIX=$(TZ='Asia/Manila' date -d "04:00" +%s 2>/dev/null || echo "")
-              if [ -z "$NEXT_UNIX" ]; then
-                NEXT_UNIX=$((UNIX_TIME + (MORNING_START_MIN - CURRENT_MINUTES) * 60))
-              fi
+              echo "next_unix=$MORNING_START_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
             elif [ $PH_TIME -lt $START_EVENING ]; then
-              NEXT_UNIX=$(TZ='Asia/Manila' date -d "17:00" +%s 2>/dev/null || echo "")
-              if [ -z "$NEXT_UNIX" ]; then
-                NEXT_UNIX=$((UNIX_TIME + (EVENING_START_MIN - CURRENT_MINUTES) * 60))
-              fi
+              echo "next_unix=$EVENING_START_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
             else
-              NEXT_UNIX=$(TZ='Asia/Manila' date -d "tomorrow 04:00" +%s 2>/dev/null || echo "")
-              if [ -z "$NEXT_UNIX" ]; then
-                NEXT_UNIX=$((UNIX_TIME + (24 * 60 + MORNING_START_MIN - CURRENT_MINUTES) * 60))
-              fi
+              # Next is morning tomorrow
+              TOMORROW_EPOCH=$((MORNING_START_EPOCH + 86400))
+              echo "next_unix=$TOMORROW_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
             fi
-            echo "next_unix=$NEXT_UNIX" >> $GITHUB_OUTPUT
           fi
+          
+          # Debug: Print the timestamps
+          echo "📊 end_unix: ${{ steps.rush_check.outputs.end_unix }}"
+          echo "📊 next_unix: ${{ steps.rush_check.outputs.next_unix }}"
           
       - name: Download Previous State
         uses: actions/download-artifact@v4
@@ -123,7 +130,6 @@ jobs:
           fi
 
           RUSH_STATUS="${{ steps.rush_check.outputs.rush_status }}"
-          PH_MINUTE=$(TZ='Asia/Manila' date +"%M")
           
           # Read previous state
           PREV_STATUS="none"
@@ -225,7 +231,7 @@ jobs:
             }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
             echo "✅ Evening Rush END notification sent!"
             
-          # Send Normal Hours status every 5 minutes
+          # Send Normal Hours status update (every 5 minutes)
           elif [ "$RUSH_STATUS" == "none" ]; then
             NEXT_RUSH="${{ steps.rush_check.outputs.next_rush }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"

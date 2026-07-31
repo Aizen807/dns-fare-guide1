@@ -1,4 +1,4 @@
-const CACHE_NAME = "fare-matrix-v492";
+const CACHE_NAME = "fare-matrix-v493";
 const ASSETS = [
   "./",
   "./index.html",
@@ -17,9 +17,6 @@ self.addEventListener("install", (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('[SW] Caching assets');
-        // Cache each asset independently so one missing/renamed file
-        // (404, case mismatch, etc.) doesn't silently sink the entire
-        // precache, as cache.addAll() would.
         return Promise.all(
           ASSETS.map((asset) =>
             cache.add(asset).catch((err) => {

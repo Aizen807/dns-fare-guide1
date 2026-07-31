@@ -123,12 +123,14 @@ jobs:
             NEXT_TS=${{ steps.rush_check.outputs.next_unix }}
             HUMAN_TIME=$(TZ='Asia/Manila' date -d "@$NEXT_TS" +"%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "invalid timestamp")
             echo "📅 next_unix as human time: $HUMAN_TIME (Philippines Time)"
+            echo "📅 Discord will show: <t:$NEXT_TS:R>"
           fi
           
           if [ ! -z "${{ steps.rush_check.outputs.end_unix }}" ]; then
             END_TS=${{ steps.rush_check.outputs.end_unix }}
             HUMAN_TIME=$(TZ='Asia/Manila' date -d "@$END_TS" +"%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "invalid timestamp")
             echo "📅 end_unix as human time: $HUMAN_TIME (Philippines Time)"
+            echo "📅 Discord will show: <t:$END_TS:R>"
           fi
           echo "=========================================="
           
@@ -160,53 +162,17 @@ jobs:
           echo "📊 Previous Status: $PREV_STATUS"
           echo "📊 Current Status: $RUSH_STATUS"
           
-          # ============================================================
-          # FIXED: calculate_time function with proper argument handling
-          # ============================================================
-          calculate_time() {
-            local target_epoch="$1"
-            
-            # Check if argument is empty or not a number
-            if [ -z "$target_epoch" ] || ! [[ "$target_epoch" =~ ^[0-9]+$ ]]; then
-              echo "unknown"
-              return
-            fi
-            
-            local current_time=$(date -u +%s)
-            local diff=$((target_epoch - current_time))
-            
-            # If diff is negative, it's in the past
-            if [ $diff -lt 0 ]; then
-              echo "past"
-              return
-            fi
-            
-            local hours=$((diff / 3600))
-            local minutes=$(((diff % 3600) / 60))
-            
-            if [ $hours -gt 0 ] && [ $minutes -gt 0 ]; then
-              echo "${hours}h ${minutes}m"
-            elif [ $hours -gt 0 ]; then
-              echo "${hours}h ${minutes}m"  # Show minutes even if hours > 0
-            elif [ $minutes -gt 0 ]; then
-              echo "${minutes}m"
-            else
-              echo "less than a minute"
-            fi
-          }
-          
           # Check if status CHANGED (Start/End notifications)
           if [ "$PREV_STATUS" == "none" ] && [ "$RUSH_STATUS" == "morning" ]; then
             echo "🌅 Morning Rush STARTED!"
             END_EPOCH="${{ steps.rush_check.outputs.end_unix }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
-            END_TIME=$(calculate_time "$END_EPOCH")
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Morning Rush has started!",
               "embeds": [{
                 "title": "🌅 RUSH HOUR STARTED!",
-                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n⏳ **Ends in: '"$END_TIME"'**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n⏳ **Ends: <t:'"$END_EPOCH"':R>**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
                 "color": 16497956,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -215,7 +181,7 @@ jobs:
                 },
                 "fields": [
                   {"name": "⏰ Time", "value": "4:00 AM - 8:00 AM", "inline": true},
-                  {"name": "⏳ Ends In", "value": "'"$END_TIME"'", "inline": true},
+                  {"name": "⏳ Ends", "value": "<t:'"$END_EPOCH"':R>", "inline": true},
                   {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
                   {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
                 ]
@@ -226,12 +192,11 @@ jobs:
           elif [ "$PREV_STATUS" == "morning" ] && [ "$RUSH_STATUS" == "none" ]; then
             echo "🌅 Morning Rush ENDED!"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
-            NEXT_TIME=$(calculate_time "$NEXT_EPOCH")
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **'"$NEXT_TIME"'**",
+                "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush: <t:'"$NEXT_EPOCH"':R>",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -246,13 +211,12 @@ jobs:
             echo "🌆 Evening Rush STARTED!"
             END_EPOCH="${{ steps.rush_check.outputs.end_unix }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
-            END_TIME=$(calculate_time "$END_EPOCH")
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Evening Rush has started!",
               "embeds": [{
                 "title": "🌆 RUSH HOUR STARTED!",
-                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n⏳ **Ends in: '"$END_TIME"'**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n⏳ **Ends: <t:'"$END_EPOCH"':R>**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
                 "color": 16334072,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -261,7 +225,7 @@ jobs:
                 },
                 "fields": [
                   {"name": "⏰ Time", "value": "5:00 PM - 10:00 PM", "inline": true},
-                  {"name": "⏳ Ends In", "value": "'"$END_TIME"'", "inline": true},
+                  {"name": "⏳ Ends", "value": "<t:'"$END_EPOCH"':R>", "inline": true},
                   {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
                   {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
                 ]
@@ -272,12 +236,11 @@ jobs:
           elif [ "$PREV_STATUS" == "evening" ] && [ "$RUSH_STATUS" == "none" ]; then
             echo "🌆 Evening Rush ENDED!"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
-            NEXT_TIME=$(calculate_time "$NEXT_EPOCH")
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: **'"$NEXT_TIME"'**",
+                "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush: <t:'"$NEXT_EPOCH"':R>",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -288,16 +251,15 @@ jobs:
             }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
             echo "✅ Evening Rush END notification sent!"
             
-          # Send Normal Hours status update (when manually triggered)
+          # Send Normal Hours status update
           elif [ "$RUSH_STATUS" == "none" ]; then
             NEXT_RUSH="${{ steps.rush_check.outputs.next_rush }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
-            NEXT_TIME=$(calculate_time "$NEXT_EPOCH")
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ NORMAL HOURS",
-                "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"$NEXT_RUSH"'**\n⏳ **Starts in: '"$NEXT_TIME"'**\n🚶 Normal passenger volume.",
+                "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"$NEXT_RUSH"'**\n⏳ **Starts: <t:'"$NEXT_EPOCH"':R>**\n🚶 Normal passenger volume.",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {

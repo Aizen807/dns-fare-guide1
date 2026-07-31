@@ -117,6 +117,11 @@ jobs:
           WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           ROLE_IDS: "<@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259>"
         run: |
+          if [ -z "$WEBHOOK_URL" ]; then
+            echo "❌ WEBHOOK_URL secret is empty or not set! Check Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
           RUSH_STATUS="${{ steps.rush_check.outputs.rush_status }}"
           PH_MINUTE=$(TZ='Asia/Manila' date +"%M")
           
@@ -154,7 +159,7 @@ jobs:
                   {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' at <t:'"$NEXT_EPOCH"':t>", "inline": false}
                 ]
               }]
-            }' $WEBHOOK_URL
+            }' "$WEBHOOK_URL"
             echo "✅ Morning Rush START notification sent with role mentions!"
             
           elif [ "$PREV_STATUS" == "morning" ] && [ "$RUSH_STATUS" == "none" ]; then
@@ -172,7 +177,7 @@ jobs:
                   "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
                 }
               }]
-            }' $WEBHOOK_URL
+            }' "$WEBHOOK_URL"
             echo "✅ Morning Rush END notification sent!"
             
           elif [ "$PREV_STATUS" == "none" ] && [ "$RUSH_STATUS" == "evening" ]; then
@@ -199,7 +204,7 @@ jobs:
                   {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' at <t:'"$NEXT_EPOCH"':t>", "inline": false}
                 ]
               }]
-            }' $WEBHOOK_URL
+            }' "$WEBHOOK_URL"
             echo "✅ Evening Rush START notification sent with role mentions!"
             
           elif [ "$PREV_STATUS" == "evening" ] && [ "$RUSH_STATUS" == "none" ]; then
@@ -217,7 +222,7 @@ jobs:
                   "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
                 }
               }]
-            }' $WEBHOOK_URL
+            }' "$WEBHOOK_URL"
             echo "✅ Evening Rush END notification sent!"
             
           # Send Normal Hours status every 5 minutes
@@ -236,7 +241,7 @@ jobs:
                   "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
                 }
               }]
-            }' $WEBHOOK_URL
+            }' "$WEBHOOK_URL"
             echo "✅ Normal Hours status update sent!"
           fi
           

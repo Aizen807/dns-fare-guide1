@@ -68,8 +68,9 @@ jobs:
           elif [ $PH_TIME -ge 1700 ] && [ $PH_TIME -lt 2200 ]; then
             echo "rush_status=evening" >> $GITHUB_OUTPUT
             echo "end_unix=$EVENING_END_EPOCH" >> $GITHUB_OUTPUT
-            TOMORROW_EPOCH=$((MORNING_START_EPOCH + 86400))
-            echo "next_unix=$TOMORROW_EPOCH" >> $GITHUB_OUTPUT
+            # MORNING_START_EPOCH was already rolled forward to tomorrow above
+            # (today's 4AM is always in the past by this point) - don't add 86400 again
+            echo "next_unix=$MORNING_START_EPOCH" >> $GITHUB_OUTPUT
             echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
             
           else
@@ -81,8 +82,9 @@ jobs:
               echo "next_unix=$EVENING_START_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
             else
-              TOMORROW_EPOCH=$((MORNING_START_EPOCH + 86400))
-              echo "next_unix=$TOMORROW_EPOCH" >> $GITHUB_OUTPUT
+              # MORNING_START_EPOCH was already rolled forward to tomorrow above
+              # (today's 4AM is always in the past by this point) - don't add 86400 again
+              echo "next_unix=$MORNING_START_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
             fi
           fi

@@ -1154,15 +1154,19 @@ select:focus-visible{
 .audio-enable-overlay{
   position:fixed;
   top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.7);
+  background:rgba(0,0,0,0.8);
   z-index:9999;
   display:flex;
   align-items:center;
   justify-content:center;
-  backdrop-filter:blur(4px);
+  backdrop-filter:blur(6px);
   animation:fadeIn 0.3s ease;
+  pointer-events:auto;
 }
-.audio-enable-overlay.hidden{display:none;}
+.audio-enable-overlay.hidden{
+  display:none !important;
+  pointer-events:none;
+}
 .audio-enable-btn{
   background:var(--sign);
   color:var(--sign-deep);
@@ -1174,6 +1178,7 @@ select:focus-visible{
   cursor:pointer;
   box-shadow:var(--shadow);
   transition:all 0.2s ease;
+  pointer-events:auto;
 }
 .audio-enable-btn:hover{transform:scale(1.05);}
 .audio-enable-btn:active{transform:scale(0.95);}
@@ -1507,8 +1512,8 @@ select:focus-visible{
 </head>
 <body>
 
-<!-- Audio Enable Overlay -->
-<div class="audio-enable-overlay" id="audioOverlay">
+<!-- Audio Enable Overlay - hidden by default, shows once per device on first interaction -->
+<div class="audio-enable-overlay hidden" id="audioOverlay">
   <button class="audio-enable-btn" id="audioEnableBtn">
     🔈 I-enable ang Sound
     <span class="sub">I-tap para i-activate ang audio feedback</span>
@@ -1913,6 +1918,10 @@ select:focus-visible{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.9.4</span>
+          <span class="changelog-text">🔊 Audio overlay now shows only once per device! After enabling sound, it won't appear again on refresh or reopen. Uses localStorage to remember user preference.<span class="changelog-date">July 31, 2026</span></span>
+        </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.9.3</span>
           <span class="changelog-text">🚦 Fixed Rush Hour timer: Added getNextPhTime() function to correctly calculate countdown during active Rush Hour. Timer now works during both Morning (4AM-8AM) and Evening (5PM-10PM) Rush Hours.<span class="changelog-date">July 31, 2026</span></span>
         </li>
@@ -2039,7 +2048,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9.3 &middot; updated July 31, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.4 &middot; updated July 31, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -2178,6 +2187,71 @@ const SoundFX = {
 };
 
 // ============================================================
+// AUDIO STATE - Remember user preference in localStorage
+// ============================================================
+const AUDIO_ENABLED_KEY = 'fareMatrixAudioEnabled';
+
+function isAudioPreviouslyEnabled() {
+  try {
+    return localStorage.getItem(AUDIO_ENABLED_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function markAudioEnabled() {
+  try {
+    localStorage.setItem(AUDIO_ENABLED_KEY, 'true');
+  } catch {}
+}
+
+// ============================================================
+// SHOW AUDIO OVERLAY ON FIRST USER INTERACTION (ONCE PER DEVICE)
+// ============================================================
+let audioOverlayShown = isAudioPreviouslyEnabled();
+const audioOverlay = document.getElementById('audioOverlay');
+const audioEnableBtn = document.getElementById('audioEnableBtn');
+
+// If audio was already enabled before, keep overlay hidden and restore audio
+if (audioOverlayShown) {
+  audioOverlay.classList.add('hidden');
+  SoundFX._audioEnabled = true;
+} else {
+  audioOverlay.classList.add('hidden');
+}
+
+function showAudioOverlay() {
+  if (audioOverlayShown) return;
+  audioOverlayShown = true;
+  audioOverlay.classList.remove('hidden');
+}
+
+// Show overlay on first click/tap only if not enabled before
+document.addEventListener('click', function firstClick() {
+  if (!isAudioPreviouslyEnabled()) {
+    showAudioOverlay();
+  }
+  document.removeEventListener('click', firstClick);
+}, { once: true });
+
+document.addEventListener('touchstart', function firstTouch() {
+  if (!isAudioPreviouslyEnabled()) {
+    showAudioOverlay();
+  }
+  document.removeEventListener('touchstart', firstTouch);
+}, { once: true, passive: true });
+
+// Audio enable button - saves to localStorage so it never shows again
+audioEnableBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  SoundFX.enableAudio();
+  markAudioEnabled();
+  audioOverlay.classList.add('hidden');
+  SoundFX.play('click');
+  setTimeout(() => showToast('🔈 Sound enabled!'), 300);
+});
+
+// ============================================================
 // HAPTIC FEEDBACK
 // ============================================================
 function hapticLight() { if (navigator.vibrate) navigator.vibrate(10); }
@@ -2202,16 +2276,6 @@ function showToast(message, duration = 2500) {
     setTimeout(() => { toast.remove(); toastTimeout = null; }, 400);
   }, duration);
 }
-
-// ============================================================
-// AUDIO ENABLE OVERLAY
-// ============================================================
-document.getElementById('audioEnableBtn').addEventListener('click', () => {
-  SoundFX.enableAudio();
-  document.getElementById('audioOverlay').classList.add('hidden');
-  SoundFX.play('click');
-  setTimeout(() => showToast('🔈 Sound enabled!'), 300);
-});
 
 // ============================================================
 // FEATURE TABS
@@ -2273,10 +2337,6 @@ function checkRushHour() {
   return { active: false, nextStart: nextStart, nextPeriod: nextPeriod };
 }
 
-// Given a target hour in Philippines time (0-23), returns the next Date
-// (in absolute UTC time) that hour occurs at. Self-corrects for UTC/PH
-// day-boundary mismatches instead of guessing with manual date math --
-// this is what fixes the stuck countdown / 24h-overshoot bugs.
 function getNextPhTime(hourPH) {
   const now = new Date();
   let utcHour = hourPH - 8;
@@ -2374,8 +2434,6 @@ function updateCountdown(targetTime, isNext = false) {
   const timerEl = document.getElementById('rushCountdownTimer');
   
   if (diff <= 0) {
-    // Belt-and-suspenders: never leave the placeholder frozen on --:--:--.
-    // If the target already passed, show 00:00:00 and re-sync the whole panel.
     timerEl.textContent = '00:00:00';
     if (isNext) {
       clearInterval(rushCountdownInterval);

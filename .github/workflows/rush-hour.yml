@@ -1,7 +1,7 @@
 name: 🚦 Rush Hour Notifications
 
 on:
-  workflow_dispatch:  # Manual trigger only (Pipedream handles scheduling)
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   check-rush-hour:
@@ -11,45 +11,37 @@ jobs:
       - name: Check Rush Hour Status
         id: rush_check
         run: |
-          # Get current Philippines time
           PH_HOUR=$(TZ='Asia/Manila' date +"%H")
           PH_MINUTE=$(TZ='Asia/Manila' date +"%M")
           PH_TIME=$((PH_HOUR * 100 + PH_MINUTE))
           
           echo "🕐 Philippines Time: $PH_HOUR:$PH_MINUTE"
           
-          # Get current UNIX timestamp
           UNIX_TIME=$(date -u +%s)
-          
-          # Get today's date in Philippines time
           PH_DATE=$(TZ='Asia/Manila' date +"%Y-%m-%d")
           
-          # Calculate timestamps using date command (more reliable)
-          # Morning start: today 4:00 AM
+          # Calculate timestamps
           MORNING_START_EPOCH=$(TZ='Asia/Manila' date -d "$PH_DATE 04:00:00" +%s 2>/dev/null || echo "")
           if [ -z "$MORNING_START_EPOCH" ]; then
             MORNING_START_EPOCH=$((UNIX_TIME + (4 * 3600) - (PH_HOUR * 3600 + PH_MINUTE * 60)))
           fi
           
-          # Morning end: today 8:00 AM
           MORNING_END_EPOCH=$(TZ='Asia/Manila' date -d "$PH_DATE 08:00:00" +%s 2>/dev/null || echo "")
           if [ -z "$MORNING_END_EPOCH" ]; then
             MORNING_END_EPOCH=$((UNIX_TIME + (8 * 3600) - (PH_HOUR * 3600 + PH_MINUTE * 60)))
           fi
           
-          # Evening start: today 5:00 PM
           EVENING_START_EPOCH=$(TZ='Asia/Manila' date -d "$PH_DATE 17:00:00" +%s 2>/dev/null || echo "")
           if [ -z "$EVENING_START_EPOCH" ]; then
             EVENING_START_EPOCH=$((UNIX_TIME + (17 * 3600) - (PH_HOUR * 3600 + PH_MINUTE * 60)))
           fi
           
-          # Evening end: today 10:00 PM
           EVENING_END_EPOCH=$(TZ='Asia/Manila' date -d "$PH_DATE 22:00:00" +%s 2>/dev/null || echo "")
           if [ -z "$EVENING_END_EPOCH" ]; then
             EVENING_END_EPOCH=$((UNIX_TIME + (22 * 3600) - (PH_HOUR * 3600 + PH_MINUTE * 60)))
           fi
           
-          # If timestamps are in the past, add 24 hours
+          # Fix past timestamps
           if [ $MORNING_START_EPOCH -lt $UNIX_TIME ]; then
             MORNING_START_EPOCH=$((MORNING_START_EPOCH + 86400))
           fi
@@ -63,30 +55,22 @@ jobs:
             EVENING_END_EPOCH=$((EVENING_END_EPOCH + 86400))
           fi
           
-          # Determine rush status and set proper timestamps
+          # Determine status
           if [ $PH_TIME -ge 400 ] && [ $PH_TIME -lt 800 ]; then
             echo "rush_status=morning" >> $GITHUB_OUTPUT
-            echo "🌅 Morning Rush is active!"
-            
             echo "end_unix=$MORNING_END_EPOCH" >> $GITHUB_OUTPUT
             echo "next_unix=$EVENING_START_EPOCH" >> $GITHUB_OUTPUT
             echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
             
           elif [ $PH_TIME -ge 1700 ] && [ $PH_TIME -lt 2200 ]; then
             echo "rush_status=evening" >> $GITHUB_OUTPUT
-            echo "🌆 Evening Rush is active!"
-            
             echo "end_unix=$EVENING_END_EPOCH" >> $GITHUB_OUTPUT
-            # Next rush is morning tomorrow
             TOMORROW_EPOCH=$((MORNING_START_EPOCH + 86400))
             echo "next_unix=$TOMORROW_EPOCH" >> $GITHUB_OUTPUT
             echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
             
           else
             echo "rush_status=none" >> $GITHUB_OUTPUT
-            echo "⏰ No rush hour currently."
-            
-            # Find the next rush hour
             if [ $PH_TIME -lt 400 ]; then
               echo "next_unix=$MORNING_START_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
@@ -94,16 +78,11 @@ jobs:
               echo "next_unix=$EVENING_START_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
             else
-              # Next is morning tomorrow
               TOMORROW_EPOCH=$((MORNING_START_EPOCH + 86400))
               echo "next_unix=$TOMORROW_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
             fi
           fi
-          
-          # Debug: Print the timestamps
-          echo "📊 end_unix: ${{ steps.rush_check.outputs.end_unix }}"
-          echo "📊 next_unix: ${{ steps.rush_check.outputs.next_unix }}"
           
       - name: Download Previous State
         uses: actions/download-artifact@v4
@@ -118,32 +97,46 @@ jobs:
           ROLE_IDS: "<@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259>"
         run: |
           if [ -z "$WEBHOOK_URL" ]; then
-            echo "❌ WEBHOOK_URL secret is empty or not set!"
+            echo "❌ WEBHOOK_URL secret is empty!"
             exit 1
           fi
 
           RUSH_STATUS="${{ steps.rush_check.outputs.rush_status }}"
           
-          # Read previous state
           PREV_STATUS="none"
           if [ -f "rush_state.txt" ]; then
             PREV_STATUS=$(cat rush_state.txt)
           fi
           
-          echo "📊 Previous Status: $PREV_STATUS"
-          echo "📊 Current Status: $RUSH_STATUS"
+          echo "📊 Previous: $PREV_STATUS → Current: $RUSH_STATUS"
           
-          # Check if status CHANGED (Start/End notifications)
+          # Function to calculate exact time string
+          calculate_time() {
+            local target_epoch=$1
+            local current_time=$(date -u +%s)
+            local diff=$((target_epoch - current_time))
+            local hours=$((diff / 3600))
+            local minutes=$(((diff % 3600) / 60))
+            
+            if [ $hours -gt 0 ] && [ $minutes -gt 0 ]; then
+              echo "${hours}h ${minutes}m"
+            elif [ $hours -gt 0 ]; then
+              echo "${hours}h"
+            else
+              echo "${minutes}m"
+            fi
+          }
+          
           if [ "$PREV_STATUS" == "none" ] && [ "$RUSH_STATUS" == "morning" ]; then
-            echo "🌅 Morning Rush STARTED!"
             END_EPOCH="${{ steps.rush_check.outputs.end_unix }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
+            END_TIME=$(calculate_time $END_EPOCH)
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Morning Rush has started!",
               "embeds": [{
                 "title": "🌅 RUSH HOUR STARTED!",
-                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n⏳ **Ends: <t:'"$END_EPOCH"':R>**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM**\n⏳ **Ends in: '"$END_TIME"'**\n🚶 **More passengers available!**",
                 "color": 16497956,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -152,23 +145,22 @@ jobs:
                 },
                 "fields": [
                   {"name": "⏰ Time", "value": "4:00 AM - 8:00 AM", "inline": true},
-                  {"name": "⏳ Ends In", "value": "<t:'"$END_EPOCH"':R>", "inline": true},
+                  {"name": "⏳ Ends In", "value": "'"$END_TIME"'", "inline": true},
                   {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
-                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true},
-                  {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' at <t:'"$NEXT_EPOCH"':t>", "inline": false}
+                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
                 ]
               }]
-            }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
-            echo "✅ Morning Rush START notification sent!"
+            }' "$WEBHOOK_URL"
+            echo "✅ Morning Rush START sent!"
             
           elif [ "$PREV_STATUS" == "morning" ] && [ "$RUSH_STATUS" == "none" ]; then
-            echo "🌅 Morning Rush ENDED!"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
+            NEXT_TIME=$(calculate_time $NEXT_EPOCH)
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: <t:'"$NEXT_EPOCH"':R>",
+                "description": "🌅 **Morning Rush** has ended.\n\n📊 Normal passenger volume.\n\n⏳ Next Rush in: '"$NEXT_TIME"'",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -176,19 +168,18 @@ jobs:
                   "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
                 }
               }]
-            }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
-            echo "✅ Morning Rush END notification sent!"
+            }' "$WEBHOOK_URL"
+            echo "✅ Morning Rush END sent!"
             
           elif [ "$PREV_STATUS" == "none" ] && [ "$RUSH_STATUS" == "evening" ]; then
-            echo "🌆 Evening Rush STARTED!"
             END_EPOCH="${{ steps.rush_check.outputs.end_unix }}"
-            NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
+            END_TIME=$(calculate_time $END_EPOCH)
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Evening Rush has started!",
               "embeds": [{
                 "title": "🌆 RUSH HOUR STARTED!",
-                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n⏳ **Ends: <t:'"$END_EPOCH"':R>**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM**\n⏳ **Ends in: '"$END_TIME"'**\n🚶 **More passengers available!**",
                 "color": 16334072,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -197,23 +188,22 @@ jobs:
                 },
                 "fields": [
                   {"name": "⏰ Time", "value": "5:00 PM - 10:00 PM", "inline": true},
-                  {"name": "⏳ Ends In", "value": "<t:'"$END_EPOCH"':R>", "inline": true},
+                  {"name": "⏳ Ends In", "value": "'"$END_TIME"'", "inline": true},
                   {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
-                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true},
-                  {"name": "🕐 Next Rush", "value": "'"${{ steps.rush_check.outputs.next_rush }}"' at <t:'"$NEXT_EPOCH"':t>", "inline": false}
+                  {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
                 ]
               }]
-            }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
-            echo "✅ Evening Rush START notification sent!"
+            }' "$WEBHOOK_URL"
+            echo "✅ Evening Rush START sent!"
             
           elif [ "$PREV_STATUS" == "evening" ] && [ "$RUSH_STATUS" == "none" ]; then
-            echo "🌆 Evening Rush ENDED!"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
+            NEXT_TIME=$(calculate_time $NEXT_EPOCH)
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush Hour: <t:'"$NEXT_EPOCH"':R>",
+                "description": "🌆 **Evening Rush** has ended.\n\n📊 Normal passenger volume.\n\n⏳ Next Rush in: '"$NEXT_TIME"'",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -221,18 +211,18 @@ jobs:
                   "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
                 }
               }]
-            }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
-            echo "✅ Evening Rush END notification sent!"
+            }' "$WEBHOOK_URL"
+            echo "✅ Evening Rush END sent!"
             
-          # Send Normal Hours status update (when manually triggered)
           elif [ "$RUSH_STATUS" == "none" ]; then
             NEXT_RUSH="${{ steps.rush_check.outputs.next_rush }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
+            NEXT_TIME=$(calculate_time $NEXT_EPOCH)
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ NORMAL HOURS",
-                "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"$NEXT_RUSH"'**\n⏳ **Starts: <t:'"$NEXT_EPOCH"':R>**\n🚶 Normal passenger volume.",
+                "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush: **'"$NEXT_RUSH"'**\n⏳ **Starts in: '"$NEXT_TIME"'**\n🚶 Normal passenger volume.",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -240,11 +230,10 @@ jobs:
                   "icon_url": "https://aizen807.github.io/dns-fare-guide1/icon-192.png"
                 }
               }]
-            }' "$WEBHOOK_URL" -w "\nHTTP Status: %{http_code}\n"
-            echo "✅ Normal Hours status update sent!"
+            }' "$WEBHOOK_URL"
+            echo "✅ Normal Hours sent!"
           fi
           
-          # Save current status for next run
           echo "$RUSH_STATUS" > rush_state.txt
           
       - name: Upload State

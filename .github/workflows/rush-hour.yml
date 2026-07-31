@@ -58,12 +58,30 @@ jobs:
             EVENING_END_EPOCH=$((EVENING_END_EPOCH + 86400))
           fi
           
+          # Human-readable countdown helper (e.g. "2 hours 16 minutes")
+          format_remaining() {
+            local TARGET=$1
+            local DIFF=$(( TARGET - UNIX_TIME ))
+            local HOURS=$(( DIFF / 3600 ))
+            local MINUTES=$(( (DIFF % 3600) / 60 ))
+            local HOUR_LABEL="hours"
+            local MIN_LABEL="minutes"
+            if [ $HOURS -eq 1 ]; then HOUR_LABEL="hour"; fi
+            if [ $MINUTES -eq 1 ]; then MIN_LABEL="minute"; fi
+            if [ $HOURS -gt 0 ]; then
+              echo "${HOURS} ${HOUR_LABEL} ${MINUTES} ${MIN_LABEL}"
+            else
+              echo "${MINUTES} ${MIN_LABEL}"
+            fi
+          }
+          
           # Determine rush status
           if [ $PH_TIME -ge 400 ] && [ $PH_TIME -lt 800 ]; then
             echo "rush_status=morning" >> $GITHUB_OUTPUT
             echo "end_unix=$MORNING_END_EPOCH" >> $GITHUB_OUTPUT
             echo "next_unix=$EVENING_START_EPOCH" >> $GITHUB_OUTPUT
             echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
+            echo "remaining_time=$(format_remaining $MORNING_END_EPOCH)" >> $GITHUB_OUTPUT
             
           elif [ $PH_TIME -ge 1700 ] && [ $PH_TIME -lt 2200 ]; then
             echo "rush_status=evening" >> $GITHUB_OUTPUT
@@ -72,20 +90,24 @@ jobs:
             # (today's 4AM is always in the past by this point) - don't add 86400 again
             echo "next_unix=$MORNING_START_EPOCH" >> $GITHUB_OUTPUT
             echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
+            echo "remaining_time=$(format_remaining $EVENING_END_EPOCH)" >> $GITHUB_OUTPUT
             
           else
             echo "rush_status=none" >> $GITHUB_OUTPUT
             if [ $PH_TIME -lt 400 ]; then
               echo "next_unix=$MORNING_START_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
+              echo "remaining_time=$(format_remaining $MORNING_START_EPOCH)" >> $GITHUB_OUTPUT
             elif [ $PH_TIME -lt 1700 ]; then
               echo "next_unix=$EVENING_START_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Evening Rush" >> $GITHUB_OUTPUT
+              echo "remaining_time=$(format_remaining $EVENING_START_EPOCH)" >> $GITHUB_OUTPUT
             else
               # MORNING_START_EPOCH was already rolled forward to tomorrow above
               # (today's 4AM is always in the past by this point) - don't add 86400 again
               echo "next_unix=$MORNING_START_EPOCH" >> $GITHUB_OUTPUT
               echo "next_rush=Morning Rush" >> $GITHUB_OUTPUT
+              echo "remaining_time=$(format_remaining $MORNING_START_EPOCH)" >> $GITHUB_OUTPUT
             fi
           fi
           
@@ -155,12 +177,13 @@ jobs:
             echo "🌅 Morning Rush STARTED!"
             END_EPOCH="${{ steps.rush_check.outputs.end_unix }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
+            REMAINING="${{ steps.rush_check.outputs.remaining_time }}"
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Morning Rush has started!",
               "embeds": [{
                 "title": "🌅 RUSH HOUR STARTED!",
-                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n⏳ **Ends: <t:'"$END_EPOCH"':R>**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n⏳ **Ends in: '"$REMAINING"'**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
                 "color": 16497956,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -169,7 +192,7 @@ jobs:
                 },
                 "fields": [
                   {"name": "⏰ Time", "value": "4:00 AM - 8:00 AM", "inline": true},
-                  {"name": "⏳ Ends", "value": "<t:'"$END_EPOCH"':R>", "inline": true},
+                  {"name": "⏳ Ends In", "value": "'"$REMAINING"'", "inline": true},
                   {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
                   {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
                 ]
@@ -183,11 +206,13 @@ jobs:
           elif [ "$PREV_STATUS" == "morning" ] && [ "$RUSH_STATUS" == "none" ]; then
             echo "🌅 Morning Rush ENDED!"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
+            NEXT_RUSH_NAME="${{ steps.rush_check.outputs.next_rush }}"
+            REMAINING="${{ steps.rush_check.outputs.remaining_time }}"
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush: <t:'"$NEXT_EPOCH"':R>",
+                "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush: **'"$NEXT_RUSH_NAME"'** — Starts in: '"$REMAINING"'",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -205,12 +230,13 @@ jobs:
             echo "🌆 Evening Rush STARTED!"
             END_EPOCH="${{ steps.rush_check.outputs.end_unix }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
+            REMAINING="${{ steps.rush_check.outputs.remaining_time }}"
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Evening Rush has started!",
               "embeds": [{
                 "title": "🌆 RUSH HOUR STARTED!",
-                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n⏳ **Ends: <t:'"$END_EPOCH"':R>**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n⏳ **Ends in: '"$REMAINING"'**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
                 "color": 16334072,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -219,7 +245,7 @@ jobs:
                 },
                 "fields": [
                   {"name": "⏰ Time", "value": "5:00 PM - 10:00 PM", "inline": true},
-                  {"name": "⏳ Ends", "value": "<t:'"$END_EPOCH"':R>", "inline": true},
+                  {"name": "⏳ Ends In", "value": "'"$REMAINING"'", "inline": true},
                   {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
                   {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
                 ]
@@ -233,11 +259,13 @@ jobs:
           elif [ "$PREV_STATUS" == "evening" ] && [ "$RUSH_STATUS" == "none" ]; then
             echo "🌆 Evening Rush ENDED!"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
+            NEXT_RUSH_NAME="${{ steps.rush_check.outputs.next_rush }}"
+            REMAINING="${{ steps.rush_check.outputs.remaining_time }}"
             
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush: <t:'"$NEXT_EPOCH"':R>",
+                "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush: **'"$NEXT_RUSH_NAME"'** — Starts in: '"$REMAINING"'",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -276,11 +304,12 @@ jobs:
             if [ "$SEND_NORMAL" == "true" ]; then
               NEXT_RUSH="${{ steps.rush_check.outputs.next_rush }}"
               NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
+              REMAINING="${{ steps.rush_check.outputs.remaining_time }}"
               
               curl -X POST -H "Content-Type: application/json" -d '{
                 "embeds": [{
                   "title": "⏰ NORMAL HOURS",
-                  "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"$NEXT_RUSH"'**\n⏳ **Starts: <t:'"$NEXT_EPOCH"':R>**\n🚶 Normal passenger volume.",
+                  "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"$NEXT_RUSH"'**\n⏳ **Starts in: '"$REMAINING"'**\n🚶 Normal passenger volume.",
                   "color": 7039855,
                   "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                   "footer": {

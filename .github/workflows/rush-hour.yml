@@ -183,7 +183,7 @@ jobs:
               "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Morning Rush has started!",
               "embeds": [{
                 "title": "🌅 RUSH HOUR STARTED!",
-                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n⏳ **Ends in: '"$REMAINING"'**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n⏳ **Ends in: '"$REMAINING"'** (<t:'"$END_EPOCH"':R>)\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
                 "color": 16497956,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -192,7 +192,7 @@ jobs:
                 },
                 "fields": [
                   {"name": "⏰ Time", "value": "4:00 AM - 8:00 AM", "inline": true},
-                  {"name": "⏳ Ends In", "value": "'"$REMAINING"'", "inline": true},
+                  {"name": "⏳ Ends In", "value": "'"$REMAINING"' (<t:'"$END_EPOCH"':R>)", "inline": true},
                   {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
                   {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
                 ]
@@ -212,7 +212,7 @@ jobs:
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush: **'"$NEXT_RUSH_NAME"'** — Starts in: '"$REMAINING"'",
+                "description": "🌅 **Morning Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush: **'"$NEXT_RUSH_NAME"'** — Starts in: '"$REMAINING"' (<t:'"$NEXT_EPOCH"':R>)",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -236,7 +236,7 @@ jobs:
               "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Evening Rush has started!",
               "embeds": [{
                 "title": "🌆 RUSH HOUR STARTED!",
-                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n⏳ **Ends in: '"$REMAINING"'**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
+                "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n⏳ **Ends in: '"$REMAINING"'** (<t:'"$END_EPOCH"':R>)\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
                 "color": 16334072,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -245,7 +245,7 @@ jobs:
                 },
                 "fields": [
                   {"name": "⏰ Time", "value": "5:00 PM - 10:00 PM", "inline": true},
-                  {"name": "⏳ Ends In", "value": "'"$REMAINING"'", "inline": true},
+                  {"name": "⏳ Ends In", "value": "'"$REMAINING"' (<t:'"$END_EPOCH"':R>)", "inline": true},
                   {"name": "🚶 Passengers", "value": "⬆️ High Volume", "inline": true},
                   {"name": "💰 Earnings", "value": "🔥 Maximum", "inline": true}
                 ]
@@ -265,7 +265,7 @@ jobs:
             curl -X POST -H "Content-Type: application/json" -d '{
               "embeds": [{
                 "title": "⏰ RUSH HOUR ENDED",
-                "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush: **'"$NEXT_RUSH_NAME"'** — Starts in: '"$REMAINING"'",
+                "description": "🌆 **Evening Rush** has ended.\n\n📊 **Normal passenger volume** now.\n\n🕐 Next Rush: **'"$NEXT_RUSH_NAME"'** — Starts in: '"$REMAINING"' (<t:'"$NEXT_EPOCH"':R>)",
                 "color": 7039855,
                 "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                 "footer": {
@@ -309,7 +309,7 @@ jobs:
               curl -X POST -H "Content-Type: application/json" -d '{
                 "embeds": [{
                   "title": "⏰ NORMAL HOURS",
-                  "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"$NEXT_RUSH"'**\n⏳ **Starts in: '"$REMAINING"'**\n🚶 Normal passenger volume.",
+                  "description": "📊 **No Rush Hour** currently.\n\n🕐 Next Rush Hour: **'"$NEXT_RUSH"'**\n⏳ **Starts in: '"$REMAINING"'** (<t:'"$NEXT_EPOCH"':R>)\n🚶 Normal passenger volume.",
                   "color": 7039855,
                   "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'",
                   "footer": {

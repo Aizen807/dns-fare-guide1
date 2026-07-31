@@ -116,7 +116,7 @@ jobs:
           
       - name: Check State Change and Send Notifications
         env:
-          WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
+          WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           ROLE_IDS: "<@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259>"
         run: |
           RUSH_STATUS="${{ steps.rush_check.outputs.rush_status }}"

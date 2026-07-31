@@ -2,7 +2,7 @@ name: 🚦 Rush Hour Notifications
 
 on:
   schedule:
-    - cron: '*/10 * * * *'  # Every 5 minutes
+    - cron: '*/5 * * * *'  # Every 5 minutes
   workflow_dispatch:  # Manual trigger button
 
 jobs:
@@ -117,6 +117,7 @@ jobs:
       - name: Check State Change and Send Notifications
         env:
           WEBHOOK_URL: "https://discord.com/api/webhooks/1532384477567910141/B-vRoVNAVqPXJVfPvkzfJvfsF_kTQ8DzSISnlzwiUKXDVZuiPrYpfzuZ7p5TT36ENHHG"
+          ROLE_IDS: "<@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259>"
         run: |
           RUSH_STATUS="${{ steps.rush_check.outputs.rush_status }}"
           PH_TIME=${{ steps.rush_check.outputs.ph_time }}
@@ -138,6 +139,7 @@ jobs:
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
             
             curl -X POST -H "Content-Type: application/json" -d '{
+              "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Morning Rush has started!",
               "embeds": [{
                 "title": "🌅 RUSH HOUR STARTED!",
                 "description": "**Morning Rush** is now active!\n\n🕐 **4:00 AM - 8:00 AM** (Philippines Time)\n⏳ **Ends: <t:'"$END_EPOCH"':R>**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
@@ -156,7 +158,7 @@ jobs:
                 ]
               }]
             }' $WEBHOOK_URL
-            echo "✅ Morning Rush START notification sent!"
+            echo "✅ Morning Rush START notification sent with role mentions!"
             
           elif [ "$PREV_STATUS" == "morning" ] && [ "$RUSH_STATUS" == "none" ]; then
             echo "🌅 Morning Rush ENDED!"
@@ -182,6 +184,7 @@ jobs:
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"
             
             curl -X POST -H "Content-Type: application/json" -d '{
+              "content": "🚦 <@&1532303196205092894> <@&1532303872851312661> <@&1532335196094074940> <@&1532301654152445972> <@&1532298659847344259> Evening Rush has started!",
               "embeds": [{
                 "title": "🌆 RUSH HOUR STARTED!",
                 "description": "**Evening Rush** is now active!\n\n🕐 **5:00 PM - 10:00 PM** (Philippines Time)\n⏳ **Ends: <t:'"$END_EPOCH"':R>**\n🚶 **More passengers available!**\n\n💡 This is the best time to drive for maximum earnings!",
@@ -200,7 +203,7 @@ jobs:
                 ]
               }]
             }' $WEBHOOK_URL
-            echo "✅ Evening Rush START notification sent!"
+            echo "✅ Evening Rush START notification sent with role mentions!"
             
           elif [ "$PREV_STATUS" == "evening" ] && [ "$RUSH_STATUS" == "none" ]; then
             echo "🌆 Evening Rush ENDED!"
@@ -220,7 +223,7 @@ jobs:
             }' $WEBHOOK_URL
             echo "✅ Evening Rush END notification sent!"
             
-          # Send Normal Hours status EVERY 5 MINUTES (changed from 30 minutes)
+          # Send Normal Hours status every 5 minutes
           elif [ "$RUSH_STATUS" == "none" ]; then
             NEXT_RUSH="${{ steps.rush_check.outputs.next_rush }}"
             NEXT_EPOCH="${{ steps.rush_check.outputs.next_unix }}"

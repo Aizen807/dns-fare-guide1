@@ -754,6 +754,58 @@ select:focus-visible{
   margin-bottom:16px;
 }
 
+.favorite-chips{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.favorite-chip{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:var(--panel-2);
+  border:1px solid var(--sign);
+  color:var(--sign);
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  padding:7px 8px 7px 12px;
+  border-radius:20px;
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
+.favorite-chip:hover{transform:translateY(-2px);box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.favorite-chip:active{transform:scale(0.95);}
+.favorite-chip .unpin-btn{
+  background:none;
+  border:none;
+  color:var(--sign);
+  opacity:0.6;
+  font-size:14px;
+  line-height:1;
+  cursor:pointer;
+  padding:2px 2px;
+}
+.favorite-chip .unpin-btn:hover{opacity:1;}
+
+.pin-route-row{display:flex;justify-content:flex-end;margin-top:-4px;margin-bottom:12px;}
+.pin-route-btn{
+  background:none;
+  border:1px solid var(--line);
+  color:var(--paper-dim);
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  padding:6px 12px;
+  border-radius:20px;
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
+.pin-route-btn:hover{border-color:var(--sign);color:var(--sign);}
+.pin-route-btn.pinned{
+  background:var(--sign);
+  border-color:var(--sign);
+  color:var(--sign-deep);
+}
+.pin-route-btn:active{transform:scale(0.95);}
+
+
 .pax-board-header{
   display:flex;
   align-items:center;
@@ -1589,6 +1641,7 @@ select:focus-visible{
     </details>
 
     <div class="route-tabs" id="routeTabs"></div>
+    <div class="favorite-chips" id="favoriteChips"></div>
     <div class="recent-chips" id="recentChips"></div>
 
     <div class="board" id="mainBoard">
@@ -1603,6 +1656,10 @@ select:focus-visible{
           <label>Drop-off barangay</label>
           <select id="toSelect"></select>
         </div>
+      </div>
+
+      <div class="pin-route-row">
+        <button class="pin-route-btn" id="pinRouteBtn" aria-pressed="false">&#9734; I-pin ang route na ito</button>
       </div>
 
       <div class="pax-board">
@@ -1917,6 +1974,10 @@ select:focus-visible{
     <summary class="guide-summary">Mga Update (I-tap para makita)</summary>
     <div class="guide-body">
       <ul class="changelog-list">
+        <li class="changelog-item">
+          <span class="changelog-version">v4.9.6</span>
+          <span class="changelog-text">⭐ Idinagdag ang "Pin this route" feature! I-save ang paboritong route mo para hindi na ito mawala sa recent trips.<span class="changelog-date">August 1, 2026</span></span>
+        </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.5</span>
           <span class="changelog-text">🎁 Added new code "booster" — redeem for ₱5000 Cash + 500 exp.<span class="changelog-date">August 1, 2026</span></span>
@@ -3163,6 +3224,7 @@ function computeFare() {
     breakdownOut.textContent = "Pumili ng valid na pickup at drop-off.";
     directionOut.textContent = "Select barangays";
     computeSukli();
+    updatePinButtonState();
     return;
   }
   const result = calculateFare(fromIdx, toIdx, paxCounts);
@@ -3196,6 +3258,7 @@ function computeFare() {
     breakdownOut.textContent = `${unitNote} -> ${pieces.join(" + ")}`;
   }
   computeSukli();
+  updatePinButtonState();
 }
 
 let lastSukliValue = null;
@@ -3291,6 +3354,7 @@ document.getElementById("swapBtn").onclick = () => {
 
 fromSelect.addEventListener("change", () => { SoundFX.play('click'); computeFareDebounced(); });
 toSelect.addEventListener("change", () => { SoundFX.play('click'); computeFareDebounced(); });
+document.getElementById('pinRouteBtn').addEventListener('click', togglePinCurrentRoute);
 paidInput.addEventListener("input", computeSukli);
 
 document.getElementById("clearPaxBtn").onclick = () => {
@@ -3307,7 +3371,96 @@ function syncPaxDisplay() {
   document.getElementById("countSenior").textContent = paxCounts.senior;
 }
 
+const FAVORITES_KEY = 'fareMatrixFavorites';
+
+function getFavorites() {
+  try {
+    const raw = localStorage.getItem(FAVORITES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveFavorites(favs) {
+  try { localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs)); } catch {}
+}
+
+function isCurrentRoutePinned() {
+  const favs = getFavorites();
+  return favs.some(f => f.routeKey === currentRoute && f.fromValue === fromSelect.value && f.toValue === toSelect.value);
+}
+
+function updatePinButtonState() {
+  const btn = document.getElementById('pinRouteBtn');
+  if (!btn) return;
+  const pinned = isCurrentRoutePinned();
+  btn.classList.toggle('pinned', pinned);
+  btn.setAttribute('aria-pressed', pinned ? 'true' : 'false');
+  btn.innerHTML = pinned ? '&#9733; Naka-pin' : '&#9734; I-pin ang route na ito';
+}
+
+function togglePinCurrentRoute() {
+  const fromName = fromSelect.options[fromSelect.selectedIndex]?.textContent || "";
+  const toName = toSelect.options[toSelect.selectedIndex]?.textContent || "";
+  if (!fromName || !toName) return;
+  const label = `${fromName} \u2192 ${toName}`;
+  let favs = getFavorites();
+  const alreadyPinned = isCurrentRoutePinned();
+  if (alreadyPinned) {
+    favs = favs.filter(f => !(f.routeKey === currentRoute && f.fromValue === fromSelect.value && f.toValue === toSelect.value));
+  } else {
+    favs.unshift({ routeKey: currentRoute, fromValue: fromSelect.value, toValue: toSelect.value, label });
+    favs = favs.slice(0, 20);
+  }
+  saveFavorites(favs);
+  updatePinButtonState();
+  renderFavoriteChips();
+  SoundFX.play(alreadyPinned ? 'click' : 'coin');
+  hapticLight();
+  showToast(alreadyPinned ? 'Tinanggal sa pinned routes' : '\u2B50 Na-pin ang route!');
+}
+
+function renderFavoriteChips() {
+  const wrap = document.getElementById('favoriteChips');
+  if (!wrap) return;
+  const favs = getFavorites().filter(f => f.routeKey === currentRoute);
+  wrap.innerHTML = '';
+  if (favs.length === 0) return;
+  favs.forEach(fav => {
+    const chip = document.createElement('div');
+    chip.className = 'favorite-chip';
+    const label = document.createElement('span');
+    label.textContent = `\u2B50 ${fav.label}`;
+    label.onclick = () => {
+      if (fav.fromValue && fav.toValue) {
+        fromSelect.value = fav.fromValue;
+        toSelect.value = fav.toValue;
+      }
+      SoundFX.play('click');
+      hapticLight();
+      computeFareDebounced();
+    };
+    const unpinBtn = document.createElement('button');
+    unpinBtn.className = 'unpin-btn';
+    unpinBtn.setAttribute('aria-label', 'Alisin sa pinned routes');
+    unpinBtn.textContent = '\u2715';
+    unpinBtn.onclick = (e) => {
+      e.stopPropagation();
+      let favsAll = getFavorites();
+      favsAll = favsAll.filter(f => !(f.routeKey === fav.routeKey && f.fromValue === fav.fromValue && f.toValue === fav.toValue));
+      saveFavorites(favsAll);
+      renderFavoriteChips();
+      updatePinButtonState();
+      SoundFX.play('click');
+      hapticLight();
+    };
+    chip.appendChild(label);
+    chip.appendChild(unpinBtn);
+    wrap.appendChild(chip);
+  });
+}
+
 function renderRecentChips() {
+  renderFavoriteChips();
   const wrap = document.getElementById("recentChips");
   wrap.innerHTML = "";
   const filtered = recentDestinations.filter(d => d.routeKey === currentRoute);

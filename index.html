@@ -1918,6 +1918,10 @@ select:focus-visible{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.9.5</span>
+          <span class="changelog-text">🎁 Added new code "booster" — redeem for ₱5000 Cash + 500 exp.<span class="changelog-date">August 1, 2026</span></span>
+          </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.9.4</span>
           <span class="changelog-text">🔊 Audio overlay now shows only once per device! After enabling sound, it won't appear again on refresh or reopen. Uses localStorage to remember user preference.<span class="changelog-date">July 31, 2026</span></span>
         </li>
@@ -2048,7 +2052,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9.4 &middot; updated July 31, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.5 &middot; updated July 31, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -2546,6 +2550,7 @@ function copyFallback(text) {
 // ============================================================
 const CODES = [
   { code: 'nitro', reward: '₱6767 Cash + 670 exp', expires: 'unknown', status: 'valid' },
+  { code: 'booster', reward: '5000 Cash + 500 exp', expires: 'unknown', status: 'valid' },
 ];
 
 const USED_CODES_KEY = 'fareMatrixUsedCodes';

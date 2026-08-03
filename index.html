@@ -900,6 +900,48 @@ select:focus-visible{
   outline:3px solid var(--sign);
   outline-offset:2px;
 }
+.shortcut-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-top:8px;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  color:var(--paper-dim);
+}
+.shortcut-row kbd{
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-bottom-width:2px;
+  border-radius:6px;
+  padding:2px 7px;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  color:var(--paper);
+}
+.shortcut-change-btn{
+  background:none;
+  border:none;
+  color:var(--paper-dim);
+  text-decoration:underline;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  cursor:pointer;
+  padding:2px 4px;
+}
+.shortcut-change-btn:hover{color:var(--sign);}
+.shortcut-change-btn.capturing{
+  color:var(--sign);
+  font-weight:700;
+  text-decoration:none;
+  animation:pulse-capture 1s ease-in-out infinite;
+}
+@keyframes pulse-capture{
+  0%,100%{opacity:1;}
+  50%{opacity:0.5;}
+}
 .session-reset-row{
   text-align:center;
   margin-top:10px;
@@ -1710,7 +1752,11 @@ select:focus-visible{
 
       <div class="route-list" id="routeListOut"></div>
 
-      <button class="complete-trip-btn" id="completeTripBtn">Complete trip</button>
+      <button class="complete-trip-btn" id="completeTripBtn" title="Shortcut: Enter">Complete trip</button>
+      <div class="shortcut-row">
+        <span class="shortcut-label">Shortcut: <kbd id="shortcutKeyDisplay">Enter</kbd></span>
+        <button class="shortcut-change-btn" id="changeShortcutBtn" type="button">Palitan</button>
+      </div>
     </div>
 
     <div class="session-board">
@@ -1974,6 +2020,14 @@ select:focus-visible{
     <summary class="guide-summary">Mga Update (I-tap para makita)</summary>
     <div class="guide-body">
       <ul class="changelog-list">
+        <li class="changelog-item">
+          <span class="changelog-version">v4.9.8</span>
+          <span class="changelog-text">⌨️ Ma-cu-customize na ngayon ang Complete Trip shortcut key! I-tap ang "Palitan" at pindutin ang gusto mong key.<span class="changelog-date">August 1, 2026</span></span>
+        </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v4.9.7</span>
+          <span class="changelog-text">⌨️ PC keyboard shortcut: pindutin ang Enter para i-complete ang trip, hindi na kailangan mag-scroll pababa.<span class="changelog-date">August 1, 2026</span></span>
+        </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.6</span>
           <span class="changelog-text">⭐ Idinagdag ang "Pin this route" feature! I-save ang paboritong route mo para hindi na ito mawala sa recent trips.<span class="changelog-date">August 1, 2026</span></span>
@@ -3550,7 +3604,7 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-document.getElementById("completeTripBtn").onclick = () => {
+function completeTrip() {
   const fare = parseFloat(fareInput.value) || 0;
   if (fare <= 0) { showToast("Walang pasahero o fare na zero."); return; }
   sessionTotal += fare;
@@ -3567,7 +3621,92 @@ document.getElementById("completeTripBtn").onclick = () => {
   syncPaxDisplay();
   paidInput.value = "";
   computeFareDebounced();
-};
+}
+
+document.getElementById("completeTripBtn").onclick = completeTrip;
+
+// --- Customizable keyboard shortcut for Complete Trip ---
+const SHORTCUT_KEY_STORAGE = 'fareMatrixShortcutKey';
+let shortcutKey = 'Enter';
+try {
+  const saved = localStorage.getItem(SHORTCUT_KEY_STORAGE);
+  if (saved) shortcutKey = saved;
+} catch {}
+
+let isCapturingShortcut = false;
+const IGNORED_CAPTURE_KEYS = ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'];
+
+function displayKeyName(key) {
+  if (key === ' ') return 'Space';
+  if (key.length === 1) return key.toUpperCase();
+  return key; // Enter, Escape, ArrowUp, F1, etc. are already readable as-is
+}
+
+function updateShortcutDisplay() {
+  const display = document.getElementById('shortcutKeyDisplay');
+  const btn = document.getElementById('completeTripBtn');
+  if (display) display.textContent = displayKeyName(shortcutKey);
+  if (btn) btn.title = `Shortcut: ${displayKeyName(shortcutKey)}`;
+}
+
+function startShortcutCapture() {
+  isCapturingShortcut = true;
+  const changeBtn = document.getElementById('changeShortcutBtn');
+  changeBtn.textContent = 'Pindutin ang key... (Esc para kanselahin)';
+  changeBtn.classList.add('capturing');
+}
+
+function stopShortcutCapture() {
+  isCapturingShortcut = false;
+  const changeBtn = document.getElementById('changeShortcutBtn');
+  changeBtn.textContent = 'Palitan';
+  changeBtn.classList.remove('capturing');
+}
+
+document.getElementById('changeShortcutBtn').addEventListener('click', () => {
+  if (isCapturingShortcut) { stopShortcutCapture(); return; }
+  startShortcutCapture();
+});
+
+updateShortcutDisplay();
+
+// Keyboard shortcut for PC users: press the chosen key anywhere on the page
+// to complete the trip, without needing to scroll down and click the button.
+// Skipped inside the feedback form, the fuel calculator inputs, any
+// textarea/select, and any focused button/link/non-number input - those
+// either have their own native key behavior or are places where typing
+// shouldn't accidentally trigger the shortcut.
+document.addEventListener('keydown', (e) => {
+  if (isCapturingShortcut) {
+    if (IGNORED_CAPTURE_KEYS.includes(e.key)) return; // wait for a real key
+    e.preventDefault();
+    if (e.key === 'Escape') { stopShortcutCapture(); return; }
+    shortcutKey = e.key;
+    try { localStorage.setItem(SHORTCUT_KEY_STORAGE, shortcutKey); } catch {}
+    updateShortcutDisplay();
+    stopShortcutCapture();
+    SoundFX.play('click');
+    showToast(`⌨️ Na-set ang shortcut sa "${displayKeyName(shortcutKey)}"`);
+    return;
+  }
+
+  if (e.key !== shortcutKey) return;
+  const active = document.activeElement;
+  if (active && (
+    active.closest('#feedbackForm') ||
+    active.id === 'fuelAmount' ||
+    active.id === 'fuelCost' ||
+    active.tagName === 'TEXTAREA' ||
+    active.tagName === 'SELECT' ||
+    active.tagName === 'BUTTON' ||
+    active.tagName === 'A' ||
+    (active.tagName === 'INPUT' && active.type !== 'number')
+  )) {
+    return;
+  }
+  e.preventDefault();
+  completeTrip();
+});
 
 document.getElementById("sessionSaveBtn").onclick = () => {
   if (tripCount === 0 && sessionTotal === 0) { showToast("Walang trip na na-save sa session."); return; }

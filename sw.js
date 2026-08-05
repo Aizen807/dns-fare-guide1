@@ -16,7 +16,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('[SW] Caching assets v4.9.8');
+        console.log('[SW] Caching assets v4.9.9');
         return Promise.all(
           ASSETS.map((asset) =>
             cache.add(asset).catch((err) => {

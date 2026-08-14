@@ -518,6 +518,18 @@ select:focus-visible{
 }
 
 .pax-board{margin-bottom:16px;}
+.stale-pax-warning{
+  background:rgba(194,60,42,0.12);
+  border:1px solid var(--route-red);
+  color:var(--paper);
+  font-family:'Inter',sans-serif;
+  font-size:12.5px;
+  line-height:1.5;
+  padding:10px 12px;
+  border-radius:8px;
+  margin-bottom:12px;
+}
+.stale-pax-warning b{color:var(--sign);}
 .pax-row{
   display:flex;
   align-items:center;
@@ -1704,6 +1716,10 @@ select:focus-visible{
         <button class="pin-route-btn" id="pinRouteBtn" aria-pressed="false">&#9734; I-pin ang route na ito</button>
       </div>
 
+      <div class="stale-pax-warning" id="stalePaxWarning" style="display:none;">
+        ⚠️ May pasaherong naka-count pa mula sa nakaraang byahe. I-tap ang <b>Complete Trip</b> kung tapos na, o <b>Clear</b> kung magsisimula ng bagong byahe.
+      </div>
+
       <div class="pax-board">
         <div class="pax-board-header">
           <span class="pax-board-title">Pasahero</span>
@@ -2021,12 +2037,16 @@ select:focus-visible{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.9.12</span>
+          <span class="changelog-text">⚠️ Idinagdag ang reminder kapag may naiwang pasahero na hindi pa na-Complete Trip bago lumipat ng destinasyon o route, para maiwasan ang maling fare mula sa hindi na-reset na dating byahe.<span class="changelog-date">August 14, 2026</span></span>
+          </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.9.11</span>
           <span class="changelog-text">⛽ Updated fuel prices for the latest oil price rollback! Diesel -₱4.30/L, Unleaded -₱4.70/L, Premium -₱4.70/L across all 5 gas stations. "Best Station" badges update automatically to match.<span class="changelog-date">August 10, 2026</span></span>
           </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.10</span>
-          <span class="changelog-text">🎁 Added new codes "VOTEKICK, Oplan Paldo, and 08/08/2026" redeem for Cash and Exp.<span class="changelog-date">August 1, 2026</span></span>
+          <span class="changelog-text">🎁 Added new code "VOTEKICK, Oplan Paldo, and 08/08/2026" redeem for Cash and Exp.<span class="changelog-date">August 1, 2026</span></span>
           </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.9</span>
@@ -2179,7 +2199,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9.11 &middot; updated August 10, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.12 &middot; updated August 14, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -3226,6 +3246,7 @@ function refreshRouteWithKey(key) {
     buildSelects();
     buildRouteList();
     renderRecentChips();
+    checkStalePaxWarning();
     computeFareDebounced();
     mainBoard.classList.remove('fade-transition');
     isTransitioning = false;
@@ -3421,14 +3442,24 @@ document.getElementById("swapBtn").onclick = () => {
   computeFareDebounced();
 };
 
-fromSelect.addEventListener("change", () => { SoundFX.play('click'); computeFareDebounced(); });
-toSelect.addEventListener("change", () => { SoundFX.play('click'); computeFareDebounced(); });
+function checkStalePaxWarning() {
+  const totalPax = paxCounts.regular + paxCounts.student + paxCounts.senior;
+  document.getElementById("stalePaxWarning").style.display = totalPax > 0 ? "block" : "none";
+}
+
+function hideStalePaxWarning() {
+  document.getElementById("stalePaxWarning").style.display = "none";
+}
+
+fromSelect.addEventListener("change", () => { SoundFX.play('click'); checkStalePaxWarning(); computeFareDebounced(); });
+toSelect.addEventListener("change", () => { SoundFX.play('click'); checkStalePaxWarning(); computeFareDebounced(); });
 document.getElementById('pinRouteBtn').addEventListener('click', togglePinCurrentRoute);
 paidInput.addEventListener("input", computeSukli);
 
 document.getElementById("clearPaxBtn").onclick = () => {
   paxCounts = { regular: 0, student: 0, senior: 0 };
   syncPaxDisplay();
+  hideStalePaxWarning();
   SoundFX.play('click');
   hapticLight();
   computeFareDebounced();
@@ -3634,6 +3665,7 @@ function completeTrip() {
   showToast(`✓ Trip completed! +₱${fare}`);
   paxCounts = { regular: 0, student: 0, senior: 0 };
   syncPaxDisplay();
+  hideStalePaxWarning();
   paidInput.value = "";
   computeFareDebounced();
 }

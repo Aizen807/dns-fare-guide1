@@ -531,6 +531,24 @@ select:focus-visible{
   margin-bottom:12px;
 }
 .stale-pax-warning b{color:var(--sign);}
+
+select:disabled,
+.swap-btn:disabled{
+  opacity:0.45;
+  cursor:not-allowed;
+  filter:grayscale(0.4);
+}
+.route-tab.locked{
+  opacity:0.45;
+  cursor:not-allowed;
+  filter:grayscale(0.4);
+}
+.recent-chip.locked,
+.favorite-chip.locked{
+  opacity:0.45;
+  cursor:not-allowed;
+  filter:grayscale(0.4);
+}
 .pax-row{
   display:flex;
   align-items:center;
@@ -1718,7 +1736,7 @@ select:focus-visible{
       </div>
 
       <div class="stale-pax-warning" id="stalePaxWarning" style="display:none;">
-        ⚠️ May pasaherong naka-count pa mula sa nakaraang byahe. I-tap ang <b>Complete Trip</b> kung tapos na, o <b>Clear</b> kung magsisimula ng bagong byahe.
+        🔒 Naka-lock ang Route/Pickup/Drop-off habang may pasahero pa. I-tap ang <b>Complete Trip</b> kung tapos na, o <b>Clear</b> kung magsisimula ng bagong byahe.
       </div>
 
       <div class="pax-board">
@@ -2038,6 +2056,10 @@ select:focus-visible{
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.9.15</span>
+          <span class="changelog-text">🔒 Naka-lock na ngayon ang Route, Pickup/Drop-off, Swap, at mga chips habang may pasaherong hindi pa na-Complete Trip, hindi na lang basta reminder. Kailangan munang i-tap ang Complete Trip o Clear bago makapagpalit, para 100% maiwasan ang maling sukli.<span class="changelog-date">August 19, 2026</span></span>
+          </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.9.14</span>
           <span class="changelog-text">🔍 Idinagdag ang site name tag para lumabas "Fare Matrix" sa Google search results imbes na "GitHub Pages documentation."<span class="changelog-date">August 18, 2026</span></span>
           </li>
@@ -2208,7 +2230,7 @@ select:focus-visible{
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9.14 &middot; updated August 18, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.15 &middot; updated August 19, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -3237,6 +3259,10 @@ function buildTabs() {
     btn.setAttribute('role', 'tab');
     btn.setAttribute('aria-selected', key === currentRoute ? 'true' : 'false');
     btn.onclick = () => {
+      if (isTripLocked()) {
+        showLockedMessage();
+        return;
+      }
       if (key !== currentRoute && !isTransitioning) {
         SoundFX.play('chime');
         refreshRouteWithKey(key);
@@ -3255,7 +3281,7 @@ function refreshRouteWithKey(key) {
     buildSelects();
     buildRouteList();
     renderRecentChips();
-    checkStalePaxWarning();
+    updateTripLockState();
     computeFareDebounced();
     mainBoard.classList.remove('fade-transition');
     isTransitioning = false;
@@ -3413,6 +3439,7 @@ function refreshRoute() {
   buildSelects();
   buildRouteList();
   renderRecentChips();
+  updateTripLockState();
   computeFareDebounced();
 }
 
@@ -3438,11 +3465,16 @@ document.querySelectorAll(".step-btn").forEach(btn => {
     void countEl.offsetWidth;
     countEl.classList.add('pop');
     setTimeout(() => countEl.classList.remove('pop'), 250);
+    updateTripLockState();
     computeFareDebounced();
   };
 });
 
 document.getElementById("swapBtn").onclick = () => {
+  if (isTripLocked()) {
+    showLockedMessage();
+    return;
+  }
   const tmp = fromSelect.value;
   fromSelect.value = toSelect.value;
   toSelect.value = tmp;
@@ -3451,24 +3483,35 @@ document.getElementById("swapBtn").onclick = () => {
   computeFareDebounced();
 };
 
-function checkStalePaxWarning() {
-  const totalPax = paxCounts.regular + paxCounts.student + paxCounts.senior;
-  document.getElementById("stalePaxWarning").style.display = totalPax > 0 ? "block" : "none";
+function isTripLocked() {
+  return (paxCounts.regular + paxCounts.student + paxCounts.senior) > 0;
 }
 
-function hideStalePaxWarning() {
-  document.getElementById("stalePaxWarning").style.display = "none";
+function showLockedMessage() {
+  showToast("🔒 Naka-lock habang may pasahero pa. Complete Trip o Clear muna.");
+  SoundFX.play('click');
 }
 
-fromSelect.addEventListener("change", () => { SoundFX.play('click'); checkStalePaxWarning(); computeFareDebounced(); });
-toSelect.addEventListener("change", () => { SoundFX.play('click'); checkStalePaxWarning(); computeFareDebounced(); });
+function updateTripLockState() {
+  const locked = isTripLocked();
+  document.getElementById("stalePaxWarning").style.display = locked ? "block" : "none";
+  fromSelect.disabled = locked;
+  toSelect.disabled = locked;
+  document.getElementById("swapBtn").disabled = locked;
+  document.querySelectorAll(".route-tab").forEach(tab => tab.classList.toggle("locked", locked));
+  document.querySelectorAll(".recent-chip").forEach(chip => chip.classList.toggle("locked", locked));
+  document.querySelectorAll(".favorite-chip").forEach(chip => chip.classList.toggle("locked", locked));
+}
+
+fromSelect.addEventListener("change", () => { SoundFX.play('click'); updateTripLockState(); computeFareDebounced(); });
+toSelect.addEventListener("change", () => { SoundFX.play('click'); updateTripLockState(); computeFareDebounced(); });
 document.getElementById('pinRouteBtn').addEventListener('click', togglePinCurrentRoute);
 paidInput.addEventListener("input", computeSukli);
 
 document.getElementById("clearPaxBtn").onclick = () => {
   paxCounts = { regular: 0, student: 0, senior: 0 };
   syncPaxDisplay();
-  hideStalePaxWarning();
+  updateTripLockState();
   SoundFX.play('click');
   hapticLight();
   computeFareDebounced();
@@ -3540,6 +3583,10 @@ function renderFavoriteChips() {
     const label = document.createElement('span');
     label.textContent = `\u2B50 ${fav.label}`;
     label.onclick = () => {
+      if (isTripLocked()) {
+        showLockedMessage();
+        return;
+      }
       if (fav.fromValue && fav.toValue) {
         fromSelect.value = fav.fromValue;
         toSelect.value = fav.toValue;
@@ -3582,6 +3629,10 @@ function renderRecentChips() {
     chip.className = "recent-chip";
     chip.textContent = dest.label;
     chip.onclick = () => {
+      if (isTripLocked()) {
+        showLockedMessage();
+        return;
+      }
       if (dest.fromValue && dest.toValue) {
         fromSelect.value = dest.fromValue;
         toSelect.value = dest.toValue;
@@ -3674,7 +3725,7 @@ function completeTrip() {
   showToast(`✓ Trip completed! +₱${fare}`);
   paxCounts = { regular: 0, student: 0, senior: 0 };
   syncPaxDisplay();
-  hideStalePaxWarning();
+  updateTripLockState();
   paidInput.value = "";
   computeFareDebounced();
 }

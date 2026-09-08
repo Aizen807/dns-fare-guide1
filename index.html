@@ -144,6 +144,77 @@
   outline-offset:2px;
 }
 
+.share-modal-overlay{
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.6);
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.share-modal{
+  background:var(--panel);
+  border:2px solid var(--line);
+  border-radius:14px;
+  padding:20px;
+  max-width:340px;
+  width:100%;
+}
+.share-modal-title{
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--sign);
+  margin-bottom:14px;
+  text-align:center;
+}
+.share-modal-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+.share-option{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:14px 8px;
+  color:var(--paper);
+  font-family:'Inter',sans-serif;
+  font-size:12.5px;
+  font-weight:600;
+  text-decoration:none;
+  cursor:pointer;
+  transition:all 0.15s ease;
+}
+.share-option:hover{
+  border-color:var(--sign);
+  transform:translateY(-2px);
+}
+.share-option-icon{font-size:22px;}
+.share-modal-close{
+  width:100%;
+  background:none;
+  border:1px solid var(--paper-dim);
+  color:var(--paper-dim);
+  font-family:'Oswald',sans-serif;
+  font-weight:600;
+  font-size:12.5px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  padding:10px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
 /* Discord Button Styles */
 .discord-btn {
   display:block;
@@ -236,6 +307,32 @@ button, select, .recent-chip, .route-tab, .quick-btn, .complete-trip-btn,
 
 .wrap{max-width:640px;margin:0 auto;}
 
+.inapp-banner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background:rgba(243,178,44,0.12);
+  border:1px solid var(--sign);
+  color:var(--paper);
+  font-family:'Inter',sans-serif;
+  font-size:12.5px;
+  line-height:1.5;
+  padding:10px 12px;
+  border-radius:8px;
+  margin-bottom:16px;
+}
+.inapp-banner b{color:var(--sign);}
+.inapp-banner-close{
+  flex:0 0 auto;
+  background:none;
+  border:none;
+  color:var(--paper-dim);
+  font-size:20px;
+  line-height:1;
+  cursor:pointer;
+  padding:0 2px;
+}
 .plate-row{display:flex;align-items:center;gap:14px;margin-bottom:6px;}
 .plate{
   background:var(--sign);
@@ -351,6 +448,16 @@ h1{
   transition:transform 0.15s ease;
 }
 .guide-box[open] .guide-summary::after{transform:rotate(180deg);}
+.update-badge{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  background:var(--route-red);
+  border-radius:50%;
+  margin-left:7px;
+  vertical-align:middle;
+  box-shadow:0 0 0 2px rgba(194,60,42,0.25);
+}
 .guide-body{
   padding:0 18px 18px;
   border-top:1px dashed var(--line);
@@ -1679,6 +1786,11 @@ select:disabled,
 
 <div class="wrap">
 
+  <div class="inapp-banner" id="inAppBanner" style="display:none;">
+    <span id="inAppBannerText"></span>
+    <button class="inapp-banner-close" id="inAppBannerClose" aria-label="Isara">&times;</button>
+  </div>
+
   <div class="plate-row">
     <div class="plate">05</div>
     <div class="eyebrow">Diesel N Steel</div>
@@ -1818,6 +1930,26 @@ select:disabled,
       </div>
 
       <div class="route-list" id="routeListOut"></div>
+    </div>
+
+    <div class="section-title">Sukli calculator</div>
+    <div class="board">
+      <div class="sukli-grid">
+        <div class="field">
+          <label>Total fare (php)</label>
+          <input type="number" id="fareInput" value="13" min="0" step="1" readonly aria-label="Total fare amount">
+        </div>
+        <div class="field">
+          <label>Binayad (php)</label>
+          <input type="number" id="paidInput" placeholder="0" min="0" step="1" aria-label="Amount paid">
+        </div>
+      </div>
+      <div class="quick-amounts" id="quickAmounts"></div>
+      <div class="sukli-result" id="sukliResult">
+        <div class="sukli-label">Naghihintay ng sukli</div>
+        <div class="sukli-amount" id="sukliOut" aria-live="polite">&#8369;0</div>
+        <div class="sukli-note" id="sukliNote">Ilagay ang binayad para makuha ang sukli.</div>
+      </div>
 
       <button class="complete-trip-btn" id="completeTripBtn" title="Shortcut: Enter">Complete trip</button>
       <div class="shortcut-row">
@@ -1848,26 +1980,6 @@ select:disabled,
         <button class="session-clear-history-btn" id="sessionClearHistoryBtn">I-clear ang history</button>
       </div>
     </details>
-
-    <div class="section-title">Sukli calculator</div>
-    <div class="board">
-      <div class="sukli-grid">
-        <div class="field">
-          <label>Total fare (php)</label>
-          <input type="number" id="fareInput" value="13" min="0" step="1" readonly aria-label="Total fare amount">
-        </div>
-        <div class="field">
-          <label>Binayad (php)</label>
-          <input type="number" id="paidInput" placeholder="0" min="0" step="1" aria-label="Amount paid">
-        </div>
-      </div>
-      <div class="quick-amounts" id="quickAmounts"></div>
-      <div class="sukli-result" id="sukliResult">
-        <div class="sukli-label">Naghihintay ng sukli</div>
-        <div class="sukli-amount" id="sukliOut" aria-live="polite">&#8369;0</div>
-        <div class="sukli-note" id="sukliNote">Ilagay ang binayad para makuha ang sukli.</div>
-      </div>
-    </div>
   </div>
 
   <!-- ============================================================
@@ -2027,6 +2139,30 @@ select:disabled,
     <button class="share-btn" id="shareBtn">
       📤 Share Fare Matrix
     </button>
+
+    <div class="share-modal-overlay" id="shareModalOverlay" style="display:none;">
+      <div class="share-modal">
+        <div class="share-modal-title">I-share sa:</div>
+        <div class="share-modal-grid">
+          <a href="#" class="share-option" id="shareFacebook">
+            <span class="share-option-icon">📘</span> Facebook
+          </a>
+          <a href="#" class="share-option" id="shareMessenger">
+            <span class="share-option-icon">💬</span> Messenger
+          </a>
+          <a href="#" class="share-option" id="shareWhatsapp">
+            <span class="share-option-icon">💚</span> WhatsApp
+          </a>
+          <a href="#" class="share-option" id="shareTelegram">
+            <span class="share-option-icon">✈️</span> Telegram
+          </a>
+          <button class="share-option" id="shareCopyLink">
+            <span class="share-option-icon">📋</span> Copy Link
+          </button>
+        </div>
+        <button class="share-modal-close" id="shareModalClose">Isara</button>
+      </div>
+    </div>
     
     <div style="text-align:center;margin-top:12px;">
       <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--paper-dim);">
@@ -2086,10 +2222,26 @@ select:disabled,
 
   <p class="footnote">Bagumbayan and San Jose count as one barangay (too short to charge separately).<br>Same rule applies to San Juan and Sto. Rosario on the Malolos route.</p>
 
-  <details class="guide-box">
-    <summary class="guide-summary">Mga Update (I-tap para makita)</summary>
+  <details class="guide-box" id="changelogDetails">
+    <summary class="guide-summary"><span>Mga Update (I-tap para makita)<span class="update-badge" id="updateBadge" style="display:none;"></span></span></summary>
     <div class="guide-body">
       <ul class="changelog-list">
+        <li class="changelog-item">
+          <span class="changelog-version">v4.9.20</span>
+          <span class="changelog-text">📏 Inilipat ang Session stats at Session History papunta sa ibaba ng Complete Trip, para mas maikli na ang scroll mula Pasahero hanggang sa Sukli Calculator.<span class="changelog-date">September 8, 2026</span></span>
+          </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v4.9.19</span>
+          <span class="changelog-text">🔀 Inilipat ang "Complete Trip" button papunta sa Sukli Calculator (sa ibaba ng sukli result), base sa suggestion — para hindi na kailangang mag-scroll pataas kada tapos ng byahe.<span class="changelog-date">September 8, 2026</span></span>
+          </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v4.9.18</span>
+          <span class="changelog-text">🔔 May red dot na ngayon sa "Mga Update" tab kapag may bagong update na hindi mo pa nakikita. 📱 May reminder na rin kapag binuksan mo ang Fare Matrix sa loob ng TikTok, Facebook, o Instagram, para malaman mong i-open sa Chrome para gumana ang Share at Install.<span class="changelog-date">August 30, 2026</span></span>
+          </li>
+        <li class="changelog-item">
+          <span class="changelog-version">v4.9.17</span>
+          <span class="changelog-text">📤 Naayos ang "Share Fare Matrix" para sa mga browser na walang native share feature — dati "Copy Link" lang ang lumalabas, ngayon may direktang buttons na para sa Facebook, Messenger, WhatsApp, at Telegram.<span class="changelog-date">August 30, 2026</span></span>
+          </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.16</span>
           <span class="changelog-text">💬 Idinagdag ang "Join TikTok Group Chat" button, nasa ibaba ng "Join Our Discord" para madaling makita.<span class="changelog-date">August 26, 2026</span></span>
@@ -2269,7 +2421,7 @@ select:disabled,
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9.16 &middot; updated August 26, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.20 &middot; updated September 8, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -2720,31 +2872,74 @@ featureTabs.forEach(tab => {
 // SHARE BUTTON
 // ============================================================
 const shareBtn = document.getElementById('shareBtn');
+const SHARE_URL = 'https://aizen807.github.io/dns-fare-guide1/';
+const SHARE_TEXT = '🚐 Calculate fares for Diesel N Steel (Roblox)! Pick your route, passengers, and get instant fare + sukli!';
+
 if (shareBtn) {
   shareBtn.addEventListener('click', function() {
     SoundFX.play('click');
     hapticLight();
-    
+
     if (navigator.share) {
       navigator.share({
         title: 'Fare Matrix — Diesel N Steel Calculator',
-        text: '🚐 Calculate fares for Diesel N Steel (Roblox)! Pick your route, passengers, and get instant fare + sukli!',
-        url: window.location.href
-      }).catch(() => {});
+        text: SHARE_TEXT,
+        url: SHARE_URL
+      }).catch((err) => {
+        // AbortError means the person deliberately closed/cancelled the
+        // native share sheet — respect that, don't show anything else.
+        // Any other error means the native share genuinely failed, so
+        // fall back to our own share menu instead of leaving them stuck.
+        if (err && err.name !== 'AbortError') {
+          openShareModal();
+        }
+      });
     } else {
-      const url = window.location.href;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(() => {
-          showToast('📋 Link copied! Share it with your friends!');
-        }).catch(() => {
-          copyFallback(url);
-        });
-      } else {
-        copyFallback(url);
-      }
+      openShareModal();
     }
   });
 }
+
+function openShareModal() {
+  const encodedUrl = encodeURIComponent(SHARE_URL);
+  const encodedText = encodeURIComponent(SHARE_TEXT);
+
+  document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+  document.getElementById('shareMessenger').href = `fb-messenger://share/?link=${encodedUrl}`;
+  document.getElementById('shareWhatsapp').href = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
+  document.getElementById('shareTelegram').href = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
+
+  ['shareFacebook', 'shareMessenger', 'shareWhatsapp', 'shareTelegram'].forEach(id => {
+    document.getElementById(id).target = '_blank';
+    document.getElementById(id).rel = 'noopener';
+  });
+
+  document.getElementById('shareModalOverlay').style.display = 'flex';
+}
+
+function closeShareModal() {
+  document.getElementById('shareModalOverlay').style.display = 'none';
+}
+
+document.getElementById('shareModalClose').addEventListener('click', closeShareModal);
+document.getElementById('shareModalOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'shareModalOverlay') closeShareModal();
+});
+
+document.getElementById('shareCopyLink').addEventListener('click', () => {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(SHARE_URL).then(() => {
+      showToast('📋 Link copied! Share it with your friends!');
+      closeShareModal();
+    }).catch(() => {
+      copyFallback(SHARE_URL);
+      closeShareModal();
+    });
+  } else {
+    copyFallback(SHARE_URL);
+    closeShareModal();
+  }
+});
 
 function copyFallback(text) {
   const textarea = document.createElement('textarea');
@@ -4052,6 +4247,74 @@ document.getElementById("countSenior").textContent = paxCounts.senior;
 buildQuickAmounts();
 refreshRoute();
 updateSessionDisplay();
+
+// ============================================================
+// NEW UPDATE BADGE
+// ============================================================
+const CURRENT_VERSION = "4.9.20";
+const LAST_SEEN_VERSION_KEY = "fareMatrixLastSeenVersion";
+
+function checkNewUpdateBadge() {
+  try {
+    const lastSeen = localStorage.getItem(LAST_SEEN_VERSION_KEY);
+    if (lastSeen !== CURRENT_VERSION) {
+      document.getElementById("updateBadge").style.display = "inline-block";
+    }
+  } catch (err) {}
+}
+
+function markUpdatesSeen() {
+  try { localStorage.setItem(LAST_SEEN_VERSION_KEY, CURRENT_VERSION); } catch (err) {}
+  document.getElementById("updateBadge").style.display = "none";
+}
+
+document.getElementById("changelogDetails").addEventListener("toggle", (e) => {
+  if (e.target.open) markUpdatesSeen();
+});
+
+checkNewUpdateBadge();
+
+// ============================================================
+// IN-APP BROWSER DETECTION
+// ============================================================
+const INAPP_DISMISS_KEY = "fareMatrixInAppBannerDismissed";
+
+function detectInAppBrowser() {
+  const ua = navigator.userAgent || "";
+  const patterns = [
+    { name: "TikTok", regex: /musical_ly|BytedanceWebview|TikTok/i },
+    { name: "Facebook", regex: /FBAN|FBAV|FB_IAB/i },
+    { name: "Instagram", regex: /Instagram/i },
+    { name: "Messenger", regex: /MessengerLiteForiOS|OrcaAndroid|Messenger/i },
+    { name: "Line", regex: /\bLine\// },
+    { name: "Twitter/X", regex: /Twitter/i }
+  ];
+  for (const p of patterns) {
+    if (p.regex.test(ua)) return p.name;
+  }
+  return null;
+}
+
+function initInAppBanner() {
+  let dismissed = false;
+  try { dismissed = localStorage.getItem(INAPP_DISMISS_KEY) === "1"; } catch (err) {}
+  if (dismissed) return;
+
+  const appName = detectInAppBrowser();
+  if (!appName) return;
+
+  const banner = document.getElementById("inAppBanner");
+  document.getElementById("inAppBannerText").innerHTML =
+    `⚠️ Binuksan mo ito sa loob ng <b>${appName}</b>. Para gumana ang Share at Install, i-tap ang <b>⋯</b> sa taas ng screen → <b>"Open in Browser"</b> (Chrome).`;
+  banner.style.display = "flex";
+
+  document.getElementById("inAppBannerClose").onclick = () => {
+    banner.style.display = "none";
+    try { localStorage.setItem(INAPP_DISMISS_KEY, "1"); } catch (err) {}
+  };
+}
+
+initInAppBanner();
 
 // ============================================================
 // GOATCOUNTER ANALYTICS

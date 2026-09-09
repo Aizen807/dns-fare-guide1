@@ -333,6 +333,58 @@ button, select, .recent-chip, .route-tab, .quick-btn, .complete-trip-btn,
   cursor:pointer;
   padding:0 2px;
 }
+.sticky-dest-bar{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:900;
+  background:var(--panel);
+  border-bottom:2px solid var(--sign);
+  padding:10px 14px;
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.45);
+  animation:stickySlideDown 0.2s ease;
+}
+@keyframes stickySlideDown{
+  from{transform:translateY(-100%);opacity:0;}
+  to{transform:translateY(0);opacity:1;}
+}
+.sticky-dest-field{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0;}
+.sticky-dest-field label{
+  font-family:'Oswald',sans-serif;
+  font-size:9.5px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--paper-dim);
+}
+.sticky-dest-field select{
+  width:100%;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  font-weight:600;
+  font-size:12.5px;
+  border:none;
+  border-radius:6px;
+  padding:8px 6px;
+}
+.sticky-swap-btn{
+  flex:0 0 34px;
+  height:34px;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-radius:6px;
+  color:var(--sign);
+  font-size:15px;
+  cursor:pointer;
+  margin-bottom:1px;
+}
+.sticky-swap-btn:disabled{
+  opacity:0.45;
+  cursor:not-allowed;
+  filter:grayscale(0.4);
+}
 .plate-row{display:flex;align-items:center;gap:14px;margin-bottom:6px;}
 .plate{
   background:var(--sign);
@@ -1791,6 +1843,18 @@ select:disabled,
     <button class="inapp-banner-close" id="inAppBannerClose" aria-label="Isara">&times;</button>
   </div>
 
+  <div class="sticky-dest-bar" id="stickyDestBar" style="display:none;">
+    <div class="sticky-dest-field">
+      <label>Pickup</label>
+      <select id="stickyFromSelect"></select>
+    </div>
+    <button class="sticky-swap-btn" id="stickySwapBtn" title="Swap">&#8646;</button>
+    <div class="sticky-dest-field">
+      <label>Drop-off</label>
+      <select id="stickyToSelect"></select>
+    </div>
+  </div>
+
   <div class="plate-row">
     <div class="plate">05</div>
     <div class="eyebrow">Diesel N Steel</div>
@@ -2227,12 +2291,16 @@ select:disabled,
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.9.21</span>
+          <span class="changelog-text">📌 (Experimental) May sticky Pickup/Drop-off bar na ngayon na lumalabas sa taas kapag nag-scroll ka pababa, para hindi na kailangang bumalik pataas para pumili ng susunod na destinasyon.<span class="changelog-date">September 8, 2026</span></span>
+          </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.9.20</span>
           <span class="changelog-text">📏 Inilipat ang Session stats at Session History papunta sa ibaba ng Complete Trip, para mas maikli na ang scroll mula Pasahero hanggang sa Sukli Calculator.<span class="changelog-date">September 8, 2026</span></span>
           </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.19</span>
-          <span class="changelog-text">🔀 Inilipat ang "Complete Trip" button papunta sa Sukli Calculator (sa ibaba ng sukli result), base sa suggestion — para hindi na kailangang mag-scroll pataas kada tapos ng byahe.<span class="changelog-date">September 8, 2026</span></span>
+          <span class="changelog-text">🔀 Inilipat ang "Complete Trip" button papunta sa Sukli Calculator (sa ibaba ng sukli result), base sa suggestion para hindi na kailangang mag-scroll pataas kada tapos ng byahe.<span class="changelog-date">September 8, 2026</span></span>
           </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.18</span>
@@ -2240,7 +2308,7 @@ select:disabled,
           </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.17</span>
-          <span class="changelog-text">📤 Naayos ang "Share Fare Matrix" para sa mga browser na walang native share feature — dati "Copy Link" lang ang lumalabas, ngayon may direktang buttons na para sa Facebook, Messenger, WhatsApp, at Telegram.<span class="changelog-date">August 30, 2026</span></span>
+          <span class="changelog-text">📤 Naayos ang "Share Fare Matrix" para sa mga browser na walang native share feature dati "Copy Link" lang ang lumalabas, ngayon may direktang buttons na para sa Facebook, Messenger, WhatsApp, at Telegram.<span class="changelog-date">August 30, 2026</span></span>
           </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.16</span>
@@ -2421,7 +2489,7 @@ select:disabled,
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9.20 &middot; updated September 8, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.21 &middot; updated September 8, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -2887,7 +2955,7 @@ if (shareBtn) {
         url: SHARE_URL
       }).catch((err) => {
         // AbortError means the person deliberately closed/cancelled the
-        // native share sheet — respect that, don't show anything else.
+        // native share sheet respect that, don't show anything else.
         // Any other error means the native share genuinely failed, so
         // fall back to our own share menu instead of leaving them stuck.
         if (err && err.name !== 'AbortError') {
@@ -3545,6 +3613,17 @@ function buildSelects() {
   });
   fromSelect.selectedIndex = 0;
   toSelect.selectedIndex = flat.length - 1;
+  syncStickySelects();
+}
+
+function syncStickySelects() {
+  const stickyFrom = document.getElementById("stickyFromSelect");
+  const stickyTo = document.getElementById("stickyToSelect");
+  if (!stickyFrom || !stickyTo) return;
+  stickyFrom.innerHTML = fromSelect.innerHTML;
+  stickyTo.innerHTML = toSelect.innerHTML;
+  stickyFrom.value = fromSelect.value;
+  stickyTo.value = toSelect.value;
 }
 
 function buildRouteList() {
@@ -3712,6 +3791,7 @@ document.getElementById("swapBtn").onclick = () => {
   const tmp = fromSelect.value;
   fromSelect.value = toSelect.value;
   toSelect.value = tmp;
+  syncStickySelects();
   SoundFX.play('click');
   hapticLight();
   computeFareDebounced();
@@ -3732,13 +3812,57 @@ function updateTripLockState() {
   fromSelect.disabled = locked;
   toSelect.disabled = locked;
   document.getElementById("swapBtn").disabled = locked;
+  document.getElementById("stickyFromSelect").disabled = locked;
+  document.getElementById("stickyToSelect").disabled = locked;
+  document.getElementById("stickySwapBtn").disabled = locked;
   document.querySelectorAll(".route-tab").forEach(tab => tab.classList.toggle("locked", locked));
   document.querySelectorAll(".recent-chip").forEach(chip => chip.classList.toggle("locked", locked));
   document.querySelectorAll(".favorite-chip").forEach(chip => chip.classList.toggle("locked", locked));
 }
 
-fromSelect.addEventListener("change", () => { SoundFX.play('click'); updateTripLockState(); computeFareDebounced(); });
-toSelect.addEventListener("change", () => { SoundFX.play('click'); updateTripLockState(); computeFareDebounced(); });
+fromSelect.addEventListener("change", () => { syncStickySelects(); SoundFX.play('click'); updateTripLockState(); computeFareDebounced(); });
+toSelect.addEventListener("change", () => { syncStickySelects(); SoundFX.play('click'); updateTripLockState(); computeFareDebounced(); });
+
+const stickyFromSelect = document.getElementById("stickyFromSelect");
+const stickyToSelect = document.getElementById("stickyToSelect");
+
+stickyFromSelect.addEventListener("change", () => {
+  fromSelect.value = stickyFromSelect.value;
+  SoundFX.play('click');
+  updateTripLockState();
+  computeFareDebounced();
+});
+stickyToSelect.addEventListener("change", () => {
+  toSelect.value = stickyToSelect.value;
+  SoundFX.play('click');
+  updateTripLockState();
+  computeFareDebounced();
+});
+
+document.getElementById("stickySwapBtn").onclick = () => {
+  if (isTripLocked()) {
+    showLockedMessage();
+    return;
+  }
+  const tmp = fromSelect.value;
+  fromSelect.value = toSelect.value;
+  toSelect.value = tmp;
+  syncStickySelects();
+  SoundFX.play('click');
+  hapticLight();
+  computeFareDebounced();
+};
+
+const stickyDestBar = document.getElementById("stickyDestBar");
+const destFieldRow = document.querySelector(".field-row");
+if (destFieldRow && "IntersectionObserver" in window) {
+  const stickyObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      stickyDestBar.style.display = entry.isIntersecting ? "none" : "flex";
+    });
+  }, { threshold: 0 });
+  stickyObserver.observe(destFieldRow);
+}
 document.getElementById('pinRouteBtn').addEventListener('click', togglePinCurrentRoute);
 paidInput.addEventListener("input", computeSukli);
 
@@ -3824,6 +3948,7 @@ function renderFavoriteChips() {
       if (fav.fromValue && fav.toValue) {
         fromSelect.value = fav.fromValue;
         toSelect.value = fav.toValue;
+        syncStickySelects();
       }
       SoundFX.play('click');
       hapticLight();
@@ -3870,6 +3995,7 @@ function renderRecentChips() {
       if (dest.fromValue && dest.toValue) {
         fromSelect.value = dest.fromValue;
         toSelect.value = dest.toValue;
+        syncStickySelects();
       }
       SoundFX.play('click');
       hapticLight();
@@ -4251,7 +4377,7 @@ updateSessionDisplay();
 // ============================================================
 // NEW UPDATE BADGE
 // ============================================================
-const CURRENT_VERSION = "4.9.20";
+const CURRENT_VERSION = "4.9.21";
 const LAST_SEEN_VERSION_KEY = "fareMatrixLastSeenVersion";
 
 function checkNewUpdateBadge() {

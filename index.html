@@ -1525,6 +1525,44 @@ select:disabled,
   transition:all 0.2s ease;
   position:relative;
 }
+.tutorial-step{
+  display:flex;
+  gap:14px;
+  background:var(--panel-2);
+  border:2px solid var(--line);
+  border-radius:10px;
+  padding:14px;
+  margin-bottom:12px;
+}
+.tutorial-step-num{
+  flex:0 0 32px;
+  height:32px;
+  background:var(--sign);
+  color:var(--sign-deep);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Anton',sans-serif;
+  font-size:15px;
+}
+.tutorial-step-body{flex:1;min-width:0;}
+.tutorial-step-title{
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  color:var(--paper);
+  margin-bottom:4px;
+}
+.tutorial-step-text{
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  color:var(--paper-dim);
+  line-height:1.5;
+}
+.tutorial-step-text b{color:var(--sign);}
+.tutorial-step.warning{border-color:var(--route-red);background:rgba(194,60,42,0.08);}
+.tutorial-step.warning .tutorial-step-num{background:var(--route-red);color:#fff;}
 .code-card:hover{
   border-color:var(--sign);
   transform:translateY(-2px);
@@ -1873,6 +1911,9 @@ select:disabled,
     <div class="feature-tab" data-feature="fuel">
       <span class="icon">⛽</span> Fuel Calculator
     </div>
+    <div class="feature-tab" data-feature="tutorial">
+      <span class="icon">🎓</span> Tutorial
+    </div>
   </div>
 
   <!-- Rush Hour Panel -->
@@ -1955,7 +1996,7 @@ select:disabled,
         <div class="pax-row" data-type="regular">
           <div class="pax-info">
             <span class="pax-name">Regular</span>
-            <span class="pax-fare" id="fareRegular">&#8369;13</span>
+            <span class="pax-fare" id="fareRegular">&#8369;14</span>
           </div>
           <div class="pax-stepper">
             <button class="step-btn" data-type="regular" data-action="dec" aria-label="Remove regular passenger">&minus;</button>
@@ -1966,7 +2007,7 @@ select:disabled,
         <div class="pax-row" data-type="student">
           <div class="pax-info">
             <span class="pax-name">Student</span>
-            <span class="pax-fare" id="fareStudent">&#8369;11</span>
+            <span class="pax-fare" id="fareStudent">&#8369;12</span>
           </div>
           <div class="pax-stepper">
             <button class="step-btn" data-type="student" data-action="dec" aria-label="Remove student passenger">&minus;</button>
@@ -1977,7 +2018,7 @@ select:disabled,
         <div class="pax-row" data-type="senior">
           <div class="pax-info">
             <span class="pax-name">Senior</span>
-            <span class="pax-fare" id="fareSenior">&#8369;11</span>
+            <span class="pax-fare" id="fareSenior">&#8369;12</span>
           </div>
           <div class="pax-stepper">
             <button class="step-btn" data-type="senior" data-action="dec" aria-label="Remove senior passenger">&minus;</button>
@@ -1989,7 +2030,7 @@ select:disabled,
 
       <div class="fare-display" id="fareDisplay">
         <div class="fare-label">Total fare</div>
-        <div class="fare-amount"><span>&#8369;</span><span id="fareOut" aria-live="polite">13</span></div>
+        <div class="fare-amount"><span>&#8369;</span><span id="fareOut" aria-live="polite">14</span></div>
         <div class="fare-breakdown" id="breakdownOut" aria-live="polite"></div>
       </div>
 
@@ -2001,7 +2042,7 @@ select:disabled,
       <div class="sukli-grid">
         <div class="field">
           <label>Total fare (php)</label>
-          <input type="number" id="fareInput" value="13" min="0" step="1" readonly aria-label="Total fare amount">
+          <input type="number" id="fareInput" value="14" min="0" step="1" readonly aria-label="Total fare amount">
         </div>
         <div class="field">
           <label>Binayad (php)</label>
@@ -2194,6 +2235,82 @@ select:disabled,
   </div>
 
   <!-- ============================================================
+       FEATURE: TUTORIAL
+       ============================================================ -->
+  <div class="feature-content" id="featureTutorial">
+    <div class="board">
+      <div class="section-title" style="margin-top:0;">🎓 Paano Gamitin ang Fare Matrix</div>
+      <p class="section-subtitle">Sundan lang ang mga steps na ito. Kung galing ka man sa TikTok o sa ibang paraan mo nakita ito, dito mo makikita lahat ng kailangan mo.</p>
+
+      <div class="tutorial-step">
+        <div class="tutorial-step-num">1</div>
+        <div class="tutorial-step-body">
+          <div class="tutorial-step-title">Piliin ang Route</div>
+          <div class="tutorial-step-text">Sa taas, pumili ng <b>Balagtas, Guiguinto, o Malolos</b> depende sa route na tinatakbo mo.</div>
+        </div>
+      </div>
+
+      <div class="tutorial-step">
+        <div class="tutorial-step-num">2</div>
+        <div class="tutorial-step-body">
+          <div class="tutorial-step-title">Pumili ng Pickup at Drop-off</div>
+          <div class="tutorial-step-text">I-set ang barangay kung saan sumakay ang pasahero at kung saan siya bababa. May <b>swap button</b> (⇄) kung gusto mong i-baligtad agad ang dalawa.</div>
+        </div>
+      </div>
+
+      <div class="tutorial-step">
+        <div class="tutorial-step-num">3</div>
+        <div class="tutorial-step-body">
+          <div class="tutorial-step-title">Idagdag ang Pasahero</div>
+          <div class="tutorial-step-text">I-tap ang <b>+</b> sa Regular, Student, o Senior depende sa bilang at klase ng pasahero. Makikita agad ang <b>Total Fare</b> sa ibaba base dito.</div>
+        </div>
+      </div>
+
+      <div class="tutorial-step warning">
+        <div class="tutorial-step-num">⚠</div>
+        <div class="tutorial-step-body">
+          <div class="tutorial-step-title">Bakit Naka-lock ang Route/Pickup/Drop-off?</div>
+          <div class="tutorial-step-text">Kapag may pasaherong naka-add na, <b>naka-lock</b> ang Route, Pickup, Drop-off, Swap, at mga chips para hindi ka magkamali ng sukli. I-tap ang <b>Complete Trip</b> o <b>Clear</b> para ma-unlock ulit.</div>
+        </div>
+      </div>
+
+      <div class="tutorial-step">
+        <div class="tutorial-step-num">4</div>
+        <div class="tutorial-step-body">
+          <div class="tutorial-step-title">Ilagay ang Binayad ng Pasahero</div>
+          <div class="tutorial-step-text">Sa Sukli Calculator, i-type o i-tap ang quick amount (₱20, ₱50, ₱100) na binayad sa iyo. Awtomatiko nang lalabas ang tamang <b>sukli</b>.</div>
+        </div>
+      </div>
+
+      <div class="tutorial-step">
+        <div class="tutorial-step-num">5</div>
+        <div class="tutorial-step-body">
+          <div class="tutorial-step-title">I-tap ang Complete Trip</div>
+          <div class="tutorial-step-text">Nasa ibaba ng sukli result ang button na ito. Ito ang mag-sa-save ng fare papunta sa iyong <b>Session Total</b>, at mag-a-unlock din ng Route/Pickup/Drop-off para sa susunod na pasahero.</div>
+        </div>
+      </div>
+
+      <div class="tutorial-step">
+        <div class="tutorial-step-num">6</div>
+        <div class="tutorial-step-body">
+          <div class="tutorial-step-title">I-save o Tingnan ang Session</div>
+          <div class="tutorial-step-text">Makikita mo sa ibaba ng Complete Trip ang bilang ng trips at kinita mo. Pwede mo itong i-save bilang "Biyahe" para may record ka kada shift.</div>
+        </div>
+      </div>
+
+      <div class="tutorial-step">
+        <div class="tutorial-step-num">7</div>
+        <div class="tutorial-step-body">
+          <div class="tutorial-step-title">May Sticky Bar</div>
+          <div class="tutorial-step-text">Kapag nag-scroll ka pababa, may lalabas na maliit na Pickup/Drop-off bar sa taas ng screen, para hindi mo na kailangang bumalik pataas para pumili ng susunod na destinasyon.</div>
+        </div>
+      </div>
+
+      <p class="guide-video-note">Gusto mo ng buong video walkthrough? Panoorin ang <a href="https://www.tiktok.com/@aizen622/video/7664919817056488724" target="_blank" rel="noopener">video tutorial</a> namin sa TikTok.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================
        SHARE & RATE SECTION
        ============================================================ -->
   <div class="section-title">📤 Share & Rate</div>
@@ -2291,8 +2408,12 @@ select:disabled,
     <div class="guide-body">
       <ul class="changelog-list">
         <li class="changelog-item">
+          <span class="changelog-version">v4.9.22</span>
+          <span class="changelog-text">🎓 Idinagdag ang bagong Tutorial tab may step-by-step guide, kasama ang paliwanag kung bakit naka-lock ang Route/Pickup/Drop-off. Para sa mga hindi galing TikTok o hindi pa nakapanood ng video.<span class="changelog-date">September 17, 2026</span></span>
+          </li>
+        <li class="changelog-item">
           <span class="changelog-version">v4.9.21</span>
-          <span class="changelog-text">📌 (Experimental) May sticky Pickup/Drop-off bar na ngayon na lumalabas sa taas kapag nag-scroll ka pababa, para hindi na kailangang bumalik pataas para pumili ng susunod na destinasyon.<span class="changelog-date">September 8, 2026</span></span>
+          <span class="changelog-text">📌 May sticky Pickup/Drop-off bar na ngayon na lumalabas sa taas kapag nag-scroll ka pababa, para hindi na kailangang bumalik pataas para pumili ng susunod na destinasyon.<span class="changelog-date">September 8, 2026</span></span>
           </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.20</span>
@@ -2300,7 +2421,7 @@ select:disabled,
           </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.19</span>
-          <span class="changelog-text">🔀 Inilipat ang "Complete Trip" button papunta sa Sukli Calculator (sa ibaba ng sukli result), base sa suggestion para hindi na kailangang mag-scroll pataas kada tapos ng byahe.<span class="changelog-date">September 8, 2026</span></span>
+          <span class="changelog-text">🔀 Inilipat ang "Complete Trip" button papunta sa Sukli Calculator (sa ibaba ng sukli result), base sa suggestion — para hindi na kailangang mag-scroll pataas kada tapos ng byahe.<span class="changelog-date">September 8, 2026</span></span>
           </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.18</span>
@@ -2308,7 +2429,7 @@ select:disabled,
           </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.17</span>
-          <span class="changelog-text">📤 Naayos ang "Share Fare Matrix" para sa mga browser na walang native share feature dati "Copy Link" lang ang lumalabas, ngayon may direktang buttons na para sa Facebook, Messenger, WhatsApp, at Telegram.<span class="changelog-date">August 30, 2026</span></span>
+          <span class="changelog-text">📤 Naayos ang "Share Fare Matrix" para sa mga browser na walang native share feature — dati "Copy Link" lang ang lumalabas, ngayon may direktang buttons na para sa Facebook, Messenger, WhatsApp, at Telegram.<span class="changelog-date">August 30, 2026</span></span>
           </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.16</span>
@@ -2489,7 +2610,7 @@ select:disabled,
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9.21 &middot; updated September 8, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.22 &middot; updated September 17, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -2725,7 +2846,8 @@ const featureTabs = document.querySelectorAll('.feature-tab');
 const featureContents = {
   fare: document.getElementById('featureFare'),
   codes: document.getElementById('featureCodes'),
-  fuel: document.getElementById('featureFuel')
+  fuel: document.getElementById('featureFuel'),
+  tutorial: document.getElementById('featureTutorial')
 };
 
 // ============================================================
@@ -2955,7 +3077,7 @@ if (shareBtn) {
         url: SHARE_URL
       }).catch((err) => {
         // AbortError means the person deliberately closed/cancelled the
-        // native share sheet respect that, don't show anything else.
+        // native share sheet — respect that, don't show anything else.
         // Any other error means the native share genuinely failed, so
         // fall back to our own share menu instead of leaving them stuck.
         if (err && err.name !== 'AbortError') {
@@ -3519,8 +3641,8 @@ const ROUTES = {
 };
 
 const MINIMUM_UNITS = 4;
-const BASE_REGULAR_FARE = 13;
-const BASE_REDUCED_FARE = 11;
+const BASE_REGULAR_FARE = 14;
+const BASE_REDUCED_FARE = 12;
 const EXTRA_FARE_PER_UNIT = 2;
 
 let currentRoute = "balagtas";
@@ -4377,7 +4499,7 @@ updateSessionDisplay();
 // ============================================================
 // NEW UPDATE BADGE
 // ============================================================
-const CURRENT_VERSION = "4.9.21";
+const CURRENT_VERSION = "4.9.22";
 const LAST_SEEN_VERSION_KEY = "fareMatrixLastSeenVersion";
 
 function checkNewUpdateBadge() {

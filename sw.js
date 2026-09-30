@@ -1,4 +1,4 @@
-const CACHE_NAME = "fare-matrix-v4921";
+const CACHE_NAME = "fare-matrix-v4923";
 const ASSETS = [
   "./",
   "./index.html",

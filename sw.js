@@ -1,4 +1,4 @@
-const CACHE_NAME = "fare-matrix-v4923";
+const CACHE_NAME = "fare-matrix-v4924";
 const ASSETS = [
   "./",
   "./index.html",
@@ -16,7 +16,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('[SW] Caching assets v4.9.9');
+        console.log('[SW] Caching assets v4.9.24');
         return Promise.all(
           ASSETS.map((asset) =>
             cache.add(asset).catch((err) => {

@@ -2119,7 +2119,8 @@ select:disabled,
   <div class="feature-content" id="featureFuel">
     <div class="board">
       <div class="section-title" style="margin-top:0;">⛽ Fuel Calculator</div>
-      <p class="section-subtitle">Kalkulahin kung magkano ang gastos para magpa-full tank o magdagdag ng specific na dami ng gasolina sa iyong jeepney.</p>
+      <p class="section-subtitle">Tantiyahin ang gastos sa fuel gamit ang naka-save na reference prices. Hindi live o kumpirmadong kasalukuyang presyo ang mga halagang ito; i-check muna ang aktuwal na presyo sa game.</p>
+      <p class="section-subtitle" id="fuelUpdateNotice"><b>Oil announcement — October 18, 2026:</b> Tinatayang diesel increase na ₱0.50–₱1.50/L, nakatakda para sa October 20, 2026. Wala pang kumpirmasyon na ipinatupad ito. Naka-strikethrough ang gasoline at kerosene rollback figures, kaya hindi sila kumpirmadong rollback. Hindi inilapat ang estimate sa station prices sa ibaba. <a href="https://discord.com/channels/1361848400047374397/1536727728303251596/1561310314497052704" target="_blank" rel="noopener">Tingnan ang Discord post</a>.</p>
 
       <!-- Gas Station Selector with Image -->
       <div style="margin-bottom:16px;">
@@ -2152,14 +2153,14 @@ select:disabled,
       <!-- Best Station Recommendation -->
       <div id="bestStationPanel">
         <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--paper-dim);margin-bottom:2px;">
-          🏆 Best Station for <span id="bestFuelTypeName" style="color:var(--sign);">Diesel</span>
+          Lowest unverified reference for <span id="bestFuelTypeName" style="color:var(--sign);">Diesel</span>
         </div>
         <div style="font-family:'Anton',sans-serif;font-size:22px;color:var(--ok);" id="bestStationName" aria-live="polite">
-          Gas Station 2
+          Loading reference values
         </div>
         <div style="font-family:'Inter',sans-serif;font-size:13px;color:var(--paper);">
-          ₱<span id="bestStationPrice">85.64</span> per liter
-          <span id="bestStationSavings" style="font-size:12px;color:var(--sign);margin-left:8px;">(Save ₱4.58 vs Station 3)</span>
+          ₱<span id="bestStationPrice">—</span> per liter — not a confirmed current price
+          <span id="bestStationSavings" style="font-size:12px;color:var(--sign);margin-left:8px;"></span>
         </div>
       </div>
 
@@ -2181,23 +2182,23 @@ select:disabled,
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
           <span id="fuelInfoIcon" style="font-size:20px;">🛢️</span>
           <span id="fuelInfoName" style="font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;color:var(--sign);">Diesel</span>
-          <span id="fuelInfoBadge" style="font-family:'Oswald',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 10px;border-radius:12px;background:var(--fuel-diesel);color:#fff;margin-left:auto;">Best Value</span>
+          <span id="fuelInfoBadge" style="font-family:'Oswald',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 10px;border-radius:12px;background:var(--fuel-diesel);color:#fff;margin-left:auto;">Estimate only</span>
         </div>
         <p id="fuelInfoDesc" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--paper);margin:0 0 4px 0;line-height:1.5;">
-          Mas matipid sa gasolina at mas mura kaysa sa Unleaded at Premium. Ideal para sa long-distance trips at daily driving.
+          Sa October 18, 2026 Discord post, tinatayang tataas ang diesel ng ₱0.50–₱1.50/L sa October 20, 2026. Hindi pa kumpirmadong ipinatupad; hindi ito station-specific na presyo.
         </p>
         <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
-          <span id="fuelInfoPros" style="font-size:12px;color:var(--ok);">✅ Matipid</span>
-          <span id="fuelInfoCons" style="font-size:12px;color:var(--paper-dim);">⚠️ Mas mabagal na acceleration</span>
-          <span id="fuelInfoBestFor" style="font-size:12px;color:var(--sign);">🎯 Long trips</span>
+          <span id="fuelInfoPros" style="font-size:12px;color:var(--ok);">Announced: October 18</span>
+          <span id="fuelInfoCons" style="font-size:12px;color:var(--paper-dim);">Implementation unconfirmed</span>
+          <span id="fuelInfoBestFor" style="font-size:12px;color:var(--sign);">Verify in-game prices</span>
         </div>
       </div>
 
       <!-- Price Display -->
       <div class="fuel-price-display">
-        <div class="fuel-price-label">Price per liter</div>
+        <div class="fuel-price-label">Unverified reference price per liter</div>
         <div class="fuel-price-amount" id="fuelPriceDisplay">
-          ₱86.12
+          —
           <span class="per-liter">/ L</span>
         </div>
       </div>
@@ -2209,7 +2210,7 @@ select:disabled,
           <input type="number" id="fuelAmount" placeholder="0" min="0" step="0.5" value="5">
         </div>
         <div class="field">
-          <label>Total Cost (₱)</label>
+          <label>Reference estimate (₱)</label>
           <input type="number" id="fuelCost" placeholder="0" min="0" step="1" readonly>
         </div>
       </div>
@@ -2226,10 +2227,10 @@ select:disabled,
 
       <!-- Result -->
       <div class="fuel-result" id="fuelResult">
-        <div class="fuel-result-label">Total Fuel Cost</div>
-        <div class="fuel-result-amount" id="fuelResultAmount" aria-live="polite">₱430.60</div>
-        <div class="fuel-result-note" id="fuelResultNote">5L of Diesel @ ₱86.12/L</div>
-        <div class="fuel-result-detail" id="fuelResultDetail">📍 Gas Station 1</div>
+        <div class="fuel-result-label">Fuel Cost Estimate — Unverified Reference</div>
+        <div class="fuel-result-amount" id="fuelResultAmount" aria-live="polite">—</div>
+        <div class="fuel-result-note" id="fuelResultNote">Loading reference estimate; confirm the actual price in-game.</div>
+        <div class="fuel-result-detail" id="fuelResultDetail">Not a confirmed current quote</div>
       </div>
     </div>
   </div>
@@ -2407,6 +2408,10 @@ select:disabled,
     <summary class="guide-summary"><span>Mga Update (I-tap para makita)<span class="update-badge" id="updateBadge" style="display:none;"></span></span></summary>
     <div class="guide-body">
       <ul class="changelog-list">
+        <li class="changelog-item">
+          <span class="changelog-version">v4.9.24</span>
+          <span class="changelog-text">Nilinaw ang October 18 oil announcement: approximate diesel increase lang para sa October 20, hindi pa kumpirmadong ipinatupad. Updated ang fuel-tab messages at descriptions; unverified reference values ang station rates, hindi live prices. Walang station-price adjustment mula sa estimate.<span class="changelog-date">October 25, 2026</span></span>
+        </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.23</span>
           <span class="changelog-text">🚐 Fare increase effective Monday, September 28, 2026: minimum fare is now ₱14 Regular / ₱12 Student & Senior (from ₱13 / ₱11).<span class="changelog-date">October 1, 2026</span></span>
@@ -2614,7 +2619,7 @@ select:disabled,
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9.23 &middot; updated October 1, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.24 &middot; updated October 25, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -3284,7 +3289,8 @@ renderCodes();
 // FUEL CALCULATOR - WITH GAS STATION IMAGES & INFO PANEL
 // ============================================================
 
-// Gas Station Data - All 5 Stations
+// Existing stored reference values only — not verified current or live prices.
+// The approximate Oct 18 announcement has NOT been applied to these values.
 const GAS_STATIONS = {
   station1: {
     name: "Gas Station 1",
@@ -3321,31 +3327,31 @@ const FUEL_INFO = {
     name: "Diesel",
     icon: "🛢️",
     color: "var(--fuel-diesel)",
-    badge: "Best Value",
-    description: "Mas matipid sa gasolina at mas mura kaysa sa Unleaded at Premium. Ideal para sa long-distance trips at daily driving.",
-    pros: "✅ Matipid",
-    cons: "⚠️ Mas mabagal na acceleration",
-    bestFor: "🎯 Long trips"
+    badge: "Estimate only",
+    description: "Sa October 18, 2026 Discord post, tinatayang tataas ang diesel ng ₱0.50–₱1.50/L sa October 20, 2026. Hindi pa kumpirmadong ipinatupad; hindi ito station-specific na presyo.",
+    pros: "Announced: October 18",
+    cons: "Implementation unconfirmed",
+    bestFor: "Verify in-game prices"
   },
   unleaded: {
     name: "Unleaded",
     icon: "⛽",
     color: "var(--fuel-unleaded)",
-    badge: "Balanced",
-    description: "Standard na gasolina na ginagamit ng karamihan. Magandang balance ng performance at presyo.",
-    pros: "✅ Balanced performance",
-    cons: "⚠️ Mas mahal konti sa Diesel",
-    bestFor: "🎯 Daily driving"
+    badge: "No confirmed change",
+    description: "Naka-strikethrough ang gasoline rollback figures sa October 18, 2026 Discord post. Walang kumpirmadong Unleaded adjustment o station-specific na presyo sa post; hindi ito batayan para magbawas ng presyo.",
+    pros: "Source: October 18",
+    cons: "Rollback not confirmed",
+    bestFor: "Verify in-game prices"
   },
   premium: {
     name: "Premium",
     icon: "🔥",
     color: "var(--fuel-premium)",
-    badge: "Best Performance",
-    description: "Pinakamalakas na acceleration at top speed. Para sa mga nagmamadali o nagha-harabas.",
-    pros: "✅ Pinakamabilis",
-    cons: "⚠️ Pinakamahal",
-    bestFor: "🎯 Speed/Performance"
+    badge: "No confirmed change",
+    description: "Walang Premium-specific adjustment o station prices sa October 18, 2026 Discord post. Naka-strikethrough ang gasoline at kerosene rollback figures; walang kumpirmadong rollback na mailalapat sa Premium.",
+    pros: "Source: October 18",
+    cons: "Rollback not confirmed",
+    bestFor: "Verify in-game prices"
   }
 };
 
@@ -3353,7 +3359,7 @@ let currentFuel = 'diesel';
 let currentStation = 'station1';
 
 function getFuelPrices() {
-  return GAS_STATIONS[currentStation]?.prices || { diesel: 86.12, unleaded: 84.26, premium: 87.43 };
+  return GAS_STATIONS[currentStation]?.prices || GAS_STATIONS.station1.prices;
 }
 
 function updateStationDisplay() {
@@ -3480,12 +3486,12 @@ function updateBestStation() {
   const savingsEl = document.getElementById('bestStationSavings');
   
   if (result.savings > 0 && result.mostExpensiveName) {
-    savingsEl.textContent = `(Save ₱${result.savings.toFixed(2)} vs ${result.mostExpensiveName})`;
+    savingsEl.textContent = `(Reference difference: ₱${result.savings.toFixed(2)} vs ${result.mostExpensiveName})`;
     savingsEl.style.display = 'inline';
     savingsEl.style.color = 'var(--sign)';
     savingsEl.className = '';
   } else if (result.allPrices.length > 1 && result.savings === 0) {
-    savingsEl.textContent = '(All stations have the same price)';
+    savingsEl.textContent = '(All stored reference prices are equal)';
     savingsEl.style.display = 'inline';
     savingsEl.style.color = 'var(--paper-dim)';
     savingsEl.className = 'equal-price';
@@ -3508,7 +3514,7 @@ function updateBestStation() {
 
 function updateFuelUI() {
   const prices = getFuelPrices();
-  const price = prices[currentFuel] || 86.12;
+  const price = prices[currentFuel] ?? GAS_STATIONS.station1.prices[currentFuel];
   document.getElementById('fuelPriceDisplay').innerHTML = `₱${price.toFixed(2)} <span class="per-liter">/ L</span>`;
   
   document.querySelectorAll('.fuel-tab').forEach(t => {
@@ -3523,7 +3529,7 @@ function updateFuelUI() {
 
 function calculateFuel() {
   const prices = getFuelPrices();
-  const price = prices[currentFuel] || 86.12;
+  const price = prices[currentFuel] ?? GAS_STATIONS.station1.prices[currentFuel];
   const amountInput = document.getElementById('fuelAmount');
   const costInput = document.getElementById('fuelCost');
   const resultAmount = document.getElementById('fuelResultAmount');
@@ -3550,10 +3556,10 @@ function calculateFuel() {
   resultAmount.textContent = `₱${cost.toFixed(2)}`;
   
   const fuelNames = { diesel: 'Diesel', unleaded: 'Unleaded', premium: 'Premium' };
-  resultNote.textContent = `${amount}L of ${fuelNames[currentFuel]} @ ₱${price.toFixed(2)}/L`;
+  resultNote.textContent = `${amount}L of ${fuelNames[currentFuel]} @ ₱${price.toFixed(2)}/L (unverified reference)`;
   
   const station = GAS_STATIONS[currentStation];
-  resultDetail.textContent = `📍 ${station.name}`;
+  resultDetail.textContent = `📍 ${station.name} — confirm actual price in-game`;
   document.getElementById('fuelResult').style.borderColor = 'var(--jeep-green)';
 }
 
@@ -4503,7 +4509,7 @@ updateSessionDisplay();
 // ============================================================
 // NEW UPDATE BADGE
 // ============================================================
-const CURRENT_VERSION = "4.9.23";
+const CURRENT_VERSION = "4.9.24";
 const LAST_SEEN_VERSION_KEY = "fareMatrixLastSeenVersion";
 
 function checkNewUpdateBadge() {

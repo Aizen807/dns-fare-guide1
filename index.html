@@ -279,6 +279,37 @@
   outline-offset:2px;
 }
 
+.sukli-btn {
+  display:block;
+  width:100%;
+  background:var(--jeep-green);
+  border:2px solid var(--jeep-green);
+  color:#fff;
+  font-family:'Oswald',sans-serif;
+  font-weight:700;
+  font-size:16px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:14px;
+  border-radius:8px;
+  text-align:center;
+  text-decoration:none;
+  transition:all 0.2s ease;
+}
+.sukli-btn:hover {
+  background:var(--jeep-green-dark);
+  border-color:var(--sign);
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(62,107,74,0.4);
+}
+.sukli-btn:active {
+  transform:scale(0.98);
+}
+.sukli-btn:focus-visible {
+  outline:3px solid var(--sign);
+  outline-offset:2px;
+}
+
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -2371,6 +2402,17 @@ select:disabled,
   </div>
 
   <!-- ============================================================
+       AUTO SUKLI FOR MOBILE SECTION
+       ============================================================ -->
+  <div class="section-title">📱 Auto Sukli for Mobile</div>
+  <div class="board">
+    <p class="section-subtitle">Gawa rin ni Aizen: ang Auto Sukli para sa mobile. Android lang, direct APK download, at hindi ito galing sa Google Play.</p>
+    <a href="https://auto-sukli-download.ambitious-creator.workers.dev/" target="_blank" rel="noopener noreferrer" class="sukli-btn">
+      📱 I-download ang Auto Sukli
+    </a>
+  </div>
+
+  <!-- ============================================================
        FEEDBACK SECTION
        ============================================================ -->
   <div class="section-title">Feedback</div>
@@ -2408,6 +2450,10 @@ select:disabled,
     <summary class="guide-summary"><span>Mga Update (I-tap para makita)<span class="update-badge" id="updateBadge" style="display:none;"></span></span></summary>
     <div class="guide-body">
       <ul class="changelog-list">
+        <li class="changelog-item">
+          <span class="changelog-version">v4.9.25</span>
+          <span class="changelog-text">📱 Idinagdag ang Auto Sukli for Mobile section na may download link para sa Android.<span class="changelog-date">November 1, 2026</span></span>
+        </li>
         <li class="changelog-item">
           <span class="changelog-version">v4.9.24</span>
           <span class="changelog-text">Nilinaw ang October 18 oil announcement: approximate diesel increase lang para sa October 20, hindi pa kumpirmadong ipinatupad. Updated ang fuel-tab messages at descriptions; unverified reference values ang station rates, hindi live prices. Walang station-price adjustment mula sa estimate.<span class="changelog-date">October 25, 2026</span></span>
@@ -2619,7 +2665,7 @@ select:disabled,
       </ul>
     </div>
   </details>
-  <p class="version-tag">Fare Matrix v4.9.24 &middot; updated October 25, 2026</p>
+  <p class="version-tag">Fare Matrix v4.9.25 &middot; updated November 1, 2026</p>
   <p class="version-tag">Made by Aizen</p>
 
 </div>
@@ -4509,7 +4555,7 @@ updateSessionDisplay();
 // ============================================================
 // NEW UPDATE BADGE
 // ============================================================
-const CURRENT_VERSION = "4.9.24";
+const CURRENT_VERSION = "4.9.25";
 const LAST_SEEN_VERSION_KEY = "fareMatrixLastSeenVersion";
 
 function checkNewUpdateBadge() {
